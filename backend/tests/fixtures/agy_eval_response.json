@@ -1,0 +1,16 @@
+{
+  "fit_score": 85,
+  "fit_tier": "high",
+  "matched_skills": [
+    "Python",
+    "FastAPI",
+    "SQL",
+    "Git"
+  ],
+  "missing_skills": [
+    "Docker",
+    "PostgreSQL"
+  ],
+  "role_readiness_summary": "El candidato cuenta con sólidos fundamentos en Python y desarrollo de servicios con FastAPI, cubriendo las competencias nucleares para un perfil junior.",
+  "actionable_advice": "Desarrolla un proyecto personal levantando una API con FastAPI conteinerizada en Docker y persistencia en PostgreSQL para consolidar la brecha de infraestructura."
+}

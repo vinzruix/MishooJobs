@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-canvas: #09090b;
+    --color-card: #18181b;
+    --color-border: #27272a;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: #f4f4f5;
+    font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+.font-pixel {
+  font-family: 'Press Start 2P', 'GeistPixel', ui-monospace, monospace;
+}
+
+/* Custom scrollbar for developer theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
