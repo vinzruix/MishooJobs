@@ -1,0 +1,368 @@
+openapi: 3.1.0
+info:
+  title: MishooJobs Real-Time Job Discovery API
+  description: >
+    Backend API for MishooJobs - Mexican Junior Job Discovery & Verification Platform.
+    Adheres strictly to the MishooJobs Constitution: zero mandatory accounts, live scraping with zero preloaded data,
+    in-flight URL verification, scam detection, and two-tier AI evaluation via local `agy` CLI.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /api/v1/health:
+    get:
+      summary: Health check & dependency status
+      operationId: getHealthStatus
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatusResponse'
+
+  /api/v1/jobs/stream:
+    get:
+      summary: Progressive live search streaming via Server-Sent Events (SSE)
+      description: >
+        Triggers real-time scraping across Computrabajo, Indeed México, and OCC Mundial.
+        Delivers live results progressively as each portal finishes scraping and URLs are verified.
+        Never returns preloaded or cached search queries.
+      operationId: streamLiveJobs
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Search keywords (e.g. "Python", "Frontend", "Data Analyst")
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 100
+            example: "Python Junior"
+        - name: location
+          in: query
+          required: false
+          description: Target Mexican state or city
+          schema:
+            type: string
+            default: "México"
+            example: "Guadalajara"
+        - name: modality
+          in: query
+          required: false
+          description: Desired work modality
+          schema:
+            type: string
+            enum: [all, remoto, hibrido, presencial]
+            default: all
+        - name: category
+          in: query
+          required: false
+          description: Mexican academic or entry-level format
+          schema:
+            type: string
+            enum: [all, becario, practicas, residencias, servicio_social, dualidad, trainee, junior]
+            default: all
+        - name: limit_per_portal
+          in: query
+          required: false
+          description: Maximum vacancies to extract per portal (capped at 15)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 15
+            default: 15
+      responses:
+        '200':
+          description: Progressive SSE stream of verified vacancies and portal status updates
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: Stream of events (portal_status, vacancy_batch, deduplication_summary, stream_end)
+
+  /api/v1/vacancies/evaluate:
+    post:
+      summary: On-demand Tier 2 deep AI compatibility evaluation
+      description: >
+        Evaluates candidate fit and skill gaps for a specific vacancy using local `agy` CLI orchestration.
+        Results are cached in PostgreSQL by (vacancy_fingerprint, skills_hash). Candidate PII is never stored.
+      operationId: evaluateVacancyCompatibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIEvaluationRequest'
+      responses:
+        '200':
+          description: Detailed AI evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIEvaluationResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '504':
+          description: AI evaluation timed out
+
+  /api/v1/vacancies/{fingerprint}/scam-report:
+    get:
+      summary: Retrieve predatory / scam risk analysis for a vacancy
+      operationId: getScamReport
+      parameters:
+        - name: fingerprint
+          in: path
+          required: true
+          description: Canonical vacancy fingerprint hash
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Scam assessment report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScamReportResponse'
+        '404':
+          description: Vacancy not found
+
+components:
+  schemas:
+    HealthStatusResponse:
+      type: object
+      required:
+        - status
+        - database
+        - agy_cli
+        - timestamp
+      properties:
+        status:
+          type: string
+          example: "ok"
+        database:
+          type: string
+          example: "connected"
+        agy_cli:
+          type: string
+          example: "available"
+        timestamp:
+          type: string
+          format: date-time
+
+    ExternalLinkDTO:
+      type: object
+      required:
+        - portal_name
+        - direct_url
+        - is_active
+      properties:
+        portal_name:
+          type: string
+          enum: [computrabajo, indeed, occ]
+          example: "computrabajo"
+        direct_url:
+          type: string
+          format: uri
+          example: "https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-desarrollador-python-junior-..."
+        is_active:
+          type: boolean
+          example: true
+
+    ScamReportResponse:
+      type: object
+      required:
+        - risk_level
+        - risk_categories
+        - matched_indicators
+        - badge_label
+        - explanation
+      properties:
+        risk_level:
+          type: string
+          enum: [safe, warning, critical]
+          example: "safe"
+        risk_categories:
+          type: array
+          items:
+            type: string
+          example: []
+        matched_indicators:
+          type: array
+          items:
+            type: string
+          example: []
+        badge_label:
+          type: string
+          example: "VERIFICADO SEGURO"
+        explanation:
+          type: string
+          example: "No se detectaron indicios de esquemas piramidales o cobros al candidato."
+
+    VacancyDTO:
+      type: object
+      required:
+        - id
+        - fingerprint
+        - title
+        - company_name
+        - location_state
+        - modality
+        - category
+        - currency
+        - description
+        - skills
+        - external_links
+        - scam_report
+        - heuristic_fit_score
+      properties:
+        id:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+          example: "e3b0c44298fc1c14"
+        title:
+          type: string
+          example: "Desarrollador Backend Junior (Python / FastAPI)"
+        company_name:
+          type: string
+          example: "TechFin México"
+        location_city:
+          type: string
+          nullable: true
+          example: "Guadalajara"
+        location_state:
+          type: string
+          example: "JAL"
+        modality:
+          type: string
+          enum: [presencial, hibrido, remoto]
+          example: "hibrido"
+        category:
+          type: string
+          enum: [becario, practicas, residencias, servicio_social, dualidad, trainee, junior]
+          example: "junior"
+        salary_min:
+          type: number
+          nullable: true
+          example: 18000.00
+        salary_max:
+          type: number
+          nullable: true
+          example: 24000.00
+        salary_period:
+          type: string
+          nullable: true
+          enum: [semanal, quincenal, mensual, anual]
+          example: "mensual"
+        currency:
+          type: string
+          example: "MXN"
+        description:
+          type: string
+          example: "Buscamos egresados o estudiantes en últimos semestres para desarrollo backend..."
+        skills:
+          type: array
+          items:
+            type: string
+          example: ["Python", "FastAPI", "PostgreSQL", "Git"]
+        external_links:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalLinkDTO'
+        scam_report:
+          $ref: '#/components/schemas/ScamReportResponse'
+        heuristic_fit_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          example: 85
+
+    AIEvaluationRequest:
+      type: object
+      required:
+        - vacancy_fingerprint
+        - candidate_skills
+        - job_description
+      properties:
+        vacancy_fingerprint:
+          type: string
+          example: "e3b0c44298fc1c14"
+        target_role:
+          type: string
+          nullable: true
+          example: "Junior Backend Developer"
+        candidate_skills:
+          type: array
+          items:
+            type: string
+          example: ["Python", "FastAPI", "SQL", "Git"]
+        job_description:
+          type: string
+          example: "Requisitos: Experiencia básica en Python, REST APIs, PostgreSQL..."
+
+    AIEvaluationResponse:
+      type: object
+      required:
+        - vacancy_fingerprint
+        - fit_score
+        - fit_tier
+        - matched_skills
+        - missing_skills
+        - role_readiness_summary
+        - actionable_advice
+        - is_cached
+      properties:
+        vacancy_fingerprint:
+          type: string
+          example: "e3b0c44298fc1c14"
+        fit_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 82
+        fit_tier:
+          type: string
+          enum: [high, moderate, low]
+          example: "high"
+        matched_skills:
+          type: array
+          items:
+            type: string
+          example: ["Python", "FastAPI", "SQL"]
+        missing_skills:
+          type: array
+          items:
+            type: string
+          example: ["Docker", "Alembic"]
+        role_readiness_summary:
+          type: string
+          example: "Perfil altamente competitivo para nivel Junior. Cumple con el 80% de requisitos esenciales de backend."
+        actionable_advice:
+          type: string
+          example: "Crea un proyecto pequeño con Docker Compose conectando FastAPI a PostgreSQL para demostrar dominio del despliegue local."
+        is_cached:
+          type: boolean
+          example: false
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          example: "El campo candidate_skills debe contener al menos 1 competencia técnica."

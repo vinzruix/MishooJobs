@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MishooJobs Client-Side Storage Contract",
+  "description": "Defines the browser-local IndexedDB schema for candidate profiles and application tracking. Strictly client-side to enforce Constitution Principle I (Zero Accounts & Candidate Privacy).",
+  "database_name": "mishoojobs_local_db",
+  "version": 1,
+  "stores": {
+    "candidate_profiles": {
+      "keyPath": "id",
+      "indexes": [
+        { "name": "by_created", "keyPath": "created_at" },
+        { "name": "by_name", "keyPath": "name" }
+      ],
+      "item_schema": {
+        "type": "object",
+        "required": ["id", "name", "target_role", "skills", "created_at", "updated_at"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "example": "CV Backend Python" },
+          "target_role": { "type": "string", "example": "Junior Backend Developer" },
+          "skills": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["Python", "FastAPI", "PostgreSQL", "Docker", "Git"]
+          },
+          "coursework": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["Sistemas Distribuidos", "Bases de Datos"]
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["title", "description", "technologies"],
+              "properties": {
+                "title": { "type": "string" },
+                "description": { "type": "string" },
+                "technologies": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          },
+          "raw_text": {
+            "type": "string",
+            "description": "Extracted plain text from candidate resume file (PDF or Markdown)."
+          },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "applications": {
+      "keyPath": "vacancy_fingerprint",
+      "indexes": [
+        { "name": "by_status", "keyPath": "status" },
+        { "name": "by_updated", "keyPath": "updated_at" }
+      ],
+      "item_schema": {
+        "type": "object",
+        "required": [
+          "vacancy_fingerprint",
+          "title",
+          "company_name",
+          "status",
+          "direct_url",
+          "updated_at"
+        ],
+        "properties": {
+          "vacancy_fingerprint": { "type": "string", "maxLength": 64 },
+          "title": { "type": "string" },
+          "company_name": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["new", "saved", "applied", "interviewing", "rejected", "ignored"]
+          },
+          "direct_url": { "type": "string", "format": "uri" },
+          "fit_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "notes": { "type": "string", "default": "" },
+          "applied_at": { "type": ["string", "null"], "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "preferences": {
+      "keyPath": "key",
+      "item_schema": {
+        "type": "object",
+        "required": ["key", "value"],
+        "properties": {
+          "key": { "type": "string", "enum": ["active_profile_id", "theme", "default_filters"] },
+          "value": { "type": "string" }
+        }
+      }
+    }
+  }
+}

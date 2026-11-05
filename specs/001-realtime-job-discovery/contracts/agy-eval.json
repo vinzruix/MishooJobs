@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MishooJobs agy CLI AI Evaluation Contract",
+  "description": "Defines the non-interactive CLI invocation format and structured JSON response contract for Tier 2 deep AI evaluations via local agy CLI (Antigravity). Zero external paid Gemini API keys required.",
+  "command": {
+    "executable": "agy",
+    "args_template": [
+      "--print",
+      "{prompt}",
+      "--output-format",
+      "json"
+    ],
+    "timeout_seconds": 8
+  },
+  "prompt_template": "Eres MishooJobs AI, un mentor senior de software y analista de empleo en México enfocado en estudiantes y desarrolladores junior.\nEvalúa la compatibilidad entre el perfil del candidato y la vacante laboral descrita abajo.\n\nPERFIL DEL CANDIDATO (HABILIDADES REPORTADAS):\n{candidate_skills_json}\n\nROL OBJETIVO:\n{target_role}\n\nDESCRIPCIÓN DE LA VACANTE:\n{job_description}\n\nINSTRUCCIONES DE EVALUACIÓN:\n1. Calcula un puntaje de compatibilidad real del 0 al 100 evaluando qué porcentaje de los requisitos técnicos esenciales cubre el candidato.\n2. Identifica las habilidades del candidato que coinciden exactamente o estrechamente con la vacante.\n3. Identifica las habilidades faltantes críticas (skill gaps) que la vacante solicita explícitamente y el candidato no posee.\n4. Proporciona un resumen de preparación (role_readiness_summary) conciso, honesto y constructivo en español mexicano.\n5. Ofrece un consejo accionable (actionable_advice) con un proyecto o recurso concreto para subsanar los skill gaps.\n\nRESPONDE ESTRICTAMENTE EN FORMATO JSON CON ESTA ESTRUCTURA:\n{\n  \"fit_score\": <numero entero 0-100>,\n  \"fit_tier\": \"<high | moderate | low>\",\n  \"matched_skills\": [\"<habilidad 1>\", \"<habilidad 2>\"],\n  \"missing_skills\": [\"<brecha 1>\", \"<brecha 2>\"],\n  \"role_readiness_summary\": \"<texto explicativo>\",\n  \"actionable_advice\": \"<recomendacion concreta>\"\n}",
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "fit_score",
+      "fit_tier",
+      "matched_skills",
+      "missing_skills",
+      "role_readiness_summary",
+      "actionable_advice"
+    ],
+    "properties": {
+      "fit_score": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "fit_tier": {
+        "type": "string",
+        "enum": ["high", "moderate", "low"]
+      },
+      "matched_skills": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "missing_skills": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "role_readiness_summary": {
+        "type": "string"
+      },
+      "actionable_advice": {
+        "type": "string"
+      }
+    }
+  },
+  "caching_strategy": {
+    "engine": "PostgreSQL",
+    "table": "ai_evaluation_cache",
+    "cache_key_formula": "sha256(vacancy_fingerprint + ':' + sha256(json.dumps(sorted(candidate_skills))))",
+    "ttl_days": 14
+  }
+}

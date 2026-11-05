@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MishooJobs SSE Stream Contract",
+  "description": "Defines the event-stream protocol format for progressive job searching across Mexican job boards.",
+  "endpoint": "GET /api/v1/jobs/stream",
+  "protocol": "text/event-stream",
+  "events": {
+    "portal_status": {
+      "description": "Dispatched whenever a portal starts querying, succeeds, times out, or reports errors.",
+      "schema": {
+        "type": "object",
+        "required": ["portal", "status", "count", "duration_ms"],
+        "properties": {
+          "portal": {
+            "type": "string",
+            "enum": ["computrabajo", "indeed", "occ"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["searching", "completed", "timeout", "blocked", "error"]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of raw listings successfully extracted and link-verified from this portal."
+          },
+          "message": {
+            "type": "string",
+            "description": "Localized status description for UI badges in Mexican Spanish."
+          },
+          "duration_ms": {
+            "type": "integer",
+            "description": "Time elapsed for this specific portal scraper."
+          }
+        }
+      },
+      "examples": [
+        {
+          "event": "portal_status",
+          "data": {
+            "portal": "computrabajo",
+            "status": "completed",
+            "count": 14,
+            "message": "Computrabajo: 14 vacantes verificadas",
+            "duration_ms": 2180
+          }
+        },
+        {
+          "event": "portal_status",
+          "data": {
+            "portal": "indeed",
+            "status": "searching",
+            "count": 0,
+            "message": "Indeed México: Consultando...",
+            "duration_ms": 1200
+          }
+        },
+        {
+          "event": "portal_status",
+          "data": {
+            "portal": "occ",
+            "status": "timeout",
+            "count": 0,
+            "message": "OCC Mundial: Tiempo de espera agotado",
+            "duration_ms": 8000
+          }
+        }
+      ]
+    },
+    "vacancy_batch": {
+      "description": "Dispatched immediately as verified vacancies from a portal are ready.",
+      "schema": {
+        "type": "object",
+        "required": ["portal", "vacancies"],
+        "properties": {
+          "portal": {
+            "type": "string",
+            "enum": ["computrabajo", "indeed", "occ"]
+          },
+          "vacancies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "fingerprint",
+                "title",
+                "company_name",
+                "location_state",
+                "modality",
+                "category",
+                "currency",
+                "description",
+                "external_links",
+                "scam_report"
+              ]
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "event": "vacancy_batch",
+          "data": {
+            "portal": "computrabajo",
+            "vacancies": [
+              {
+                "fingerprint": "8f3a9e102bc451da",
+                "title": "Becario de Desarrollo Web (React / Node)",
+                "company_name": "Soluciones Digitales MX",
+                "location_city": "Ciudad de México",
+                "location_state": "CDMX",
+                "modality": "hibrido",
+                "category": "becario",
+                "salary_min": 7000.0,
+                "salary_max": 9000.0,
+                "salary_period": "mensual",
+                "currency": "MXN",
+                "description": "Oportunidad para estudiantes de últimos semestres...",
+                "skills": ["React", "JavaScript", "Node.js", "Git"],
+                "external_links": [
+                  {
+                    "portal_name": "computrabajo",
+                    "direct_url": "https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-becario-...",
+                    "is_active": true
+                  }
+                ],
+                "scam_report": {
+                  "risk_level": "safe",
+                  "risk_categories": [],
+                  "matched_indicators": [],
+                  "badge_label": "VERIFICADO SEGURO",
+                  "explanation": "No se detectaron indicios de esquemas piramidales o cobros al candidato."
+                },
+                "heuristic_fit_score": 85
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "deduplication_summary": {
+      "description": "Emitted once all responding portals finish, summarizing cross-portal deduplication.",
+      "schema": {
+        "type": "object",
+        "required": ["total_extracted", "unique_vacancies", "duplicates_merged"],
+        "properties": {
+          "total_extracted": { "type": "integer" },
+          "unique_vacancies": { "type": "integer" },
+          "duplicates_merged": { "type": "integer" }
+        }
+      },
+      "examples": [
+        {
+          "event": "deduplication_summary",
+          "data": {
+            "total_extracted": 38,
+            "unique_vacancies": 32,
+            "duplicates_merged": 6
+          }
+        }
+      ]
+    },
+    "stream_end": {
+      "description": "Sent as the final terminal event signaling completion of the search stream.",
+      "schema": {
+        "type": "object",
+        "required": ["status", "total_vacancies", "total_duration_ms"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["complete", "partial", "failed"]
+          },
+          "total_vacancies": { "type": "integer" },
+          "total_duration_ms": { "type": "integer" }
+        }
+      },
+      "examples": [
+        {
+          "event": "stream_end",
+          "data": {
+            "status": "complete",
+            "total_vacancies": 32,
+            "total_duration_ms": 4650
+          }
+        }
+      ]
+    }
+  }
+}
