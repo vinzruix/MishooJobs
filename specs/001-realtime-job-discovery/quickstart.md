@@ -152,7 +152,7 @@ Per Constitution Testing & Quality Gates, automated test suites run completely o
 
 ```bash
 # Run backend offline unit and contract tests
-pytest tests/ -v
+pytest backend/tests/ -v
 
 # Run frontend tests
 cd frontend && npm test && cd ..

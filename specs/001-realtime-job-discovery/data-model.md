@@ -115,8 +115,9 @@ Caches Tier 2 deep AI evaluations produced by the local `agy` CLI to prevent dup
 - **Storage**: Table `ai_evaluation_cache` in PostgreSQL
 - **Fields**:
   - `id`: `UUID` (Primary Key)
-  - `cache_key`: `VARCHAR(128)` (Unique, Indexed) - Composite hash: `sha256(f"{vacancy_fingerprint}:{sorted_skills_hash}")`.
+  - `cache_key`: `VARCHAR(128)` (Unique, Indexed) - Composite hash: `sha256(f"{vacancy_fingerprint}:{norm_target_role}:{sorted_skills_hash}")`.
   - `vacancy_fingerprint`: `VARCHAR(64)` (Indexed)
+  - `target_role`: `VARCHAR(100)` - Normalized target role (e.g., "backend-developer").
   - `skills_hash`: `VARCHAR(64)` - SHA-256 hash of candidate's canonical skill tokens.
   - `fit_score`: `INTEGER` - 0 to 100 compatibility rating.
   - `fit_tier`: `ENUM('high', 'moderate', 'low')` - High (>=80), Moderate (50-79), Low (<50).
@@ -234,6 +235,7 @@ erDiagram
         uuid id PK
         string cache_key UK
         string vacancy_fingerprint FK
+        string target_role
         string skills_hash
         int fit_score
         string fit_tier

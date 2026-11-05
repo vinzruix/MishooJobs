@@ -89,7 +89,7 @@ paths:
       summary: On-demand Tier 2 deep AI compatibility evaluation
       description: >
         Evaluates candidate fit and skill gaps for a specific vacancy using local `agy` CLI orchestration.
-        Results are cached in PostgreSQL by (vacancy_fingerprint, skills_hash). Candidate PII is never stored.
+        Results are cached in PostgreSQL by (vacancy_fingerprint, target_role, skills_hash). Candidate PII is never stored.
       operationId: evaluateVacancyCompatibility
       requestBody:
         required: true
