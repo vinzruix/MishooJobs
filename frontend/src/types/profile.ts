@@ -31,4 +31,5 @@ export interface AIEvaluation {
   actionable_advice: string;
   is_cached?: boolean;
   evaluated_at?: string;
+  full_description?: string;
 }

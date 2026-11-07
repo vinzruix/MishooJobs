@@ -6,6 +6,7 @@ export interface EvaluationPayload {
   target_role: string;
   candidate_skills: string[];
   job_description: string;
+  direct_url?: string;
 }
 
 export async function evaluateVacancy(payload: EvaluationPayload): Promise<AIEvaluation> {

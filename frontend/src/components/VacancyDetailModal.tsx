@@ -40,13 +40,19 @@ export function VacancyDetailModal({
         ? vacancy.description
         : `${vacancy.title} en ${vacancy.company_name} - ${vacancy.location_city || vacancy.location_state} (${vacancy.modality})`;
 
+    const directUrl = vacancy.external_links?.[0]?.direct_url;
+
     try {
       const result = await evaluateVacancy({
         vacancy_fingerprint: vacancy.fingerprint,
         target_role: activeProfile.target_role,
         candidate_skills: activeProfile.skills,
         job_description: effectiveDescription,
+        direct_url: directUrl,
       });
+      if (result.full_description && result.full_description.length > (vacancy.description?.length || 0)) {
+        vacancy.description = result.full_description;
+      }
       setEvaluation(result);
       onEvaluationComplete?.(vacancy.fingerprint, result);
     } catch (err) {
@@ -253,7 +259,7 @@ export function VacancyDetailModal({
               Descripción Completa de la Vacante
             </h4>
             <div className="whitespace-pre-line bg-zinc-950 p-3.5 rounded-lg border border-zinc-800 text-zinc-300 text-xs leading-relaxed">
-              {vacancy.description}
+              {evaluation?.full_description || vacancy.description}
             </div>
           </div>
         </div>

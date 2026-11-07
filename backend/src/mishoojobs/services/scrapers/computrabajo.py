@@ -1,6 +1,8 @@
+import asyncio
 import hashlib
 from typing import List, Optional
 from bs4 import BeautifulSoup
+import httpx
 
 from mishoojobs.schemas.job import ExternalLinkDTO, PortalName, VacancyDTO
 from mishoojobs.services.scrapers.base import AbstractBaseScraper
@@ -139,6 +141,65 @@ class ComputrabajoScraper(AbstractBaseScraper):
 
         return vacancies
 
+    async def fetch_full_description(self, direct_url: str) -> Optional[str]:
+        """Fetches the full vacancy description body from the individual offer page."""
+        clean_url = direct_url.split("#")[0]
+        try:
+            async with httpx.AsyncClient(
+                headers=self.headers,
+                timeout=4.0,
+                follow_redirects=True,
+            ) as client:
+                resp = await client.get(clean_url)
+                if resp.status_code == 200:
+                    soup = BeautifulSoup(resp.text, "html.parser")
+                    p_desc = (
+                        soup.select_one("p.mbB")
+                        or soup.select_one("div.box_border p.fs16")
+                        or soup.select_one("div.box_detail")
+                        or soup.select_one("div.box_border")
+                    )
+                    if p_desc:
+                        return self.sanitize_text(p_desc.get_text(separator="\n", strip=True))
+        except Exception:
+            pass
+        return None
+
+    async def enrich_with_full_descriptions(self, vacancies: List[VacancyDTO]) -> None:
+        """Concurrently fetches the full job description body and updates technical skills."""
+        if not vacancies:
+            return
+
+        async with httpx.AsyncClient(
+            headers=self.headers,
+            timeout=4.0,
+            follow_redirects=True,
+        ) as client:
+            async def fetch_one(v: VacancyDTO) -> None:
+                if not v.external_links:
+                    return
+                clean_url = v.external_links[0].direct_url.split("#")[0]
+                try:
+                    resp = await client.get(clean_url)
+                    if resp.status_code == 200:
+                        soup = BeautifulSoup(resp.text, "html.parser")
+                        p_desc = (
+                            soup.select_one("p.mbB")
+                            or soup.select_one("div.box_border p.fs16")
+                            or soup.select_one("div.box_detail")
+                            or soup.select_one("div.box_border")
+                        )
+                        if p_desc:
+                            full_text = self.sanitize_text(p_desc.get_text(separator="\n", strip=True))
+                            if len(full_text) > 100:
+                                v.description = full_text
+                                # Re-extract complete tech skills with full body context
+                                v.skills = self.extract_skills(f"{v.title} {full_text}")
+                except Exception:
+                    pass
+
+            await asyncio.gather(*[fetch_one(v) for v in vacancies], return_exceptions=True)
+
     async def search(
         self,
         query: str,
@@ -158,6 +219,8 @@ class ComputrabajoScraper(AbstractBaseScraper):
         try:
             html = await self.fetch_html(url)
             vacancies = self.parse_html(html)
-            return vacancies[:limit]
+            selected = vacancies[:limit]
+            await self.enrich_with_full_descriptions(selected)
+            return selected
         except Exception:
             return []

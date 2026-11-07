@@ -13,6 +13,7 @@ class AIEvaluationRequest(BaseModel):
     target_role: str = Field(..., max_length=100, description="Desired role (e.g. Junior Backend Developer)")
     candidate_skills: List[str] = Field(..., min_length=1, description="List of technical skills extracted from resume")
     job_description: str = Field(..., min_length=10, description="Cleaned description of the job posting")
+    direct_url: Optional[str] = Field(default=None, description="Direct URL of the vacancy posting")
 
 class AIEvaluationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -25,3 +26,4 @@ class AIEvaluationResponse(BaseModel):
     actionable_advice: str = Field(..., description="Practical learning advice to close skill gaps")
     is_cached: bool = Field(default=False, description="True if served from PostgreSQL cache")
     evaluated_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
+    full_description: Optional[str] = Field(default=None, description="Full enriched job description")
