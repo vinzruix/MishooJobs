@@ -13,38 +13,82 @@ class OCCScraper(AbstractBaseScraper):
 
     def parse_html(self, html_content: str) -> List[VacancyDTO]:
         soup = BeautifulSoup(html_content, "html.parser")
-        cards = soup.select('div[id^="jobcard-"]') or soup.select(".occ-job-card")
+        cards = soup.select(
+            "li.vacancy-card, [data-vacancy-card], div.occ-job-card, div.job-card-content, div[id*='jobcard']"
+        )
         vacancies: List[VacancyDTO] = []
 
         for card in cards:
-            link_tag = card.select_one('a[href*="/empleo/oferta/"]') or card.select_one("h2 a")
-            if not link_tag:
+            link_tag = (
+                card.select_one("a[href*='/empleo/oferta/']")
+                or card.select_one("a[href*='/empleo/']")
+                or card.select_one("h2 a")
+                or card.select_one("a")
+            )
+            data_id = card.get("data-id") or card.get("id", "").replace("jobcard-", "")
+
+            if link_tag and link_tag.get("href"):
+                href = link_tag.get("href", "")
+                if href.startswith("/"):
+                    direct_url = f"{self.base_url}{href}"
+                else:
+                    direct_url = href
+            elif data_id:
+                direct_url = f"https://www.occ.com.mx/empleo/oferta/{data_id}"
+            else:
                 continue
 
-            title = self.sanitize_text(link_tag.get_text())
-            href = link_tag.get("href", "")
-            if href.startswith("/"):
-                direct_url = f"{self.base_url}{href}"
-            else:
-                direct_url = href
+            title_tag = (
+                card.select_one(".vacancy-card__title")
+                or card.select_one("h2.title a")
+                or card.select_one(".title")
+                or card.select_one("h2")
+            )
+            if not title_tag:
+                continue
 
-            company_tag = card.select_one(".company-name") or card.select_one('p[class*="company"]') or card.select_one("span.company")
-            company_name = self.sanitize_text(company_tag.get_text()) if company_tag else "Empresa Confidencial"
+            title = self.sanitize_text(title_tag.get_text())
 
-            loc_tag = card.select_one(".location") or card.select_one('p[class*="location"]')
+            comp_tag = (
+                card.select_one(".vacancy-card__company-text")
+                or card.select_one(".company-name")
+                or card.select_one("p[class*='company']")
+                or card.select_one("span.company")
+            )
+            company_name = self.sanitize_text(comp_tag.get_text()) if comp_tag else "Empresa Confidencial"
+
+            loc_tag = (
+                card.select_one(".vacancy-card__location span:first-child")
+                or card.select_one(".vacancy-card__location")
+                or card.select_one(".location")
+                or card.select_one("p[class*='location']")
+            )
             location_text = loc_tag.get_text() if loc_tag else ""
             state = self.normalize_state(location_text)
 
-            salary_tag = card.select_one(".salary") or card.select_one('p[class*="salary"]')
-            salary_text = salary_tag.get_text() if salary_tag else ""
+            salary_tag = (
+                card.select_one(".vacancy-card__salary")
+                or card.select_one(".salary")
+                or card.select_one('p[class*="salary"]')
+                or card.select_one('[class*="salary"]')
+            )
+            salary_text = salary_tag.get_text(separator=" ", strip=True) if salary_tag else ""
             salary_min, salary_max, salary_period = self.parse_mexican_salary(salary_text)
 
-            desc_tag = card.select_one(".description") or card.select_one("p")
-            desc_text = self.sanitize_text(desc_tag.get_text()) if desc_tag else title
+            desc_tag = (
+                card.select_one(".vacancy-card__benefits")
+                or card.select_one(".description")
+                or card.select_one("p")
+            )
+            desc_text = self.sanitize_text(desc_tag.get_text()) if desc_tag else ""
+            if not desc_text or desc_text.lower() == title.lower():
+                all_text = " ".join([elem.get_text(strip=True) for elem in card.select("li, p, span") if elem.get_text(strip=True)])
+                desc_text = self.sanitize_text(all_text)
 
             # Extract publication date
             date_tag = (
-                card.select_one(".date")
+                card.select_one(".vacancy-card__location span:last-child")
+                or card.select_one(".date")
                 or card.select_one("span[class*='date']")
                 or card.select_one("p[class*='date']")
                 or card.select_one("span.published")
@@ -89,8 +133,8 @@ class OCCScraper(AbstractBaseScraper):
                     salary_max=salary_max,
                     salary_period=salary_period,
                     currency="MXN",
-                    description_clean=desc_text,
-                    skills_extracted=skills,
+                    description=desc_text,
+                    skills=skills,
                     published_at=published_at,
                     external_links=[external_link],
                 )

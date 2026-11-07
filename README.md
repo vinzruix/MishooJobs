@@ -41,7 +41,7 @@ graph TD
     Client -->|POST /api/v1/vacancies/evaluate| API
     API -->|Concurrent Scraping + HTTP HEAD| Portals
     API <-->|Deduplication & Caching| PG
-    API -->|Local Subprocess (Zero API Keys)| AGY
+    API -->|"Local Subprocess (Zero API Keys)"| AGY
 ```
 
 ---

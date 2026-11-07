@@ -188,7 +188,7 @@ async def job_search_stream_generator(params: SearchParams) -> AsyncGenerator[st
                 "vacancy_batch",
                 {
                     "portal": portal_name.value,
-                    "vacancies": [v.model_dump(by_alias=True, mode="json") for v in verified_vacs],
+                    "vacancies": [v.model_dump(mode="json") for v in verified_vacs],
                 },
             )
 

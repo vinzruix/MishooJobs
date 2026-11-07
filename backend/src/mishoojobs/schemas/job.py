@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 class DatabaseStatus(str, Enum):
     CONNECTED = "connected"
@@ -125,8 +125,8 @@ class VacancyDTO(BaseModel):
     salary_max: Optional[float] = Field(default=None, ge=0)
     salary_period: Optional[SalaryPeriodEnum] = None
     currency: str = Field(default="MXN")
-    description: str = Field(..., alias="description_clean")
-    skills: List[str] = Field(default_factory=list, alias="skills_extracted")
+    description: str = Field(..., validation_alias=AliasChoices("description", "description_clean"))
+    skills: List[str] = Field(default_factory=list, validation_alias=AliasChoices("skills", "skills_extracted"))
     published_at: Optional[datetime] = Field(
         default=None,
         description="Original publication timestamp in UTC. Null if unparseable or missing from portal."

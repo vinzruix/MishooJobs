@@ -20,6 +20,18 @@ def test_parse_mexican_relative_date_fixed_reference():
     assert scraper.parse_mexican_relative_date(None, ref_dt) is None
     assert scraper.parse_mexican_relative_date("", ref_dt) is None
 
+def test_parse_mexican_salary_formats():
+    scraper = ComputrabajoScraper()
+    assert scraper.parse_mexican_salary("$ 22,999.00 (Mensual)") == (22999.0, 22999.0, "mensual")
+    assert scraper.parse_mexican_salary("$ 20,000 - $ 23,000 Mensual") == (20000.0, 23000.0, "mensual")
+    assert scraper.parse_mexican_salary("Salario: $14,000 - $18,000 mensuales") == (14000.0, 18000.0, "mensual")
+    assert scraper.parse_mexican_salary("$3,000 a $5,000 semanales") == (3000.0, 5000.0, "semanal")
+    assert scraper.parse_mexican_salary("$10,000 Mensuales brutos") == (10000.0, 10000.0, "mensual")
+    assert scraper.parse_mexican_salary("$ 21,875 Mensual") == (21875.0, 21875.0, "mensual")
+    assert scraper.parse_mexican_salary("Sueldo no mostrado por la empresa") == (None, None, None)
+    assert scraper.parse_mexican_salary(None) == (None, None, None)
+    assert scraper.parse_mexican_salary("") == (None, None, None)
+
 def test_computrabajo_parser(computrabajo_html):
     scraper = ComputrabajoScraper()
     vacancies = scraper.parse_html(computrabajo_html)

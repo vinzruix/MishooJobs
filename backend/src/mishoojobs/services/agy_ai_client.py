@@ -40,17 +40,29 @@ class AgyAIClient:
     @staticmethod
     def clean_json_output(raw_output: str) -> Dict[str, Any]:
         """Strips markdown code blocks, CLI wrappers, or logs to extract valid JSON."""
+        content_to_parse = raw_output.strip()
+        try:
+            envelope = json.loads(content_to_parse)
+            if isinstance(envelope, dict):
+                if "response" in envelope and isinstance(envelope["response"], str):
+                    content_to_parse = envelope["response"].strip()
+                elif "fit_score" in envelope:
+                    # Direct dictionary already parsed
+                    pass
+        except json.JSONDecodeError:
+            pass
+
         # Find JSON block enclosed in ```json ... ``` or first { to last }
-        match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw_output, re.DOTALL)
+        match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", content_to_parse, re.DOTALL)
         if match:
             clean_str = match.group(1)
         else:
-            first_brace = raw_output.find("{")
-            last_brace = raw_output.rfind("}")
+            first_brace = content_to_parse.find("{")
+            last_brace = content_to_parse.rfind("}")
             if first_brace != -1 and last_brace != -1:
-                clean_str = raw_output[first_brace : last_brace + 1]
+                clean_str = content_to_parse[first_brace : last_brace + 1]
             else:
-                clean_str = raw_output
+                clean_str = content_to_parse
 
         parsed = json.loads(clean_str)
 

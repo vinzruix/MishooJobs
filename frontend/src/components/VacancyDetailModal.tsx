@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Loader2, ExternalLink, AlertTriangle, Check, X } from "lucide-react";
+import { Sparkles, Loader2, ExternalLink, AlertTriangle, Check, X, DollarSign } from "lucide-react";
 import type { JobVacancy } from "../types/job";
 import type { CandidateProfile, AIEvaluation } from "../types/profile";
 import { evaluateVacancy } from "../services/api";
@@ -35,12 +35,17 @@ export function VacancyDetailModal({
     setIsLoadingAI(true);
     setAiError(null);
 
+    const effectiveDescription =
+      vacancy.description && vacancy.description.trim().length >= 10
+        ? vacancy.description
+        : `${vacancy.title} en ${vacancy.company_name} - ${vacancy.location_city || vacancy.location_state} (${vacancy.modality})`;
+
     try {
       const result = await evaluateVacancy({
         vacancy_fingerprint: vacancy.fingerprint,
         target_role: activeProfile.target_role,
         candidate_skills: activeProfile.skills,
-        job_description: vacancy.description,
+        job_description: effectiveDescription,
       });
       setEvaluation(result);
       onEvaluationComplete?.(vacancy.fingerprint, result);
@@ -49,6 +54,18 @@ export function VacancyDetailModal({
     } finally {
       setIsLoadingAI(false);
     }
+  };
+
+  const formatSalary = () => {
+    if (!vacancy?.salary_min && !vacancy?.salary_max) {
+      return "Sueldo no publicado / A convenir";
+    }
+    const period = vacancy.salary_period ? `/${vacancy.salary_period}` : "/mes";
+    if (vacancy.salary_min && vacancy.salary_max && vacancy.salary_min !== vacancy.salary_max) {
+      return `$${vacancy.salary_min.toLocaleString("es-MX")} - $${vacancy.salary_max.toLocaleString("es-MX")} ${vacancy.currency} ${period}`;
+    }
+    const amount = vacancy.salary_min || vacancy.salary_max;
+    return `$${amount?.toLocaleString("es-MX")} ${vacancy.currency} ${period}`;
   };
 
   return (
@@ -67,9 +84,13 @@ export function VacancyDetailModal({
               {vacancy.scam_report && <ScamBadge report={vacancy.scam_report} />}
             </div>
             <h2 className="text-lg font-bold text-zinc-100">{vacancy.title}</h2>
-            <p className="text-xs text-zinc-400">
-              {vacancy.company_name} • {vacancy.location_city ? `${vacancy.location_city}, ` : ""}{vacancy.location_state}
-            </p>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400 mt-1">
+              <span>{vacancy.company_name} • {vacancy.location_city ? `${vacancy.location_city}, ` : ""}{vacancy.location_state}</span>
+              <span className="inline-flex items-center gap-1 text-emerald-400 font-semibold bg-zinc-800/80 px-2 py-0.5 rounded">
+                <DollarSign className="w-3.5 h-3.5" />
+                {formatSalary()}
+              </span>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -206,6 +227,25 @@ export function VacancyDetailModal({
               </p>
             )}
           </div>
+
+          {/* Extracted Skills */}
+          {vacancy.skills && vacancy.skills.length > 0 && (
+            <div>
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">
+                Habilidades Técnicas Detectadas
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {vacancy.skills.map((skill, i) => (
+                  <span
+                    key={i}
+                    className="px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-800 text-zinc-200 border border-zinc-700"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Job Description */}
           <div>

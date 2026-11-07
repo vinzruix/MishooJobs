@@ -46,9 +46,14 @@ export function useJobStream() {
         },
         onVacancyBatch: (batch) => {
           setVacancies((prev) => {
+            const normalizedBatch = batch.map((v) => ({
+              ...v,
+              description: v.description || (v as any).description_clean || "",
+              skills: Array.isArray(v.skills) ? v.skills : (Array.isArray((v as any).skills_extracted) ? (v as any).skills_extracted : []),
+            }));
             // Deduplicate by fingerprint in state
             const existingFp = new Set(prev.map((v) => v.fingerprint));
-            const newOnes = batch.filter((v) => !existingFp.has(v.fingerprint));
+            const newOnes = normalizedBatch.filter((v) => !existingFp.has(v.fingerprint));
             return [...prev, ...newOnes];
           });
         },

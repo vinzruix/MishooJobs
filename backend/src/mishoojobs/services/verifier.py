@@ -49,11 +49,19 @@ class URLVerifier:
                         except httpx.HTTPError:
                             return VerificationResult(url=url, is_active=False, status_code=405, verified_at=now)
 
-                    is_active = response.status_code < 400
+                    # Cloudflare/Akamai bot challenges (403, 429) on known job portals:
+                    # These links are valid and active for human candidates clicking them in a browser.
+                    is_bot_challenge = response.status_code in (403, 429) and any(
+                        domain in url for domain in ("occ.com.mx", "indeed.com", "computrabajo.com")
+                    )
+
+                    is_active = (response.status_code < 400) or is_bot_challenge
+                    status_code = 200 if is_bot_challenge else response.status_code
+
                     return VerificationResult(
                         url=url,
                         is_active=is_active,
-                        status_code=response.status_code,
+                        status_code=status_code,
                         verified_at=now,
                     )
             except Exception:

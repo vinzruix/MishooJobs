@@ -116,9 +116,10 @@ class AbstractBaseScraper(abc.ABC):
         if not raw_location:
             return "MEXICO"
         norm = self.normalize_text(raw_location)
-        for key, state_code in MEXICAN_STATE_MAP.items():
+        # Prioritize longer matching keys first (e.g. 'nuevo leon' before 'leon', 'baja california sur' before 'baja california')
+        for key in sorted(MEXICAN_STATE_MAP.keys(), key=len, reverse=True):
             if key in norm:
-                return state_code
+                return MEXICAN_STATE_MAP[key]
         return "MEXICO"
 
     def parse_mexican_salary(
@@ -137,8 +138,11 @@ class AbstractBaseScraper(abc.ABC):
         elif "anual" in norm or "ano" in norm:
             period = "anual"
 
-        # Extract dollar/peso amounts: e.g. $14,000, 18000, etc.
-        matches = re.findall(r"\$?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?|[0-9]{4,6})", raw_text)
+        # Extract dollar/peso amounts: e.g. $14,000, $ 22,999.00, 18000, etc.
+        matches = re.findall(
+            r"\$?\s*([0-9]{1,3}(?:[,\.][0-9]{3})*(?:\.[0-9]{2})?|[0-9]{4,6}(?:\.[0-9]{2})?)",
+            raw_text,
+        )
         clean_numbers = []
         for m in matches:
             val_str = m.replace(",", "")

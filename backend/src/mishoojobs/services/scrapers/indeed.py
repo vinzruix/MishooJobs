@@ -93,8 +93,8 @@ class IndeedScraper(AbstractBaseScraper):
                     salary_max=salary_max,
                     salary_period=salary_period,
                     currency="MXN",
-                    description_clean=desc_text,
-                    skills_extracted=skills,
+                    description=desc_text,
+                    skills=skills,
                     published_at=published_at,
                     external_links=[external_link],
                 )

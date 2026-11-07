@@ -31,7 +31,7 @@ class Settings(BaseSettings):
         default_factory=lambda: shutil.which("agy") or "/Users/yairtejedahotmail.com/.local/bin/agy",
         description="Path to local agy CLI binary",
     )
-    agy_timeout_seconds: float = Field(default=8.0, description="Max execution time for agy CLI evaluation")
+    agy_timeout_seconds: float = Field(default=25.0, description="Max execution time for agy CLI evaluation")
     
     # Scrapers & Verifiers
     scraper_timeout_seconds: float = Field(default=8.0, description="Per-portal scraper timeout")

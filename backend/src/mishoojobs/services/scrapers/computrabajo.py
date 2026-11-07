@@ -29,27 +29,60 @@ class ComputrabajoScraper(AbstractBaseScraper):
                 direct_url = href
 
             # Extract company
-            company_tag = article.select_one("p.fs16 a") or article.select_one("p.fs16 span") or article.select_one("p.fs16")
+            company_tag = (
+                article.select_one("p.fs16 a")
+                or article.select_one("p.dFlex a")
+                or article.select_one("p.fs16 span")
+                or article.select_one("p.fs16")
+            )
             company_name = self.sanitize_text(company_tag.get_text()) if company_tag else "Empresa Confidencial"
 
-            # Extract location
-            loc_tag = article.select_one("p.fs13.fc_aux")
-            location_text = loc_tag.get_text() if loc_tag else ""
+            # Extract location (handles modern span.mr10 as well as fixture/legacy p.fs13.fc_aux)
+            loc_tag = (
+                article.select_one("p:not(.dFlex) span.mr10")
+                or article.select_one("span.mr10:not(.fx_none)")
+            )
+            location_text = ""
+            if loc_tag and not any(w in loc_tag.get_text().lower() for w in ["hace", "hoy", "ayer", "minuto", "hora", "día", "dia", "semana", "mes"]):
+                location_text = loc_tag.get_text()
+            else:
+                for p in article.select("p.fs13.fc_aux"):
+                    t = p.get_text()
+                    if not any(w in t.lower() for w in ["hace", "hoy", "ayer", "minuto", "hora", "día", "dia", "semana", "mes"]):
+                        if "$" not in t and "salario" not in t.lower() and "apoyo" not in t.lower():
+                            location_text = t
+                            break
             state = self.normalize_state(location_text)
 
             # Extract salary
-            all_aux = article.select("p.fs13")
+            salary_tag = (
+                article.select_one("span.icon.i_salary")
+                or article.select_one("span[class*='salary']")
+                or article.select_one("div[class*='salary']")
+                or article.select_one("p[class*='salary']")
+            )
             salary_text = ""
-            for p in all_aux:
-                t = p.get_text()
-                if "$" in t or "salario" in t.lower() or "apoyo" in t.lower() or "mes" in t.lower():
-                    salary_text = t
-                    break
+            if salary_tag:
+                parent = salary_tag.parent or salary_tag
+                salary_text = parent.get_text(separator=" ", strip=True)
+            else:
+                for elem in article.select("div.fs13, p.fs13, span.dIB, p, div"):
+                    t = elem.get_text(separator=" ", strip=True)
+                    if "$" in t or "salario" in t.lower() or "apoyo" in t.lower():
+                        salary_text = t
+                        break
             salary_min, salary_max, salary_period = self.parse_mexican_salary(salary_text)
 
             # Description snippet
-            desc_tag = article.select_one("p.fs13:not(.fc_aux)") or article.select_one("div.bRS p")
-            desc_text = self.sanitize_text(desc_tag.get_text()) if desc_tag else title
+            desc_tag = (
+                article.select_one("p.fs13:not(.fc_aux)")
+                or article.select_one("div.bRS p")
+                or article.select_one("div.bRS")
+            )
+            desc_text = self.sanitize_text(desc_tag.get_text()) if desc_tag else ""
+            if not desc_text or desc_text.lower() == title.lower() or len(desc_text) < 20:
+                all_text = " ".join([elem.get_text(strip=True) for elem in article.select("p, span") if elem.get_text(strip=True)])
+                desc_text = self.sanitize_text(all_text)
 
             # Extract publication date
             date_tag = (
@@ -61,7 +94,7 @@ class ComputrabajoScraper(AbstractBaseScraper):
             if date_tag:
                 raw_date = date_tag.get_text()
             else:
-                for p in article.select("p.fs13, span"):
+                for p in article.select("p.fs13.fc_aux, p.fs13, span"):
                     t = p.get_text()
                     if any(w in t.lower() for w in ["hace", "hoy", "ayer", "minuto", "hora", "día", "dia", "semana"]):
                         if "$" not in t and "salario" not in t.lower() and "apoyo" not in t.lower():
@@ -97,8 +130,8 @@ class ComputrabajoScraper(AbstractBaseScraper):
                     salary_max=salary_max,
                     salary_period=salary_period,
                     currency="MXN",
-                    description_clean=desc_text,
-                    skills_extracted=skills,
+                    description=desc_text,
+                    skills=skills,
                     published_at=published_at,
                     external_links=[external_link],
                 )

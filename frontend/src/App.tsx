@@ -193,7 +193,9 @@ export default function App() {
     if (!activeProfile || activeProfile.skills.length === 0) return {};
     const map: Record<string, number> = {};
     for (const v of displayedVacancies) {
-      map[v.fingerprint] = calculateHeuristicScore(activeProfile.skills, v.skills);
+      const vSkills = Array.isArray(v.skills) ? v.skills : (Array.isArray((v as any).skills_extracted) ? (v as any).skills_extracted : []);
+      const fallbackText = `${v.title} ${v.description || (v as any).description_clean || ""}`;
+      map[v.fingerprint] = calculateHeuristicScore(activeProfile.skills, vSkills, fallbackText);
     }
     return map;
   }, [activeProfile, displayedVacancies]);
