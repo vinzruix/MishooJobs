@@ -195,7 +195,12 @@ export default function App() {
     for (const v of displayedVacancies) {
       const vSkills = Array.isArray(v.skills) ? v.skills : (Array.isArray((v as any).skills_extracted) ? (v as any).skills_extracted : []);
       const fallbackText = `${v.title} ${v.description || (v as any).description_clean || ""}`;
-      map[v.fingerprint] = calculateHeuristicScore(activeProfile.skills, vSkills, fallbackText);
+      map[v.fingerprint] = calculateHeuristicScore(activeProfile.skills, vSkills, {
+        fallbackText,
+        targetRole: activeProfile.target_role,
+        jobTitle: v.title,
+        category: v.category,
+      });
     }
     return map;
   }, [activeProfile, displayedVacancies]);

@@ -10,17 +10,30 @@ describe("heuristic_scorer", () => {
     expect(normalizeSkill("Programación")).toBe("programacion");
   });
 
-  it("calculates 100% when all job skills are matched", () => {
+  it("calculates high compatibility when skills and role align", () => {
     const candidateSkills = ["Python", "FastAPI", "PostgreSQL", "Docker"];
     const jobSkills = ["Python", "FastAPI"];
-    expect(calculateHeuristicScore(candidateSkills, jobSkills)).toBe(100);
+    const score = calculateHeuristicScore(candidateSkills, jobSkills, {
+      jobTitle: "Junior Backend Developer",
+      targetRole: "Junior Backend Developer",
+      category: "junior",
+    });
+    // High compatibility tier (>= 80%)
+    expect(score).toBeGreaterThanOrEqual(80);
+    expect(score).toBeLessThanOrEqual(98);
   });
 
-  it("calculates accurate partial match percentages", () => {
+  it("calculates realistic graduated percentages for partial matches", () => {
     const candidateSkills = ["Python", "Git"];
     const jobSkills = ["Python", "Django", "PostgreSQL", "Docker"];
-    // 1 of 4 matched = 25%
-    expect(calculateHeuristicScore(candidateSkills, jobSkills)).toBe(25);
+    const score = calculateHeuristicScore(candidateSkills, jobSkills, {
+      jobTitle: "Desarrollador Python Junior",
+      targetRole: "Junior Backend Developer",
+      category: "junior",
+    });
+    // Should be a nuanced score around 40-60%, not flat 0%, 10% or 100%
+    expect(score).toBeGreaterThanOrEqual(35);
+    expect(score).toBeLessThanOrEqual(65);
   });
 
   it("returns 0% when no job skills match", () => {

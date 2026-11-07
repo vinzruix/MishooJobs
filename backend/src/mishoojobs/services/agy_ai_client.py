@@ -92,10 +92,11 @@ class AgyAIClient:
         job_description: str,
     ) -> Dict[str, Any]:
         """Runs the agy CLI as an asynchronous subprocess and returns structured evaluation."""
-        prompt = self.PROMPT_TEMPLATE.format(
-            candidate_skills_json=json.dumps(candidate_skills, ensure_ascii=False),
-            target_role=target_role,
-            job_description=job_description[:2500],  # bounded context length
+        prompt = (
+            self.PROMPT_TEMPLATE
+            .replace("{candidate_skills_json}", json.dumps(candidate_skills, ensure_ascii=False))
+            .replace("{target_role}", target_role)
+            .replace("{job_description}", job_description[:2500])
         )
 
         cmd = [
