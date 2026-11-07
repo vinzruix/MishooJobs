@@ -32,4 +32,5 @@ export interface AIEvaluation {
   is_cached?: boolean;
   evaluated_at?: string;
   full_description?: string;
+  extracted_skills?: string[];
 }

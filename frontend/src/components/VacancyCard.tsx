@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { ExternalLink as ExtLinkIcon, MapPin, DollarSign, Bookmark, CheckCircle, Eye, EyeOff, Clock } from "lucide-react";
 import type { JobVacancy } from "../types/job";
 import type { ApplicationStatus } from "../types/application";
@@ -27,6 +28,17 @@ export function VacancyCard({
 }: VacancyCardProps) {
   const relativeText = formatMexicanRelativeTime(vacancy.published_at, now);
   const isNew = isNewVacancy(vacancy.published_at, now);
+
+  // Unique link per portal to prevent duplicate buttons in card footer
+  const uniquePortalLinks = useMemo(() => {
+    const seen = new Set<string>();
+    return (vacancy.external_links || []).filter((link) => {
+      const portal = (link.portal_name || "").toLowerCase();
+      if (!portal || seen.has(portal)) return false;
+      seen.add(portal);
+      return true;
+    });
+  }, [vacancy.external_links]);
   const formatSalary = () => {
     if (!vacancy.salary_min && !vacancy.salary_max) {
       return "Sueldo no publicado / A convenir";
@@ -139,10 +151,10 @@ export function VacancyCard({
       </div>
 
       {/* Card Footer: Verified Direct Links & Actions */}
-      <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between gap-2">
+      <div className="pt-3 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2">
         {/* Direct Links */}
-        <div className="flex items-center gap-2">
-          {vacancy.external_links.map((link, idx) => (
+        <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+          {uniquePortalLinks.map((link, idx) => (
             <a
               key={idx}
               href={link.direct_url}
@@ -151,14 +163,14 @@ export function VacancyCard({
               className="inline-flex items-center gap-1 text-xs text-zinc-300 hover:text-emerald-400 bg-zinc-800/60 hover:bg-zinc-800 px-2 py-1 rounded border border-zinc-700/50 transition-colors"
               title={`Enlace directo a ${link.portal_name}`}
             >
-              <ExtLinkIcon className="w-3 h-3 text-emerald-400" />
+              <ExtLinkIcon className="w-3 h-3 text-emerald-400 flex-shrink-0" />
               <span className="capitalize text-[11px] font-medium">{link.portal_name}</span>
             </a>
           ))}
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {onSave && (
             <button
               onClick={() => onSave(vacancy)}

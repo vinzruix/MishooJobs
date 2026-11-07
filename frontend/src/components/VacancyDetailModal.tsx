@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, Loader2, ExternalLink, AlertTriangle, Check, X, DollarSign } from "lucide-react";
 import type { JobVacancy } from "../types/job";
 import type { CandidateProfile, AIEvaluation } from "../types/profile";
@@ -23,6 +23,13 @@ export function VacancyDetailModal({
   const [evaluation, setEvaluation] = useState<AIEvaluation | null>(cachedEvaluation || null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+
+  // Sync state whenever vacancy or cachedEvaluation changes
+  useEffect(() => {
+    setEvaluation(cachedEvaluation || null);
+    setIsLoadingAI(false);
+    setAiError(null);
+  }, [vacancy?.fingerprint, cachedEvaluation]);
 
   if (!vacancy) return null;
 
@@ -52,6 +59,9 @@ export function VacancyDetailModal({
       });
       if (result.full_description && result.full_description.length > (vacancy.description?.length || 0)) {
         vacancy.description = result.full_description;
+      }
+      if (result.extracted_skills && result.extracted_skills.length > (vacancy.skills?.length || 0)) {
+        vacancy.skills = result.extracted_skills;
       }
       setEvaluation(result);
       onEvaluationComplete?.(vacancy.fingerprint, result);
@@ -235,13 +245,22 @@ export function VacancyDetailModal({
           </div>
 
           {/* Extracted Skills */}
-          {vacancy.skills && vacancy.skills.length > 0 && (
+          {((evaluation?.extracted_skills && evaluation.extracted_skills.length > 0)
+            ? evaluation.extracted_skills
+            : vacancy.skills) &&
+            ((evaluation?.extracted_skills && evaluation.extracted_skills.length > 0)
+              ? evaluation.extracted_skills
+              : vacancy.skills
+            ).length > 0 && (
             <div>
               <h4 className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">
                 Habilidades Técnicas Detectadas
               </h4>
               <div className="flex flex-wrap gap-1.5">
-                {vacancy.skills.map((skill, i) => (
+                {((evaluation?.extracted_skills && evaluation.extracted_skills.length > 0)
+                  ? evaluation.extracted_skills
+                  : vacancy.skills
+                ).map((skill, i) => (
                   <span
                     key={i}
                     className="px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-800 text-zinc-200 border border-zinc-700"
@@ -267,18 +286,25 @@ export function VacancyDetailModal({
         {/* Footer Direct Links */}
         <div className="p-3 border-t border-zinc-800 flex items-center justify-between bg-zinc-950">
           <div className="flex flex-wrap items-center gap-2">
-            {vacancy.external_links.map((link, i) => (
-              <a
-                key={i}
-                href={link.direct_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs uppercase flex items-center gap-1.5 transition-colors"
-              >
-                <span>Postular en {link.portal_name}</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            ))}
+            {(vacancy.external_links || [])
+              .filter(
+                (link, idx, arr) =>
+                  arr.findIndex(
+                    (l) => (l.portal_name || "").toLowerCase() === (link.portal_name || "").toLowerCase()
+                  ) === idx
+              )
+              .map((link, i) => (
+                <a
+                  key={i}
+                  href={link.direct_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs uppercase flex items-center gap-1.5 transition-colors"
+                >
+                  <span>Postular en {link.portal_name}</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              ))}
           </div>
           <button
             onClick={onClose}

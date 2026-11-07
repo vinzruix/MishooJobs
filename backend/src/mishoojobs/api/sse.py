@@ -183,18 +183,25 @@ async def job_search_stream_generator(params: SearchParams) -> AsyncGenerator[st
 
         # Emit batch if vacancies found
         if verified_vacs:
-            all_extracted_vacancies.extend(verified_vacs)
+            deduped_portal_vacs, _ = deduplicator.deduplicate_batch(verified_vacs)
+            all_extracted_vacancies.extend(deduped_portal_vacs)
             yield format_sse(
                 "vacancy_batch",
                 {
                     "portal": portal_name.value,
-                    "vacancies": [v.model_dump(mode="json") for v in verified_vacs],
+                    "vacancies": [v.model_dump(mode="json") for v in deduped_portal_vacs],
                 },
             )
 
     # 3. Cross-portal Deduplication
     unique_vacancies, summary = deduplicator.deduplicate_batch(all_extracted_vacancies)
-    yield format_sse("deduplication_summary", summary.model_dump(mode="json"))
+    yield format_sse(
+        "deduplication_summary",
+        {
+            **summary.model_dump(mode="json"),
+            "vacancies": [v.model_dump(mode="json") for v in unique_vacancies],
+        },
+    )
 
     # 4. Async persistence in background
     asyncio.create_task(persist_vacancies_safe(unique_vacancies))

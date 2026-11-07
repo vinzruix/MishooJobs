@@ -43,13 +43,13 @@ class CrossPortalDeduplicator:
 
     def merge_vacancies(self, existing: VacancyDTO, incoming: VacancyDTO) -> VacancyDTO:
         """Merges two duplicate vacancy postings into a unified canonical posting."""
-        # Merge external links by URL
-        existing_urls = {link.direct_url for link in existing.external_links}
+        # Merge external links: 1 primary link per portal to prevent duplicate portal buttons
+        existing_portals = {link.portal_name for link in existing.external_links}
         merged_links = list(existing.external_links)
         for link in incoming.external_links:
-            if link.direct_url not in existing_urls:
+            if link.portal_name not in existing_portals:
                 merged_links.append(link)
-                existing_urls.add(link.direct_url)
+                existing_portals.add(link.portal_name)
 
         # Merge salaries: widen bounds
         sal_min = existing.salary_min
@@ -70,6 +70,12 @@ class CrossPortalDeduplicator:
 
         # Keep longer/cleaner description
         desc = existing.description if len(existing.description) >= len(incoming.description) else incoming.description
+
+        # Keep most recent published_at date
+        if not existing.published_at and incoming.published_at:
+            existing.published_at = incoming.published_at
+        elif existing.published_at and incoming.published_at:
+            existing.published_at = max(existing.published_at, incoming.published_at)
 
         existing.external_links = merged_links
         existing.salary_min = sal_min

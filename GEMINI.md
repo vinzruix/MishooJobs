@@ -150,3 +150,6 @@ When implementing tasks or modifying this codebase:
 - [002] Client-side cumulative date filtering with multi-select inclusive union and 60-second background ticker for relative timestamps and 'Nueva' badges (≤48h).
 - [002] URL query parameter sync (?published_within=...) and smart recency sorting defaulting to 'Más recientes primero' for timeframes ≤ 3 days.
 - [Hotfix] Use Pydantic AliasChoices for DB column validation while preserving canonical JSON keys (description, skills), normalize WAF bot challenges (403/429) as active for human candidates, and unwrap agy CLI response envelopes.
+- [Hotfix] Key VacancyDetailModal by vacancy.fingerprint and sync internal evaluation state to prevent stale AI analysis leak between vacancies; switch FilterDrawer timeframe toggle to single-select to eliminate count mismatch and avoid redundant background re-scraping on client-side filter resets.
+- [Hotfix] Stream-level and client-state fingerprint deduplication with field merging (latest published_at, links, longer description) preventing duplicate React keys and reconciler DOM orphan persistence on date filtering.
+- [Hotfix] Deduplicate external application links by portal name (1 primary active link per portal) and enforce flex-shrink-0 on card actions to prevent button overflow.

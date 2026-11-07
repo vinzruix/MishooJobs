@@ -37,7 +37,7 @@ export function VacancyList({
   onSelectTimeframe,
 }: VacancyListProps) {
   if (vacancies.length === 0) {
-    if (isSearching) {
+    if (isSearching && !isDateFiltered) {
       return (
         <div className="py-16 text-center flex flex-col items-center justify-center border border-dashed border-zinc-800 rounded-lg">
           <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin mb-3" />

@@ -27,3 +27,4 @@ class AIEvaluationResponse(BaseModel):
     is_cached: bool = Field(default=False, description="True if served from PostgreSQL cache")
     evaluated_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
     full_description: Optional[str] = Field(default=None, description="Full enriched job description")
+    extracted_skills: Optional[List[str]] = Field(default=None, description="Newly extracted technical skills from full job description")

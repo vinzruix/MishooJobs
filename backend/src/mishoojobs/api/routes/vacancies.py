@@ -97,6 +97,12 @@ async def evaluate_vacancy(
         await db.commit()
         cached_entry = None
 
+    extracted_skills_list = (
+        db_vac.skills_extracted
+        if db_vac and db_vac.skills_extracted
+        else ComputrabajoScraper().extract_skills(f"{db_vac.title if db_vac else ''} {effective_desc}")
+    )
+
     if cached_entry:
         return AIEvaluationResponse(
             fit_score=cached_entry.fit_score,
@@ -108,6 +114,7 @@ async def evaluate_vacancy(
             is_cached=True,
             evaluated_at=cached_entry.evaluated_at,
             full_description=effective_desc if len(effective_desc) > 300 else None,
+            extracted_skills=extracted_skills_list or None,
         )
 
     # 2. Invoke local agy CLI
@@ -157,6 +164,7 @@ async def evaluate_vacancy(
         is_cached=False,
         evaluated_at=now,
         full_description=effective_desc,
+        extracted_skills=extracted_skills_list or None,
     )
 
 @router.get("/{fingerprint}/scam-report", response_model=ScamReportResponse)

@@ -3,7 +3,7 @@ import type { DeduplicationSummary, JobVacancy, PortalStatus, StreamEndEvent } f
 export interface StreamCallbacks {
   onPortalStatus?: (status: PortalStatus) => void;
   onVacancyBatch?: (vacancies: JobVacancy[]) => void;
-  onDeduplicationSummary?: (summary: DeduplicationSummary) => void;
+  onDeduplicationSummary?: (summary: DeduplicationSummary, vacancies?: JobVacancy[]) => void;
   onStreamEnd?: (end: StreamEndEvent) => void;
   onError?: (err: Error) => void;
 }
@@ -76,7 +76,7 @@ export function startJobStream(
             } else if (eventName === "vacancy_batch" && callbacks.onVacancyBatch) {
               callbacks.onVacancyBatch(parsedData.vacancies || []);
             } else if (eventName === "deduplication_summary" && callbacks.onDeduplicationSummary) {
-              callbacks.onDeduplicationSummary(parsedData);
+              callbacks.onDeduplicationSummary(parsedData, parsedData.vacancies);
             } else if (eventName === "stream_end" && callbacks.onStreamEnd) {
               callbacks.onStreamEnd(parsedData);
             }

@@ -144,6 +144,11 @@ export default function App() {
   };
 
   const handleFilterReset = () => {
+    const backendFilterChanged =
+      filters.modality !== "all" ||
+      filters.category !== "all" ||
+      (filters.location !== "México" && filters.location !== "");
+
     const defaultFilters: FilterState = {
       modality: "all",
       category: "all",
@@ -151,17 +156,28 @@ export default function App() {
       timeframes: ["all"],
     };
     setFilters(defaultFilters);
-    search({
-      query: currentQuery,
-      location: defaultFilters.location,
-      modality: defaultFilters.modality,
-      category: defaultFilters.category,
-    });
+
+    if (backendFilterChanged) {
+      search({
+        query: currentQuery,
+        location: defaultFilters.location,
+        modality: defaultFilters.modality,
+        category: defaultFilters.category,
+      });
+    }
   };
 
-  // 1. Visible vacancies excluding discarded ones (US5, SC-007)
+  // 1. Visible vacancies excluding discarded ones (US5, SC-007) with strict fingerprint uniqueness
   const visibleVacancies = useMemo(() => {
-    return vacancies.filter((v) => !ignoredSet.has(v.fingerprint));
+    const seen = new Set<string>();
+    const result: JobVacancy[] = [];
+    for (const v of vacancies) {
+      if (!ignoredSet.has(v.fingerprint) && !seen.has(v.fingerprint)) {
+        seen.add(v.fingerprint);
+        result.push(v);
+      }
+    }
+    return result;
   }, [vacancies, ignoredSet]);
 
   // 2. Client-side date timeframe filtering
@@ -346,13 +362,16 @@ export default function App() {
       />
 
       {/* Detail Modal Preview with On-Demand AI Evaluation */}
-      <VacancyDetailModal
-        vacancy={selectedVacancy}
-        onClose={() => setSelectedVacancy(null)}
-        activeProfile={activeProfile}
-        cachedEvaluation={selectedVacancy ? evalCache[selectedVacancy.fingerprint] : undefined}
-        onEvaluationComplete={handleEvaluationComplete}
-      />
+      {selectedVacancy && (
+        <VacancyDetailModal
+          key={selectedVacancy.fingerprint}
+          vacancy={selectedVacancy}
+          onClose={() => setSelectedVacancy(null)}
+          activeProfile={activeProfile}
+          cachedEvaluation={evalCache[selectedVacancy.fingerprint]}
+          onEvaluationComplete={handleEvaluationComplete}
+        />
+      )}
 
       {/* Footer */}
       <footer className="border-t border-zinc-900 py-3 px-4 text-center text-xs text-zinc-600">

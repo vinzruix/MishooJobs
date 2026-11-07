@@ -70,20 +70,14 @@ export function FilterDrawer({
       return;
     }
 
-    const current = filters.timeframes.filter((t) => t !== "all");
-    const exists = current.includes(tfId);
-
-    let next: TimeframeId[];
-    if (exists) {
-      next = current.filter((t) => t !== tfId);
-      if (next.length === 0) {
-        next = ["all"];
-      }
-    } else {
-      next = [...current, tfId];
+    // Single-select behavior: if clicking the active timeframe, toggle it off back to "all"
+    if (filters.timeframes.length === 1 && filters.timeframes[0] === tfId) {
+      onChange({ ...filters, timeframes: ["all"] });
+      return;
     }
 
-    onChange({ ...filters, timeframes: next });
+    // Otherwise, select this specific timeframe exclusively
+    onChange({ ...filters, timeframes: [tfId] });
   };
 
   const getCount = (tf: TimeframeConfig) => {
