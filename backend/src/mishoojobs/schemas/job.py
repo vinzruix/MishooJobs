@@ -127,6 +127,10 @@ class VacancyDTO(BaseModel):
     currency: str = Field(default="MXN")
     description: str = Field(..., alias="description_clean")
     skills: List[str] = Field(default_factory=list, alias="skills_extracted")
+    published_at: Optional[datetime] = Field(
+        default=None,
+        description="Original publication timestamp in UTC. Null if unparseable or missing from portal."
+    )
     external_links: List[ExternalLinkDTO] = Field(default_factory=list)
     scam_report: Optional[ScamReportResponse] = None
     heuristic_fit_score: Optional[int] = Field(default=None, ge=0, le=100)

@@ -43,6 +43,7 @@ export interface JobVacancy {
   currency: string;
   description: string;
   skills: string[];
+  published_at?: string | null;
   external_links: ExternalLink[];
   scam_report?: ScamReport | null;
   heuristic_fit_score?: number | null;
@@ -68,4 +69,36 @@ export interface StreamEndEvent {
   status: "complete" | "partial" | "failed";
   total_vacancies: number;
   total_duration_ms: number;
+}
+
+export type TimeframeId =
+  | "all"
+  | "1h"
+  | "24h"
+  | "3d"
+  | "7d"
+  | "30d"
+  | "30d_plus";
+
+export type SortOrder = "recent" | "compatibility" | "relevance";
+
+export interface SortOption {
+  id: SortOrder;
+  label: string;
+}
+
+export interface PublicationTimeframe {
+  id: TimeframeId;
+  label: string;
+  description: string;
+  maxAgeMs?: number;
+  minAgeMs?: number;
+  count: number;
+}
+
+export interface VacancyDateMetadata {
+  published_at?: string | null;
+  relative_text: string;
+  is_new: boolean;
+  age_ms?: number | null;
 }

@@ -51,6 +51,24 @@ class ComputrabajoScraper(AbstractBaseScraper):
             desc_tag = article.select_one("p.fs13:not(.fc_aux)") or article.select_one("div.bRS p")
             desc_text = self.sanitize_text(desc_tag.get_text()) if desc_tag else title
 
+            # Extract publication date
+            date_tag = (
+                article.select_one("span.date")
+                or article.select_one("p.fs13.fc_aux.date")
+                or article.select_one("span[class*='date']")
+            )
+            raw_date = None
+            if date_tag:
+                raw_date = date_tag.get_text()
+            else:
+                for p in article.select("p.fs13, span"):
+                    t = p.get_text()
+                    if any(w in t.lower() for w in ["hace", "hoy", "ayer", "minuto", "hora", "día", "dia", "semana"]):
+                        if "$" not in t and "salario" not in t.lower() and "apoyo" not in t.lower():
+                            raw_date = t
+                            break
+            published_at = self.parse_mexican_relative_date(raw_date)
+
             modality = self.infer_modality(title, f"{location_text} {desc_text}")
             category = self.infer_category(title, desc_text)
             skills = self.extract_skills(f"{title} {desc_text}")
@@ -81,6 +99,7 @@ class ComputrabajoScraper(AbstractBaseScraper):
                     currency="MXN",
                     description_clean=desc_text,
                     skills_extracted=skills,
+                    published_at=published_at,
                     external_links=[external_link],
                 )
             )

@@ -2,7 +2,21 @@
 
 **Feature**: `002-date-vacancy-filters`  
 **Date**: 2026-11-06  
-**Status**: Ready for Validation  
+**Status**: Verified & Complete  
+
+---
+
+## 0. Verification Summary & Test Evidence
+
+All automated unit, integration, and component tests execute 100% offline with zero live network calls:
+- **Backend Test Suite**: 20/20 passed (`pytest backend/tests/ -v`).
+  - `test_parse_mexican_relative_date_fixed_reference`: Verified relative date offset calculations, Mexican Spanish tokens, and null handling.
+  - `test_computrabajo_parser`, `test_indeed_parser`, `test_occ_parser`: Verified extraction and assignment of `published_at` across HTML fixtures.
+- **Frontend Test Suite**: 29/29 passed (`npm test -- --run`).
+  - `date_utils.test.ts` (21 tests): Verified cumulative threshold matching, multi-select union, null exclusion, 48h "Nueva" badge boundary, relative time strings, sorting, and URL serialization/deserialization.
+  - `VacancyCard.test.tsx` (5 tests): Verified clock icon, relative timestamps, and "Nueva" badge presence/absence.
+  - `VacancyList.test.tsx` (3 tests): Verified date-filter empty state, one-click reset, recommendation action, and sorting dropdown.
+- **TypeScript Static Verification**: Passed with 0 errors (`npx tsc --noEmit`).
 
 ---
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Terminal, Shield, Zap } from "lucide-react";
 import { Header } from "./components/Header";
 import { SearchBar } from "./components/SearchBar";
@@ -12,8 +12,15 @@ import { useJobStream } from "./hooks/useJobStream";
 import { useProfiles } from "./hooks/useProfiles";
 import { useApplications } from "./hooks/useApplications";
 import { useKeyboardNavigation } from "./hooks/useKeyboardNavigation";
+import { useDateTicker } from "./hooks/useDateTicker";
+import {
+  filterVacanciesByTimeframes,
+  parseTimeframesFromQuery,
+  serializeTimeframesToQuery,
+  sortVacancies,
+} from "./services/date_utils";
 import { calculateHeuristicScore } from "./services/heuristic_scorer";
-import type { JobVacancy } from "./types/job";
+import type { JobVacancy, SortOrder, TimeframeId } from "./types/job";
 import type { AIEvaluation } from "./types/profile";
 
 export default function App() {
@@ -22,11 +29,28 @@ export default function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [evalCache, setEvalCache] = useState<Record<string, AIEvaluation>>({});
   const [currentQuery, setCurrentQuery] = useState("Python Junior");
+
+  // Read initial timeframe from URL query parameter (?published_within=...)
+  const initialTimeframes = useMemo<TimeframeId[]>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return parseTimeframesFromQuery(params.get("published_within"));
+    }
+    return ["all"];
+  }, []);
+
   const [filters, setFilters] = useState<FilterState>({
     modality: "all",
     category: "all",
     location: "México",
+    timeframes: initialTimeframes,
   });
+
+  const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
+  const [isSortUserOverridden, setIsSortUserOverridden] = useState<boolean>(false);
+
+  // Single top-level 60-second ticker for relative timestamps and "Nueva" badges
+  const currentNow = useDateTicker(60_000);
 
   const {
     isSearching,
@@ -53,6 +77,43 @@ export default function App() {
     removeApplication,
   } = useApplications();
 
+  // URL query sync: update ?published_within=... on timeframe changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const serialized = serializeTimeframesToQuery(filters.timeframes);
+    if (serialized) {
+      url.searchParams.set("published_within", serialized);
+    } else {
+      url.searchParams.delete("published_within");
+    }
+    window.history.replaceState({}, "", url.toString());
+  }, [filters.timeframes]);
+
+  // Browser back/forward (popstate) listener to sync timeframe filter
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlTfs = parseTimeframesFromQuery(params.get("published_within"));
+      setFilters((prev) => ({ ...prev, timeframes: urlTfs }));
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Smart Recency auto-switching: if <= 3 days and user hasn't overridden sort
+  useEffect(() => {
+    if (!isSortUserOverridden) {
+      const hasRecentTimeframe = filters.timeframes.some((t) =>
+        ["1h", "24h", "3d"].includes(t)
+      );
+      if (hasRecentTimeframe) {
+        setSortOrder("recent");
+      }
+    }
+  }, [filters.timeframes, isSortUserOverridden]);
+
   const handleSearch = (query: string, location: string) => {
     setCurrentQuery(query);
     setFilters((prev) => ({ ...prev, location }));
@@ -65,13 +126,21 @@ export default function App() {
   };
 
   const handleFilterChange = (newFilters: FilterState) => {
+    const backendFilterChanged =
+      newFilters.location !== filters.location ||
+      newFilters.modality !== filters.modality ||
+      newFilters.category !== filters.category;
+
     setFilters(newFilters);
-    search({
-      query: currentQuery,
-      location: newFilters.location,
-      modality: newFilters.modality,
-      category: newFilters.category,
-    });
+
+    if (backendFilterChanged) {
+      search({
+        query: currentQuery,
+        location: newFilters.location,
+        modality: newFilters.modality,
+        category: newFilters.category,
+      });
+    }
   };
 
   const handleFilterReset = () => {
@@ -79,6 +148,7 @@ export default function App() {
       modality: "all",
       category: "all",
       location: "México",
+      timeframes: ["all"],
     };
     setFilters(defaultFilters);
     search({
@@ -89,15 +159,25 @@ export default function App() {
     });
   };
 
-  // Visible vacancies excluding discarded ones (US5, SC-007)
+  // 1. Visible vacancies excluding discarded ones (US5, SC-007)
   const visibleVacancies = useMemo(() => {
     return vacancies.filter((v) => !ignoredSet.has(v.fingerprint));
   }, [vacancies, ignoredSet]);
 
+  // 2. Client-side date timeframe filtering
+  const dateFilteredVacancies = useMemo(() => {
+    return filterVacanciesByTimeframes(visibleVacancies, filters.timeframes, currentNow);
+  }, [visibleVacancies, filters.timeframes, currentNow]);
+
+  // 3. Sorting by active sort order
+  const displayedVacancies = useMemo(() => {
+    return sortVacancies(dateFilteredVacancies, sortOrder);
+  }, [dateFilteredVacancies, sortOrder]);
+
   const isAnyModalOpen = selectedVacancy !== null || isProfileModalOpen;
 
   useKeyboardNavigation({
-    vacancies: visibleVacancies,
+    vacancies: displayedVacancies,
     isModalOpen: isAnyModalOpen,
     onInspect: (v) => setSelectedVacancy(v),
     onCloseModal: () => {
@@ -108,15 +188,15 @@ export default function App() {
     onMarkApplied: (v) => setApplicationStatus(v, "applied"),
   });
 
-  // Instant Tier 1 heuristic match score calculation across all cards (<2s)
+  // Instant Tier 1 heuristic match score calculation across displayed cards (<2s)
   const scoresByFingerprint = useMemo(() => {
     if (!activeProfile || activeProfile.skills.length === 0) return {};
     const map: Record<string, number> = {};
-    for (const v of visibleVacancies) {
+    for (const v of displayedVacancies) {
       map[v.fingerprint] = calculateHeuristicScore(activeProfile.skills, v.skills);
     }
     return map;
-  }, [activeProfile, visibleVacancies]);
+  }, [activeProfile, displayedVacancies]);
 
   const handleEvaluationComplete = (fingerprint: string, evalResult: AIEvaluation) => {
     setEvalCache((prev) => ({
@@ -155,10 +235,21 @@ export default function App() {
         {activeTab === "search" && (
           <div className="flex flex-col gap-4">
             {/* Search Input Bar */}
-            <SearchBar onSearch={handleSearch} isSearching={isSearching} initialQuery={currentQuery} initialLocation={filters.location} />
+            <SearchBar
+              onSearch={handleSearch}
+              isSearching={isSearching}
+              initialQuery={currentQuery}
+              initialLocation={filters.location}
+            />
 
             {/* Mexican Filters Drawer */}
-            <FilterDrawer filters={filters} onChange={handleFilterChange} onReset={handleFilterReset} />
+            <FilterDrawer
+              filters={filters}
+              vacancies={visibleVacancies}
+              now={currentNow}
+              onChange={handleFilterChange}
+              onReset={handleFilterReset}
+            />
 
             {/* Portal Live Progress Badges */}
             <PortalStatusBar statuses={portalStatuses} isSearching={isSearching} />
@@ -174,7 +265,7 @@ export default function App() {
             )}
 
             {/* Vacancy Results Feed */}
-            {visibleVacancies.length === 0 && !isSearching ? (
+            {displayedVacancies.length === 0 && !isSearching && visibleVacancies.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-zinc-500 border border-dashed border-zinc-800 rounded-lg">
                 <Terminal className="w-10 h-10 text-zinc-700 mb-3" />
                 <p className="text-sm font-semibold text-zinc-300">Empieza tu búsqueda de empleo en México</p>
@@ -184,14 +275,27 @@ export default function App() {
               </div>
             ) : (
               <VacancyList
-                vacancies={visibleVacancies}
+                vacancies={displayedVacancies}
                 isSearching={isSearching}
+                isDateFiltered={!filters.timeframes.includes("all") && filters.timeframes.length > 0}
+                sortOrder={sortOrder}
+                now={currentNow}
                 scoresByFingerprint={scoresByFingerprint}
                 applicationStatuses={statusMap}
                 onInspect={(v) => setSelectedVacancy(v)}
                 onSave={(v) => setApplicationStatus(v, "saved")}
                 onMarkApplied={(v) => setApplicationStatus(v, "applied")}
                 onDiscard={(v) => setApplicationStatus(v, "ignored")}
+                onSortChange={(order) => {
+                  setSortOrder(order);
+                  setIsSortUserOverridden(true);
+                }}
+                onClearDateFilter={() => {
+                  setFilters((prev) => ({ ...prev, timeframes: ["all"] }));
+                }}
+                onSelectTimeframe={(tf) => {
+                  setFilters((prev) => ({ ...prev, timeframes: [tf] }));
+                }}
               />
             )}
           </div>

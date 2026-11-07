@@ -1,6 +1,7 @@
 import abc
 import re
 import unicodedata
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Tuple
 import bleach
 import httpx
@@ -157,6 +158,84 @@ class AbstractBaseScraper(abc.ABC):
         min_sal = min(clean_numbers[0], clean_numbers[1])
         max_sal = max(clean_numbers[0], clean_numbers[1])
         return (min_sal, max_sal, period)
+
+    def parse_mexican_relative_date(
+        self,
+        raw_text: Optional[str],
+        reference_dt: Optional[datetime] = None,
+    ) -> Optional[datetime]:
+        """Parses Mexican portal date snippets into UTC timezone-aware datetimes.
+
+        Args:
+            raw_text: Extracted text from portal HTML (e.g. 'Hace 3 horas', 'Publicado hoy').
+            reference_dt: Reference datetime for relative offsets (defaults to datetime.now(timezone.utc)).
+
+        Returns:
+            datetime in UTC timezone, or None if unparseable/absent.
+        """
+        if not raw_text:
+            return None
+
+        if reference_dt is None:
+            reference_dt = datetime.now(timezone.utc)
+        elif reference_dt.tzinfo is None:
+            reference_dt = reference_dt.replace(tzinfo=timezone.utc)
+
+        norm = self.normalize_text(raw_text)
+
+        def extract_count(pattern: str, text: str, default: int = 1) -> int:
+            match = re.search(pattern, text)
+            if match and match.group(1):
+                try:
+                    return int(match.group(1))
+                except ValueError:
+                    return default
+            return default
+
+        # "mas de un mes" or "mas de 1 mes" or "+ de 1 mes"
+        if re.search(r"m[aá]s\s+de\s+(?:un|[0-9]+)\s+mes", norm) or re.search(r"\+\s*de\s+[0-9]+\s+mes", norm):
+            count_match = re.search(r"m[aá]s\s+de\s+([0-9]+)\s+mes", norm)
+            months = int(count_match.group(1)) if count_match else 1
+            return reference_dt - timedelta(days=31 * months)
+
+        # "un momento", "instante", "unos segundos"
+        if re.search(r"\b(?:un\s+momento|unos\s+momentos|instante|segundos)\b", norm):
+            return reference_dt
+
+        # "hoy" or "publicad[oa]\s+hoy"
+        if re.search(r"\bhoy\b", norm):
+            return reference_dt
+
+        # "ayer"
+        if re.search(r"\bayer\b", norm):
+            return reference_dt - timedelta(days=1)
+
+        # "minuto(s)"
+        if re.search(r"minuto", norm):
+            n = extract_count(r"(\d+)\s*minuto", norm, default=1)
+            return reference_dt - timedelta(minutes=n)
+
+        # "hora(s)"
+        if re.search(r"hora", norm):
+            n = extract_count(r"(\d+)\s*hora", norm, default=1)
+            return reference_dt - timedelta(hours=n)
+
+        # "dia(s)"
+        if re.search(r"d[ií]a", norm):
+            n = extract_count(r"(\d+)\s*d[ií]a", norm, default=1)
+            return reference_dt - timedelta(days=n)
+
+        # "semana(s)"
+        if re.search(r"semana", norm):
+            n = extract_count(r"(\d+)\s*semana", norm, default=1)
+            return reference_dt - timedelta(days=7 * n)
+
+        # "mes(es)"
+        if re.search(r"mes(?:es)?", norm):
+            n = extract_count(r"(\d+)\s*mes", norm, default=1)
+            return reference_dt - timedelta(days=30 * n)
+
+        return None
 
     def extract_skills(self, text: str) -> List[str]:
         """Extracts recognizable technical skills using boundary-safe regex matching."""

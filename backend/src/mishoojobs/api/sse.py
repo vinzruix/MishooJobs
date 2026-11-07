@@ -48,6 +48,7 @@ async def persist_vacancies_safe(vacancies: List[VacancyDTO]) -> None:
                         currency="MXN",
                         description_clean=v.description,
                         skills_extracted=v.skills,
+                        published_at=v.published_at,
                         is_verified_active=True,
                     )
                     .on_conflict_do_update(
@@ -56,6 +57,7 @@ async def persist_vacancies_safe(vacancies: List[VacancyDTO]) -> None:
                             "salary_min": v.salary_min,
                             "salary_max": v.salary_max,
                             "skills_extracted": v.skills,
+                            "published_at": v.published_at,
                         },
                     )
                     .returning(JobVacancy.id)

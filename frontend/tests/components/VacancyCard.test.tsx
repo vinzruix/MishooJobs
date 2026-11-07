@@ -69,4 +69,58 @@ describe("Frontend Component Tests", () => {
     render(<FitScoreBadge score={92} tier="high" />);
     expect(screen.getByText("92% Compatibilidad")).toBeInTheDocument();
   });
+
+  it("renders 'Nueva' badge and relative time for fresh vacancy (<= 48h)", () => {
+    const fixedNow = new Date("2026-11-06T12:00:00Z");
+    const freshVacancy: JobVacancy = {
+      ...sampleVacancy,
+      published_at: "2026-11-06T10:00:00Z", // 2 hours ago
+    };
+
+    render(
+      <VacancyCard
+        vacancy={freshVacancy}
+        now={fixedNow}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("Nueva")).toBeInTheDocument();
+    expect(screen.getByText("Hace 2 horas")).toBeInTheDocument();
+  });
+
+  it("does not render 'Nueva' badge for older vacancy (> 48h) or null date", () => {
+    const fixedNow = new Date("2026-11-06T12:00:00Z");
+    const olderVacancy: JobVacancy = {
+      ...sampleVacancy,
+      published_at: "2026-11-03T12:00:00Z", // 3 days ago
+    };
+
+    const { rerender } = render(
+      <VacancyCard
+        vacancy={olderVacancy}
+        now={fixedNow}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByText("Nueva")).not.toBeInTheDocument();
+    expect(screen.getByText("Hace 3 días")).toBeInTheDocument();
+
+    const nullDateVacancy: JobVacancy = {
+      ...sampleVacancy,
+      published_at: null,
+    };
+
+    rerender(
+      <VacancyCard
+        vacancy={nullDateVacancy}
+        now={fixedNow}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByText("Nueva")).not.toBeInTheDocument();
+    expect(screen.getByText("Fecha no especificada")).toBeInTheDocument();
+  });
 });

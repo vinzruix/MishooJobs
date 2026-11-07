@@ -140,3 +140,12 @@ When implementing tasks or modifying this codebase:
   - **Task**: Update [`GEMINI.md`](file:///Users/yairtejedahotmail.com/projects/mishooJobs/mishooJobs/GEMINI.md) with key design decisions and new conventions established by the feature.
   - **Format**: One concise line per decision, prefixed with the specification ID (e.g., `[001] Use Dexie.js for client-side IndexedDB persistence`).
   - **Relevance Filter**: Strictly avoid trivial implementation details or redundant descriptions. Record only transversal, reusable architectural decisions and conventions that guide subsequent specifications.
+
+---
+
+## 7. Architectural Decisions & Conventions Log
+
+- [001] Use Dexie.js for client-side IndexedDB persistence of user profiles, resumes, and application pipeline with zero candidate PII in PostgreSQL.
+- [002] Standardize publication dates as UTC datetime (published_at) in VacancyDTO with regex-based Mexican relative date parsing.
+- [002] Client-side cumulative date filtering with multi-select inclusive union and 60-second background ticker for relative timestamps and 'Nueva' badges (≤48h).
+- [002] URL query parameter sync (?published_within=...) and smart recency sorting defaulting to 'Más recientes primero' for timeframes ≤ 3 days.

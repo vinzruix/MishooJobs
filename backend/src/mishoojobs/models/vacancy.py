@@ -59,6 +59,9 @@ class JobVacancy(Base):
     currency: Mapped[str] = mapped_column(String(3), default="MXN", nullable=False)
     description_clean: Mapped[str] = mapped_column(Text, nullable=False)
     skills_extracted: Mapped[list] = mapped_column(JSONB, default=list, nullable=False)
+    published_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
     is_verified_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     first_discovered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

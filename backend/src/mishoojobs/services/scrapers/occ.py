@@ -42,6 +42,25 @@ class OCCScraper(AbstractBaseScraper):
             desc_tag = card.select_one(".description") or card.select_one("p")
             desc_text = self.sanitize_text(desc_tag.get_text()) if desc_tag else title
 
+            # Extract publication date
+            date_tag = (
+                card.select_one(".date")
+                or card.select_one("span[class*='date']")
+                or card.select_one("p[class*='date']")
+                or card.select_one("span.published")
+            )
+            raw_date = None
+            if date_tag:
+                raw_date = date_tag.get_text()
+            else:
+                for elem in card.select("span, div, p"):
+                    t = elem.get_text()
+                    if any(w in t.lower() for w in ["hace", "hoy", "ayer", "publicad"]):
+                        if "$" not in t and "salario" not in t.lower():
+                            raw_date = t
+                            break
+            published_at = self.parse_mexican_relative_date(raw_date)
+
             modality = self.infer_modality(title, f"{location_text} {desc_text}")
             category = self.infer_category(title, desc_text)
             skills = self.extract_skills(f"{title} {desc_text}")
@@ -72,6 +91,7 @@ class OCCScraper(AbstractBaseScraper):
                     currency="MXN",
                     description_clean=desc_text,
                     skills_extracted=skills,
+                    published_at=published_at,
                     external_links=[external_link],
                 )
             )

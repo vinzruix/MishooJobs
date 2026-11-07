@@ -1,12 +1,14 @@
-import { ExternalLink as ExtLinkIcon, MapPin, DollarSign, Bookmark, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { ExternalLink as ExtLinkIcon, MapPin, DollarSign, Bookmark, CheckCircle, Eye, EyeOff, Clock } from "lucide-react";
 import type { JobVacancy } from "../types/job";
 import type { ApplicationStatus } from "../types/application";
+import { formatMexicanRelativeTime, isNewVacancy } from "../services/date_utils";
 import { ScamBadge } from "./ScamBadge";
 
 interface VacancyCardProps {
   vacancy: JobVacancy;
   fitScore?: number | null;
   applicationStatus?: ApplicationStatus;
+  now?: Date;
   onInspect: (vacancy: JobVacancy) => void;
   onSave?: (vacancy: JobVacancy) => void;
   onMarkApplied?: (vacancy: JobVacancy) => void;
@@ -17,11 +19,14 @@ export function VacancyCard({
   vacancy,
   fitScore,
   applicationStatus,
+  now = new Date(),
   onInspect,
   onSave,
   onMarkApplied,
   onDiscard,
 }: VacancyCardProps) {
+  const relativeText = formatMexicanRelativeTime(vacancy.published_at, now);
+  const isNew = isNewVacancy(vacancy.published_at, now);
   const formatSalary = () => {
     if (!vacancy.salary_min && !vacancy.salary_max) {
       return "Sueldo no publicado / A convenir";
@@ -61,6 +66,11 @@ export function VacancyCard({
             <span className="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-zinc-800/80 text-zinc-300 border border-zinc-700/60">
               {vacancy.category}
             </span>
+            {isNew && (
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-600/80 animate-pulse">
+                Nueva
+              </span>
+            )}
             {vacancy.scam_report && <ScamBadge report={vacancy.scam_report} />}
           </div>
 
@@ -101,6 +111,10 @@ export function VacancyCard({
           <div className="flex items-center gap-1 text-emerald-400 font-medium">
             <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
             <span>{formatSalary()}</span>
+          </div>
+          <div className="flex items-center gap-1 text-zinc-400 font-mono text-xs">
+            <Clock className="w-3.5 h-3.5 text-zinc-500" />
+            <span>{relativeText}</span>
           </div>
         </div>
 
