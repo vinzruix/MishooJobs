@@ -8,6 +8,15 @@
 
 **Input**: User description: "Feature: Date-relevant vacancy filters. Goal: Allow candidates to easily find freshly published jobs by filtering vacancies by publication date. Key Behaviors: Filter options (multy select): Cualquier fecha (default), Última hora (past 60 minutes), Últimas 24 horas (past 1 day), Últimos 3 días (past 3 day), Última semana (past 7 days), Último mes (past 30 days), Más de 1 mes (past 30+ days)... Display relative timestamps on vacancy cards... Add a 'Nueva' badge to any vacancy published within the last 48 hours... Display the count of available jobs next to each filter option... Sync the filter in the URL query params (?published_within=24h)... If no vacancies exist, display friendly message suggesting to expand to 'Última semana'... Include quick 'Limpiar filtro' button..."
 
+## Clarifications
+
+### Session 2026-11-06
+- Q: Should the date filter options represent cumulative thresholds or mutually exclusive time buckets? (FR-001) → A: Cumulative thresholds (≤ 1h, ≤ 24h, ≤ 3d, ≤ 7d, ≤ 30d, > 30d) where count badges reflect total vacancies within each window and multi-selection evaluates to an inclusive union.
+- Q: How should the platform handle vacancies from external portals that have missing or unparseable publication dates? (FR-006) → A: Vacancies with unparseable or missing dates must have published_at set to null, display relative timestamp "Fecha no especificada", be excluded from all specific time-window filters and the "Nueva" badge, and only appear under "Cualquier fecha".
+- Q: What sorting control and options should be available so candidates can explicitly choose or override the sorting order? (FR-009) → A: Add a visible sorting dropdown in the results header with options: "Más recientes primero", "Mayor compatibilidad (Fit Score)", and "Relevancia por defecto". Selecting ≤ 3 days automatically sets the sorting dropdown to "Más recientes primero" unless the user has explicitly changed it.
+- Q: Where should the publication date filter controls be positioned in the interface? (FR-001) → A: Inside the existing FilterDrawer as a dedicated section alongside Modality, Academic Format, and Mexican Region for unified filtering.
+- Q: Should relative timestamps and "Nueva" badges on rendered job cards update automatically in the background as time elapses? (FR-006) → A: Implement an automatic 60-second client-side background interval ticker that updates relative time strings and reassesses "Nueva" badge status in real time without requiring network requests or full list re-renders.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Instant Filtering by Publication Date Preserving Search Context (Priority: P1)
@@ -55,8 +64,8 @@ As a candidate evaluating how many fresh jobs are available, I want to see the c
 **Acceptance Scenarios**:
 
 1. **Given** a set of discovered vacancies, **When** the filter panel is viewed, **Then** each date filter option displays the exact count of vacancies matching that timeframe for the current search context (e.g., "Últimas 24 horas (12)").
-2. **Given** a candidate selects a timeframe of 3 days or less ("Última hora", "Últimas 24 horas", or "Últimos 3 días"), **When** the results update, **Then** the default sorting order automatically switches to "Más recientes primero".
-3. **Given** a candidate who has explicitly set a custom sorting preference, **When** they change date filters, **Then** their explicit sorting preference is respected without unwanted overrides.
+2. **Given** a candidate selects a timeframe of 3 days or less ("Última hora", "Últimas 24 horas", or "Últimos 3 días"), **When** the results update, **Then** the sorting selector automatically switches to "Más recientes primero", ordering listings newest to oldest.
+3. **Given** a candidate who has explicitly set a custom sorting preference via the sorting selector (e.g., "Mayor compatibilidad (Fit Score)" or "Relevancia por defecto"), **When** they change date filters, **Then** their explicit sorting preference is preserved without unwanted overrides.
 
 ---
 
@@ -94,7 +103,7 @@ As a candidate who selects a restrictive timeframe with no available listings, I
 
 ### Edge Cases
 
-- **Postings with ambiguous or missing timestamps**: External job portals that do not provide exact publication hours (e.g., stating only "hace varios días" or unparsed dates) must be grouped under "Más de 1 mes" or included in "Cualquier fecha" without triggering errors or skewing relative calculations.
+- **Postings with ambiguous or missing timestamps**: Vacancies where the external portal provides unparseable or missing publication dates have `published_at` set to null and display the relative label "Fecha no especificada". They are strictly included ONLY under "Cualquier fecha" and excluded from all specific time-bounded filter windows (including "Más de 1 mes") and are ineligible for the "Nueva" badge.
 - **Clock skew and timezone offsets**: All relative timestamps must be computed against the Mexican standard timezone (UTC-6 / Central Time) to prevent negative timestamps (e.g., "Hace -10 minutos") or incorrect novelty badges due to client clock drift.
 - **Listings published right at the 48-hour boundary**: Vacancies at exactly 48 hours and 0 minutes are considered "Nueva"; at 48 hours and 1 minute, the badge is omitted.
 - **Combined multi-select with "Cualquier fecha"**: Selecting "Cualquier fecha" automatically deselects any specific timeframes; selecting any specific timeframe automatically unchecks "Cualquier fecha".
@@ -105,38 +114,38 @@ As a candidate who selects a restrictive timeframe with no available listings, I
 
 ### Functional Requirements
 
-- **FR-001**: System MUST provide the following standardized publication date filter options:
+- **FR-001**: System MUST integrate publication date filter options inside the existing `FilterDrawer` as a dedicated section alongside Modality, Academic Format, and Mexican Region, providing the following standardized options defined as cumulative age thresholds relative to the current time:
   - "Cualquier fecha" (default, unbounded)
-  - "Última hora" (≤ 60 minutes)
-  - "Últimas 24 horas" (≤ 24 hours)
-  - "Últimos 3 días" (≤ 72 hours)
-  - "Última semana" (≤ 7 days)
-  - "Último mes" (≤ 30 days)
-  - "Más de 1 mes" (> 30 days)
-- **FR-002**: System MUST allow candidates to select date filter options, supporting multi-selection as an inclusive union across chosen timeframes.
+  - "Última hora" (age ≤ 60 minutes)
+  - "Últimas 24 horas" (age ≤ 24 hours, inclusive of ≤ 60 minutes)
+  - "Últimos 3 días" (age ≤ 72 hours, inclusive of ≤ 24 hours)
+  - "Última semana" (age ≤ 7 days, inclusive of ≤ 72 hours)
+  - "Último mes" (age ≤ 30 days, inclusive of ≤ 7 days)
+  - "Más de 1 mes" (age > 30 days)
+- **FR-002**: System MUST allow candidates to select date filter options, supporting multi-selection evaluated as an inclusive union across chosen timeframes (e.g., selecting "Última hora" and "Últimos 3 días" encompasses all jobs posted within the last 3 days).
 - **FR-003**: Selecting or deselecting any date filter option MUST immediately update the displayed vacancy results and reset the pagination index to page 1.
 - **FR-004**: Updating the date filter MUST preserve all other active search filters, including keyword queries, location parameters, modality choices, and scam badge exclusions.
 - **FR-005**: System MUST synchronize the active date filter with the browser URL query parameter using the key `published_within` (e.g., `?published_within=24h`), updating the browser history for seamless back/forward navigation and bookmarking.
-- **FR-006**: System MUST render human-readable relative timestamps on all vacancy cards in Mexican Spanish (e.g., "Hace unos momentos", "Hace 2 horas", "Hace 1 día", "Hace 3 días", "Hace 2 semanas", "Hace más de 1 mes").
+- **FR-006**: System MUST render human-readable relative timestamps on all vacancy cards in Mexican Spanish (e.g., "Hace unos momentos", "Hace 2 horas", "Hace 1 día", "Hace 3 días", "Hace 2 semanas", "Hace más de 1 mes") and update them automatically via a 60-second client-side interval ticker without requiring full list re-renders.
 - **FR-007**: System MUST display a high-contrast visual badge labeled "Nueva" on all vacancy cards whose publication timestamp is within 48 hours of the current time.
-- **FR-008**: System MUST display the count of matching vacancies next to each date filter option based on the current search query and remaining active filters.
-- **FR-009**: When a user selects a date filter of 3 days or less ("Última hora", "Últimas 24 horas", or "Últimos 3 días"), the system MUST default the result sorting order to "Más recientes primero", unless the user has explicitly selected an alternate sort preference.
+- **FR-008**: System MUST display the count of matching vacancies next to each date filter option based on current search query and remaining active filters, with each badge representing the total vacancy volume matching that cumulative threshold window.
+- **FR-009**: System MUST provide a visible sorting control in the results toolbar with options: "Más recientes primero", "Mayor compatibilidad (Fit Score)", and "Relevancia por defecto". When a user selects a date filter of 3 days or less ("Última hora", "Últimas 24 horas", or "Últimos 3 días"), the system MUST default the sorting selector to "Más recientes primero", unless the user has explicitly selected an alternate sort preference in that session.
 - **FR-010**: When a selected date filter yields zero matching vacancies, the system MUST display an empty state that suggests expanding the search to "Última semana" and provides a quick "Limpiar filtro" button.
 - **FR-011**: Triggering the "Limpiar filtro" action MUST reset the date filter to "Cualquier fecha", clear the `published_within` parameter from the URL, and display all vacancies matching remaining search criteria.
 - **FR-012**: The date filtering and relative timestamp calculations MUST execute without requiring candidate registration, logins, or storing candidate state on external servers.
 
 ### Key Entities
 
-- **PublicationTimeframe**: Represents a date filter option, defined by a unique identifier (e.g., `1h`, `24h`, `3d`, `7d`, `30d`, `30d_plus`, `all`), a localized display label ("Últimas 24 horas"), minimum and maximum age duration limits, and the count of available matching vacancies.
-- **VacancyDateMetadata**: Publication timing attributes associated with a job posting, including the original publication timestamp (ISO 8601 UTC), the calculated relative time string for UI display, and a boolean flag indicating eligibility for the "Nueva" badge (age ≤ 48 hours).
-- **SearchFilterState**: The cohesive state of the candidate's active search, comprising textual keywords, geographic location, active date timeframe selections, sorting order, and pagination parameters, serializable to URL query parameters.
+- **PublicationTimeframe**: Represents a date filter option, defined by a unique identifier (e.g., `1h`, `24h`, `3d`, `7d`, `30d`, `30d_plus`, `all`), a localized display label ("Últimas 24 horas"), minimum and maximum age duration limits (evaluating as cumulative thresholds), and the cumulative count of available matching vacancies.
+- **VacancyDateMetadata**: Publication timing attributes associated with a job posting, including the original publication timestamp (`published_at`: Optional ISO 8601 UTC, null if missing/unparseable), the calculated relative time string for UI display ("Hace 2 horas" or "Fecha no especificada"), and a boolean flag indicating eligibility for the "Nueva" badge (true only when `published_at` exists and age ≤ 48 hours).
+- **SearchFilterState**: The cohesive state of the candidate's active search, comprising textual keywords, geographic location, active date timeframe selections, sorting order (`sort_order`: "recent" | "compatibility" | "relevance"), and pagination parameters, serializable to URL query parameters.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
 - **SC-001**: Applying or switching a date filter updates the visible vacancy list and resets pagination in under 300 milliseconds on the client interface.
-- **SC-002**: 100% of vacancy cards display localized Mexican Spanish relative timestamps, and 100% of postings published ≤ 48 hours ago display the "Nueva" badge.
+- **SC-002**: 100% of vacancy cards display localized Mexican Spanish relative timestamps updated automatically every 60 seconds, and 100% of postings published ≤ 48 hours ago display the "Nueva" badge.
 - **SC-003**: 100% of date filter changes preserve all existing keyword, location, and category filters without loss of search context.
 - **SC-004**: 100% of URLs copied or bookmarked with `published_within` parameters accurately restore the corresponding date filter and filtered result set when opened in a new session.
 - **SC-005**: When filtering results by ≤ 3 days, 100% of searches automatically default to "Más recientes primero" sorting unless an explicit override was chosen by the user.
