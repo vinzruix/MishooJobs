@@ -52,7 +52,7 @@ description: "Task list for Date-Relevant Vacancy Filters (MishooJobs)"
 **Independent Test**: Conduct a search with existing keywords and filters, apply different date filter options ("Últimas 24 horas", "Última semana"). Verify results update immediately (< 300ms), pagination resets to page 1, and active keywords/filters remain intact.
 
 ### Tests for User Story 1
-- [ ] T011 [P] [US1] Unit tests for date filtering logic and cumulative threshold evaluation in `frontend/src/services/date_utils.test.ts` covering cumulative windows (`maxAgeMs`, `minAgeMs`), multi-select union, and exclusion of `published_at == null` from specific timeframes.
+- [ ] T011 [P] [US1] Unit tests for date filtering logic and cumulative threshold evaluation in `frontend/tests/services/date_utils.test.ts` covering cumulative windows (`maxAgeMs`, `minAgeMs`), multi-select union, and exclusion of `published_at == null` from specific timeframes.
 
 ### Implementation for User Story 1
 - [ ] T012 [P] [US1] Implement `TIMEFRAMES` configuration and `filterVacanciesByTimeframes(vacancies: Vacancy[], timeframes: TimeframeId[], now: Date): Vacancy[]` in `frontend/src/services/date_utils.ts` adhering to duration rules: `1h` (`ageMs <= 3,600,000`), `24h` (`ageMs <= 86,400,000`), `3d` (`ageMs <= 259,200,000`), `7d` (`ageMs <= 604,800,000`), `30d` (`ageMs <= 2,592,000,000`), `30d_plus` (`ageMs > 2,592,000,000`), and `all` (unbounded, includes null dates).
@@ -70,7 +70,7 @@ description: "Task list for Date-Relevant Vacancy Filters (MishooJobs)"
 **Independent Test**: View vacancy cards with varied publication dates. Confirm that relative strings match elapsed time, postings published ≤ 48 hours show the "Nueva" badge, and after 60 seconds the timestamps update automatically.
 
 ### Tests for User Story 2
-- [ ] T015 [P] [US2] Unit tests for `formatMexicanRelativeTime` and `isNewVacancy` in `frontend/src/services/date_utils.test.ts` asserting exact string mappings and 48-hour boundary threshold (`(now - published_at) <= 48 * 3600 * 1000`).
+- [ ] T015 [P] [US2] Unit tests for `formatMexicanRelativeTime` and `isNewVacancy` in `frontend/tests/services/date_utils.test.ts` asserting exact string mappings and 48-hour boundary threshold (`(now - published_at) <= 48 * 3600 * 1000`).
 - [ ] T016 [P] [US2] Component tests in `frontend/tests/components/VacancyCard.test.tsx` verifying rendering of `Clock` icon, relative time text, and emerald `Nueva` badge presence for fresh vacancies and absence for older/null postings.
 
 ### Implementation for User Story 2
@@ -90,7 +90,7 @@ description: "Task list for Date-Relevant Vacancy Filters (MishooJobs)"
 **Independent Test**: Conduct a search, verify count badges next to each filter option match matching vacancies. Select "Últimos 3 días" and verify sorting dropdown automatically switches to "Más recientes primero". Manually select "Mayor compatibilidad" and verify subsequent date filter changes do not override user choice.
 
 ### Tests for User Story 3
-- [ ] T021 [P] [US3] Unit tests for cumulative count calculation and vacancy sorting functions (`recent`, `compatibility`, `relevance`) in `frontend/src/services/date_utils.test.ts`.
+- [ ] T021 [P] [US3] Unit tests for cumulative count calculation and vacancy sorting functions (`recent`, `compatibility`, `relevance`) in `frontend/tests/services/date_utils.test.ts`.
 
 ### Implementation for User Story 3
 - [ ] T022 [P] [US3] Implement `calculateTimeframeCount(vacancies: Vacancy[], timeframe: TimeframeConfig, now: Date): number` and `sortVacancies(vacancies: Vacancy[], sortOrder: SortOrder): Vacancy[]` in `frontend/src/services/date_utils.ts` handling `recent` (descending `published_at`, nulls last), `compatibility` (descending `fitScore`, unscored last), and `relevance` (original arrival order).
@@ -109,7 +109,7 @@ description: "Task list for Date-Relevant Vacancy Filters (MishooJobs)"
 **Independent Test**: Select "Últimas 24 horas", copy URL, open in new tab/incognito, verify "Últimas 24 horas" is selected. Use browser Back/Forward to verify state synchronizes with URL.
 
 ### Tests for User Story 4
-- [ ] T026 [P] [US4] Unit tests for URL parameter serialization and parsing (`parseTimeframesFromQuery`, `serializeTimeframesToQuery`) in `frontend/src/services/date_utils.test.ts` verifying comma-separated multi-select, invalid token fallback to `["all"]`, and omission when `all`.
+- [ ] T026 [P] [US4] Unit tests for URL parameter serialization and parsing (`parseTimeframesFromQuery`, `serializeTimeframesToQuery`) in `frontend/tests/services/date_utils.test.ts` verifying comma-separated multi-select, invalid token fallback to `["all"]`, and omission when `all`.
 
 ### Implementation for User Story 4
 - [ ] T027 [P] [US4] Implement `parseTimeframesFromQuery(queryValue: string | null): TimeframeId[]` and `serializeTimeframesToQuery(timeframes: TimeframeId[]): string | null` in `frontend/src/services/date_utils.ts` validating tokens against `TimeframeId` values.
@@ -198,14 +198,14 @@ Task: "T010 [P] Add backend unit tests in backend/tests/unit/test_scrapers.py"
 ### User Story 1 Parallel Tasks
 ```bash
 # Launch test and utility implementation together:
-Task: "T011 [P] [US1] Unit tests for date filtering logic in frontend/src/services/date_utils.test.ts"
+Task: "T011 [P] [US1] Unit tests for date filtering logic in frontend/tests/services/date_utils.test.ts"
 Task: "T012 [P] [US1] Implement TIMEFRAMES and filterVacanciesByTimeframes in frontend/src/services/date_utils.ts"
 ```
 
 ### User Story 2 Parallel Tasks
 ```bash
 # Launch utility tests, component tests, and hook together:
-Task: "T015 [P] [US2] Unit tests in frontend/src/services/date_utils.test.ts"
+Task: "T015 [P] [US2] Unit tests in frontend/tests/services/date_utils.test.ts"
 Task: "T016 [P] [US2] Component tests in frontend/tests/components/VacancyCard.test.tsx"
 Task: "T017 [P] [US2] Implement formatMexicanRelativeTime and isNewVacancy in frontend/src/services/date_utils.ts"
 Task: "T018 [P] [US2] Implement useDateTicker in frontend/src/hooks/useDateTicker.ts"

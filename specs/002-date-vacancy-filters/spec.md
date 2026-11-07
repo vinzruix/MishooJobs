@@ -47,7 +47,7 @@ As a candidate scanning multiple job listings, I want to see human-friendly rela
 **Acceptance Scenarios**:
 
 1. **Given** a vacancy published 3 hours ago, **When** displayed in the results list, **Then** it presents the relative timestamp "Hace 3 horas" and a prominent "Nueva" visual badge.
-2. **Given** a vacancy published 36 hours ago (within the 48-hour threshold), **When** displayed, **Then** it presents the relative timestamp "Hace 1 día" (or "Hace 36 horas") and the "Nueva" visual badge.
+2. **Given** a vacancy published 36 hours ago (within the 48-hour threshold), **When** displayed, **Then** it presents the relative timestamp "Hace 1 día" and the "Nueva" visual badge.
 3. **Given** a vacancy published 5 days ago, **When** displayed, **Then** it presents the relative timestamp "Hace 5 días" and does NOT display the "Nueva" badge.
 4. **Given** a vacancy published less than 1 minute ago, **When** displayed, **Then** it displays "Hace unos momentos" along with the "Nueva" badge.
 
@@ -87,16 +87,16 @@ As a candidate who bookmarks searches or shares listings with friends and study 
 
 ### User Story 5 - Empty State Guidance & One-Click Filter Reset (Priority: P3)
 
-As a candidate who selects a restrictive timeframe with no available listings, I want to receive a friendly suggestion to broaden my filter (e.g., to "Última semana") alongside a one-click "Limpiar filtro" button, so that I never get stuck on an empty screen and can easily resume browsing.
+As a candidate who selects a restrictive timeframe with no available listings, I want to receive a friendly suggestion to broaden my filter (e.g., to "Última semana") alongside a one-click "Limpiar filtro de fecha" button, so that I never get stuck on an empty screen and can easily resume browsing.
 
 **Why this priority**: Prevents user drop-off and frustration when searching during low-activity hours or in niche job categories.
 
-**Independent Test**: Apply a filter combination that yields 0 vacancies (such as "Última hora" in a small city). Confirm that an informative message suggests widening the filter to "Última semana", and clicking "Limpiar filtro" immediately resets the date filter to "Cualquier fecha".
+**Independent Test**: Apply a filter combination that yields 0 vacancies (such as "Última hora" in a small city). Confirm that an informative message suggests widening the filter to "Última semana", and clicking "Limpiar filtro de fecha" immediately resets the date filter to "Cualquier fecha".
 
 **Acceptance Scenarios**:
 
-1. **Given** a selected timeframe with zero matching vacancies (e.g., "Última hora"), **When** the empty state renders, **Then** it displays a friendly Spanish message suggesting to expand the filter to "Última semana" and provides a prominent "Limpiar filtro" button.
-2. **Given** the empty state is displayed, **When** the user clicks "Limpiar filtro", **Then** the date filter resets to "Cualquier fecha", the URL query parameter is cleared, and all vacancies matching the active keywords are displayed.
+1. **Given** a selected timeframe with zero matching vacancies (e.g., "Última hora"), **When** the empty state renders, **Then** it displays a friendly Spanish message suggesting to expand the filter to "Última semana" and provides a prominent "Limpiar filtro de fecha" button.
+2. **Given** the empty state is displayed, **When** the user clicks "Limpiar filtro de fecha", **Then** the date filter resets to "Cualquier fecha", the URL query parameter is cleared, and all vacancies matching the active keywords are displayed.
 3. **Given** the suggestion link "Ver vacantes de la última semana" within the empty state, **When** clicked, **Then** the filter immediately shifts to "Última semana" and displays matching results.
 
 ---
@@ -130,8 +130,8 @@ As a candidate who selects a restrictive timeframe with no available listings, I
 - **FR-007**: System MUST display a high-contrast visual badge labeled "Nueva" on all vacancy cards whose publication timestamp is within 48 hours of the current time.
 - **FR-008**: System MUST display the count of matching vacancies next to each date filter option based on current search query and remaining active filters, with each badge representing the total vacancy volume matching that cumulative threshold window.
 - **FR-009**: System MUST provide a visible sorting control in the results toolbar with options: "Más recientes primero", "Mayor compatibilidad (Fit Score)", and "Relevancia por defecto". When a user selects a date filter of 3 days or less ("Última hora", "Últimas 24 horas", or "Últimos 3 días"), the system MUST default the sorting selector to "Más recientes primero", unless the user has explicitly selected an alternate sort preference in that session.
-- **FR-010**: When a selected date filter yields zero matching vacancies, the system MUST display an empty state that suggests expanding the search to "Última semana" and provides a quick "Limpiar filtro" button.
-- **FR-011**: Triggering the "Limpiar filtro" action MUST reset the date filter to "Cualquier fecha", clear the `published_within` parameter from the URL, and display all vacancies matching remaining search criteria.
+- **FR-010**: When a selected date filter yields zero matching vacancies, the system MUST display an empty state that suggests expanding the search to "Última semana" and provides a quick "Limpiar filtro de fecha" button.
+- **FR-011**: Triggering the "Limpiar filtro de fecha" action MUST reset the date filter to "Cualquier fecha", clear the `published_within` parameter from the URL, and display all vacancies matching remaining search criteria.
 - **FR-012**: The date filtering and relative timestamp calculations MUST execute without requiring candidate registration, logins, or storing candidate state on external servers.
 
 ### Key Entities
@@ -149,7 +149,7 @@ As a candidate who selects a restrictive timeframe with no available listings, I
 - **SC-003**: 100% of date filter changes preserve all existing keyword, location, and category filters without loss of search context.
 - **SC-004**: 100% of URLs copied or bookmarked with `published_within` parameters accurately restore the corresponding date filter and filtered result set when opened in a new session.
 - **SC-005**: When filtering results by ≤ 3 days, 100% of searches automatically default to "Más recientes primero" sorting unless an explicit override was chosen by the user.
-- **SC-006**: In 100% of empty state occurrences resulting from date filtering, candidates are presented with a recommendation to expand to "Última semana" and an operative "Limpiar filtro" action.
+- **SC-006**: In 100% of empty state occurrences resulting from date filtering, candidates are presented with a recommendation to expand to "Última semana" and an operative "Limpiar filtro de fecha" action.
 - **SC-007**: Available vacancy counts displayed alongside date filter options match the actual number of filterable results with 100% accuracy.
 
 ## Assumptions
