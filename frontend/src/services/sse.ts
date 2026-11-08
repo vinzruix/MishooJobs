@@ -1,4 +1,4 @@
-import type { DeduplicationSummary, JobVacancy, PortalStatus, StreamEndEvent } from "../types/job";
+import type { DeduplicationSummary, JobVacancy, PortalStatus, SeniorityFilter, StreamEndEvent } from "../types/job";
 
 export interface StreamCallbacks {
   onPortalStatus?: (status: PortalStatus) => void;
@@ -12,7 +12,7 @@ export interface StreamFilterParams {
   query: string;
   location?: string;
   modality?: string;
-  category?: string;
+  seniority?: SeniorityFilter | string;
   limit_per_portal?: number;
 }
 
@@ -28,7 +28,7 @@ export function startJobStream(
     query: params.query,
     location: params.location || "México",
     modality: params.modality || "all",
-    category: params.category || "all",
+    seniority: params.seniority || "all",
     limit_per_portal: String(params.limit_per_portal || 15),
   });
 

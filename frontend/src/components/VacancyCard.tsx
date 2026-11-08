@@ -60,8 +60,8 @@ export function VacancyCard({
     <div className="group relative bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700 rounded-lg p-4 transition-all duration-200 flex flex-col justify-between hover:shadow-md hover:shadow-black/40">
       <div>
         {/* Top Badges & Status */}
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
             <span
               className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border ${getModalityColor(
                 vacancy.modality
@@ -69,11 +69,45 @@ export function VacancyCard({
             >
               {vacancy.modality}
             </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-zinc-800/80 text-zinc-300 border border-zinc-700/60">
-              {vacancy.category}
-            </span>
+            {vacancy.seniority_level === "primer_empleo" ? (
+              <span
+                className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-950/80 text-emerald-300 border border-emerald-500/60 flex items-center gap-1"
+                title={vacancy.audit_status === "verified" ? "✓ Auditado 0 Experiencia" : "0 Exp Preliminar — Requiere auditoría"}
+              >
+                {vacancy.audit_status === "verified" ? (
+                  <span>[ ✓ 0 EXP ]</span>
+                ) : (
+                  <span>[ 0 EXP ]</span>
+                )}
+              </span>
+            ) : vacancy.seniority_level === "pasantia" ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-950/70 text-cyan-300 border border-cyan-500/40">
+                [ PASANTÍA ]
+              </span>
+            ) : vacancy.seniority_level === "mid" ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-950/70 text-amber-300 border border-amber-500/40">
+                [ MID ]
+              </span>
+            ) : vacancy.seniority_level === "senior" ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-rose-950/70 text-rose-300 border border-rose-500/40">
+                [ SR ]
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-violet-950/70 text-violet-300 border border-violet-500/40">
+                [ JR ]
+              </span>
+            )}
+
+            {vacancy.has_discrepancy && (
+              <span
+                className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/50"
+                title={vacancy.reasoning || "Requisitos exceden nivel junior"}
+              >
+                [ REQ. DISCREPANTES ]
+              </span>
+            )}
             {isNew && (
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-600/80 animate-pulse">
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-600/80 animate-pulse">
                 Nueva
               </span>
             )}
@@ -83,15 +117,16 @@ export function VacancyCard({
           {/* Fit Score Badge */}
           {fitScore !== undefined && fitScore !== null && (
             <div
-              className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
+              className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border flex-shrink-0 whitespace-nowrap ${
                 fitScore >= 80
                   ? "bg-emerald-950/70 border-emerald-600 text-emerald-300"
                   : fitScore >= 50
                   ? "bg-amber-950/70 border-amber-600 text-amber-300"
                   : "bg-zinc-800 border-zinc-700 text-zinc-400"
               }`}
+              title={`${fitScore}% de compatibilidad con tu perfil`}
             >
-              {fitScore}% Compatibilidad
+              {fitScore}% Match
             </div>
           )}
         </div>

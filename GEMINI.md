@@ -159,3 +159,7 @@ When implementing tasks or modifying this codebase:
 - [Hotfix] Use curl_cffi with Safari/iOS impersonation for Indeed México scraping and batch fetch full descriptions via Indeed's /rpc/jobdescs endpoint; concurrently enrich OCC vacancies with full offer page descriptions.
 - [Hotfix] Support multi-portal full description enrichment across Computrabajo, OCC, and Indeed in on-demand AI evaluation endpoint.
 - [Hotfix] Restrict card footer platform actions strictly to one primary platform link (preserving all merged portal links in detail modal) to prevent multi-button wrapping and UI clutter.
+- [003] Full-stack purge of legacy category in favor of unified 5-tier seniority_level (pasantia, primer_empleo, junior, mid, senior).
+- [003] Two-step hybrid seniority classification: deterministic fast-pass in live SSE stream and on-demand agy CLI deep audit in vacancy modal.
+- [003] High-contrast emerald badge and verified-first default sorting for authentic 0-experience Primer Empleo Real listings.
+- [003] Deceptive Fake Junior shield automatically reclassifying 2+ year requirements to Mid/Senior with discrepancy warning tags.

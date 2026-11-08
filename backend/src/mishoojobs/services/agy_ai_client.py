@@ -35,6 +35,36 @@ class AgyAIClient:
         "}"
     )
 
+    AUDIT_PROMPT_TEMPLATE = (
+        "Eres MishooJobs AI, un auditor y analista de empleo en tecnología en México.\n"
+        "Tu objetivo es realizar una auditoría de experiencia requerida sobre la siguiente vacante para determinar si califica como un auténtico 'Primer Empleo Real (0 Exp)', identificar discrepancias ('Fake Junior') o su nivel de experiencia real.\n\n"
+        "TÍTULO DE LA VACANTE:\n"
+        "{title}\n\n"
+        "EMPRESA:\n"
+        "{company_name}\n\n"
+        "DESCRIPCIÓN DE LA VACANTE:\n"
+        "{job_description}\n\n"
+        "INSTRUCCIONES DE AUDITORÍA:\n"
+        "1. Analiza el título y la descripción completa para extraer los años mínimos de experiencia laboral comercial previa requeridos (years_required_min: entero >= 0).\n"
+        "2. Clasifica el nivel de experiencia (seniority_level) estrictamente entre: 'pasantia', 'primer_empleo', 'junior', 'mid', 'senior'.\n"
+        "   - 'pasantia': Prácticas profesionales, residencias o servicio social para estudiantes en curso.\n"
+        "   - 'primer_empleo': Empleo formal pagado por nómina que NO exige ninguna experiencia laboral previa (estrictamente 0 años requeridos).\n"
+        "   - 'junior': Puestos de entrada que solicitan 1 año de experiencia (o hasta 2 años si es afín).\n"
+        "   - 'mid': Puestos que requieren entre 2 y 4 años de experiencia.\n"
+        "   - 'senior': Puestos que requieren 5 o más años de experiencia laboral, arquitectos de software o tech leads.\n"
+        "3. Determina 'is_real_first_job': estrictamente true si years_required_min == 0 y es un empleo formal remunerado (no pasantía estudiantil sin goce de sueldo ni esquema piramidal).\n"
+        "4. Determina 'has_discrepancy': true si el título dice Junior, Jr, Trainee o Practicante pero el cuerpo exige 2 o más años de experiencia (reclasificando a 'mid' o 'senior').\n"
+        "5. Redacta una explicación concisa y justificada en español mexicano (reasoning).\n\n"
+        "RESPONDE ESTRICTAMENTE EN FORMATO JSON CON ESTA ESTRUCTURA:\n"
+        "{\n"
+        '  "seniority_level": "<pasantia | primer_empleo | junior | mid | senior>",\n'
+        '  "years_required_min": <numero entero >= 0>,\n'
+        '  "is_real_first_job": <true | false>,\n'
+        '  "has_discrepancy": <true | false>,\n'
+        '  "reasoning": "<explicacion breve en espanol>"\n'
+        "}"
+    )
+
     def __init__(self, executable_path: str = settings.agy_cli_path, timeout: float = settings.agy_timeout_seconds):
         self.executable_path = executable_path
         self.timeout = timeout
@@ -134,3 +164,98 @@ class AgyAIClient:
 
         out_str = stdout.decode("utf-8", errors="replace")
         return self.clean_json_output(out_str)
+
+    @staticmethod
+    def clean_seniority_audit_output(raw_output: str) -> Dict[str, Any]:
+        """Strips markdown code blocks, CLI wrappers, or logs to extract valid seniority audit JSON."""
+        content_to_parse = raw_output.strip()
+        try:
+            envelope = json.loads(content_to_parse)
+            if isinstance(envelope, dict):
+                if "response" in envelope and isinstance(envelope["response"], str):
+                    content_to_parse = envelope["response"].strip()
+                elif "seniority_level" in envelope:
+                    pass
+        except json.JSONDecodeError:
+            pass
+
+        match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", content_to_parse, re.DOTALL)
+        if match:
+            clean_str = match.group(1)
+        else:
+            first_brace = content_to_parse.find("{")
+            last_brace = content_to_parse.rfind("}")
+            if first_brace != -1 and last_brace != -1:
+                clean_str = content_to_parse[first_brace : last_brace + 1]
+            else:
+                clean_str = content_to_parse
+
+        parsed = json.loads(clean_str)
+
+        level = str(parsed.get("seniority_level", "junior")).lower().strip()
+        if level not in ["pasantia", "primer_empleo", "junior", "mid", "senior"]:
+            level = "junior"
+
+        years = int(parsed.get("years_required_min", 0))
+        if years < 0:
+            years = 0
+
+        is_real = bool(parsed.get("is_real_first_job", False))
+        if years > 0:
+            is_real = False
+
+        has_disc = bool(parsed.get("has_discrepancy", False))
+        reasoning = str(parsed.get("reasoning", "Auditoría de experiencia completada."))
+
+        return {
+            "seniority_level": level,
+            "years_required_min": years,
+            "is_real_first_job": is_real,
+            "has_discrepancy": has_disc,
+            "reasoning": reasoning,
+        }
+
+    async def run_seniority_audit(
+        self,
+        title: str,
+        company_name: str,
+        job_description: str,
+    ) -> Dict[str, Any]:
+        """Runs the agy CLI as an asynchronous subprocess for deep seniority auditing."""
+        prompt = (
+            self.AUDIT_PROMPT_TEMPLATE
+            .replace("{title}", title)
+            .replace("{company_name}", company_name)
+            .replace("{job_description}", job_description[:2500])
+        )
+
+        cmd = [
+            self.executable_path,
+            "--print",
+            prompt,
+            "--output-format",
+            "json",
+            "--disable-slash-commands",
+        ]
+
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=self.timeout)
+        except asyncio.TimeoutError:
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
+            raise TimeoutError(f"agy CLI seniority audit timed out after {self.timeout}s")
+
+        if proc.returncode != 0:
+            err_msg = stderr.decode("utf-8", errors="replace")
+            raise RuntimeError(f"agy CLI failed with exit code {proc.returncode}: {err_msg}")
+
+        out_str = stdout.decode("utf-8", errors="replace")
+        return self.clean_seniority_audit_output(out_str)

@@ -16,7 +16,7 @@ describe("heuristic_scorer", () => {
     const score = calculateHeuristicScore(candidateSkills, jobSkills, {
       jobTitle: "Junior Backend Developer",
       targetRole: "Junior Backend Developer",
-      category: "junior",
+      seniority_level: "junior",
     });
     // High compatibility tier (>= 80%)
     expect(score).toBeGreaterThanOrEqual(80);
@@ -29,7 +29,7 @@ describe("heuristic_scorer", () => {
     const score = calculateHeuristicScore(candidateSkills, jobSkills, {
       jobTitle: "Desarrollador Python Junior",
       targetRole: "Junior Backend Developer",
-      category: "junior",
+      seniority_level: "junior",
     });
     // Should be a nuanced score around 40-60%, not flat 0%, 10% or 100%
     expect(score).toBeGreaterThanOrEqual(35);

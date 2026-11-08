@@ -105,7 +105,7 @@ class ComputrabajoScraper(AbstractBaseScraper):
             published_at = self.parse_mexican_relative_date(raw_date)
 
             modality = self.infer_modality(title, f"{location_text} {desc_text}")
-            category = self.infer_category(title, desc_text)
+            sen_info = self.classify_seniority_fast(title, desc_text)
             skills = self.extract_skills(f"{title} {desc_text}")
 
             fingerprint = self.generate_fingerprint(company_name, title, state)
@@ -125,7 +125,12 @@ class ComputrabajoScraper(AbstractBaseScraper):
                     location_city=self.sanitize_text(location_text).split(",")[0] if "," in location_text else None,
                     location_state=state,
                     modality=modality,
-                    category=category,
+                    seniority_level=sen_info["seniority_level"],
+                    years_required_min=sen_info["years_required_min"],
+                    is_real_first_job=sen_info["is_real_first_job"],
+                    audit_status=sen_info["audit_status"],
+                    reasoning=sen_info["reasoning"],
+                    has_discrepancy=sen_info["has_discrepancy"],
                     salary_min=salary_min,
                     salary_max=salary_max,
                     salary_period=salary_period,
@@ -193,6 +198,13 @@ class ComputrabajoScraper(AbstractBaseScraper):
                                 v.description = full_text
                                 # Re-extract complete tech skills with full body context
                                 v.skills = self.extract_skills(f"{v.title} {full_text}")
+                                up_sen = self.classify_seniority_fast(v.title, full_text)
+                                v.seniority_level = up_sen["seniority_level"]
+                                v.years_required_min = up_sen["years_required_min"]
+                                v.is_real_first_job = up_sen["is_real_first_job"]
+                                v.audit_status = up_sen["audit_status"]
+                                v.reasoning = up_sen["reasoning"]
+                                v.has_discrepancy = up_sen["has_discrepancy"]
                 except Exception:
                     pass
 
@@ -203,7 +215,7 @@ class ComputrabajoScraper(AbstractBaseScraper):
         query: str,
         location: Optional[str] = "México",
         modality: Optional[str] = "all",
-        category: Optional[str] = "all",
+        seniority: Optional[str] = "all",
         limit: int = 15,
     ) -> List[VacancyDTO]:
         q_slug = "-".join(self.normalize_text(query).split())

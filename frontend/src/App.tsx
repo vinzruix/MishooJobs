@@ -20,8 +20,24 @@ import {
   sortVacancies,
 } from "./services/date_utils";
 import { calculateHeuristicScore } from "./services/heuristic_scorer";
-import type { JobVacancy, SortOrder, TimeframeId } from "./types/job";
+import type { JobVacancy, SeniorityCounts, SeniorityFilter, SortOrder, TimeframeId } from "./types/job";
 import type { AIEvaluation } from "./types/profile";
+
+const VALID_SENIORITIES: Set<SeniorityFilter> = new Set([
+  "all",
+  "primer_empleo",
+  "pasantia",
+  "junior",
+  "mid",
+  "senior",
+]);
+
+function parseSeniorityFromQuery(raw: string | null): SeniorityFilter {
+  if (raw && VALID_SENIORITIES.has(raw as SeniorityFilter)) {
+    return raw as SeniorityFilter;
+  }
+  return "all";
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<"search" | "pipeline">("search");
@@ -39,9 +55,17 @@ export default function App() {
     return ["all"];
   }, []);
 
+  const initialSeniority = useMemo<SeniorityFilter>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return parseSeniorityFromQuery(params.get("seniority"));
+    }
+    return "all";
+  }, []);
+
   const [filters, setFilters] = useState<FilterState>({
     modality: "all",
-    category: "all",
+    seniority: initialSeniority,
     location: "México",
     timeframes: initialTimeframes,
   });
@@ -77,26 +101,34 @@ export default function App() {
     removeApplication,
   } = useApplications();
 
-  // URL query sync: update ?published_within=... on timeframe changes
+  // URL query sync: update ?published_within=... and ?seniority=... on filter changes
   useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
-    const serialized = serializeTimeframesToQuery(filters.timeframes);
-    if (serialized) {
-      url.searchParams.set("published_within", serialized);
+    const serializedTf = serializeTimeframesToQuery(filters.timeframes);
+    if (serializedTf) {
+      url.searchParams.set("published_within", serializedTf);
     } else {
       url.searchParams.delete("published_within");
     }
-    window.history.replaceState({}, "", url.toString());
-  }, [filters.timeframes]);
 
-  // Browser back/forward (popstate) listener to sync timeframe filter
+    if (filters.seniority && filters.seniority !== "all") {
+      url.searchParams.set("seniority", filters.seniority);
+    } else {
+      url.searchParams.delete("seniority");
+    }
+
+    window.history.replaceState({}, "", url.toString());
+  }, [filters.timeframes, filters.seniority]);
+
+  // Browser back/forward (popstate) listener to sync filters
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const urlTfs = parseTimeframesFromQuery(params.get("published_within"));
-      setFilters((prev) => ({ ...prev, timeframes: urlTfs }));
+      const urlSeniority = parseSeniorityFromQuery(params.get("seniority"));
+      setFilters((prev) => ({ ...prev, timeframes: urlTfs, seniority: urlSeniority }));
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
@@ -121,15 +153,14 @@ export default function App() {
       query,
       location,
       modality: filters.modality,
-      category: filters.category,
+      seniority: "all",
     });
   };
 
   const handleFilterChange = (newFilters: FilterState) => {
     const backendFilterChanged =
       newFilters.location !== filters.location ||
-      newFilters.modality !== filters.modality ||
-      newFilters.category !== filters.category;
+      newFilters.modality !== filters.modality;
 
     setFilters(newFilters);
 
@@ -138,7 +169,7 @@ export default function App() {
         query: currentQuery,
         location: newFilters.location,
         modality: newFilters.modality,
-        category: newFilters.category,
+        seniority: "all",
       });
     }
   };
@@ -146,12 +177,11 @@ export default function App() {
   const handleFilterReset = () => {
     const backendFilterChanged =
       filters.modality !== "all" ||
-      filters.category !== "all" ||
       (filters.location !== "México" && filters.location !== "");
 
     const defaultFilters: FilterState = {
       modality: "all",
-      category: "all",
+      seniority: "all",
       location: "México",
       timeframes: ["all"],
     };
@@ -162,7 +192,7 @@ export default function App() {
         query: currentQuery,
         location: defaultFilters.location,
         modality: defaultFilters.modality,
-        category: defaultFilters.category,
+        seniority: "all",
       });
     }
   };
@@ -180,15 +210,51 @@ export default function App() {
     return result;
   }, [vacancies, ignoredSet]);
 
-  // 2. Client-side date timeframe filtering
-  const dateFilteredVacancies = useMemo(() => {
-    return filterVacanciesByTimeframes(visibleVacancies, filters.timeframes, currentNow);
-  }, [visibleVacancies, filters.timeframes, currentNow]);
+  // Dynamic real-time counters across all 6 seniority options
+  const tierCounts = useMemo<SeniorityCounts>(() => {
+    const counts: SeniorityCounts = {
+      all: visibleVacancies.length,
+      primer_empleo: 0,
+      pasantia: 0,
+      junior: 0,
+      mid: 0,
+      senior: 0,
+    };
+    for (const v of visibleVacancies) {
+      if (v.seniority_level in counts) {
+        counts[v.seniority_level as keyof SeniorityCounts]++;
+      }
+    }
+    return counts;
+  }, [visibleVacancies]);
 
-  // 3. Sorting by active sort order
+  // 2. Client-side experience tier filtering
+  const seniorityFilteredVacancies = useMemo(() => {
+    if (filters.seniority === "all") return visibleVacancies;
+    return visibleVacancies.filter((v) => v.seniority_level === filters.seniority);
+  }, [visibleVacancies, filters.seniority]);
+
+  // 3. Client-side date timeframe filtering
+  const dateFilteredVacancies = useMemo(() => {
+    return filterVacanciesByTimeframes(seniorityFilteredVacancies, filters.timeframes, currentNow);
+  }, [seniorityFilteredVacancies, filters.timeframes, currentNow]);
+
+  // 4. Sorting by active sort order with smart default sorting for primer_empleo (FR-011)
   const displayedVacancies = useMemo(() => {
+    if (filters.seniority === "primer_empleo" && !isSortUserOverridden) {
+      return [...dateFilteredVacancies].sort((a, b) => {
+        const aVer = a.audit_status === "verified" ? 1 : 0;
+        const bVer = b.audit_status === "verified" ? 1 : 0;
+        if (aVer !== bVer) {
+          return bVer - aVer;
+        }
+        const aTime = a.published_at ? new Date(a.published_at).getTime() : 0;
+        const bTime = b.published_at ? new Date(b.published_at).getTime() : 0;
+        return bTime - aTime;
+      });
+    }
     return sortVacancies(dateFilteredVacancies, sortOrder);
-  }, [dateFilteredVacancies, sortOrder]);
+  }, [dateFilteredVacancies, filters.seniority, isSortUserOverridden, sortOrder]);
 
   const isAnyModalOpen = selectedVacancy !== null || isProfileModalOpen;
 
@@ -215,7 +281,7 @@ export default function App() {
         fallbackText,
         targetRole: activeProfile.target_role,
         jobTitle: v.title,
-        category: v.category,
+        seniority_level: v.seniority_level,
       });
     }
     return map;
@@ -301,6 +367,8 @@ export default function App() {
                 vacancies={displayedVacancies}
                 isSearching={isSearching}
                 isDateFiltered={!filters.timeframes.includes("all") && filters.timeframes.length > 0}
+                activeSeniority={filters.seniority}
+                seniorityCounts={tierCounts}
                 sortOrder={sortOrder}
                 now={currentNow}
                 scoresByFingerprint={scoresByFingerprint}
@@ -319,6 +387,12 @@ export default function App() {
                 onSelectTimeframe={(tf) => {
                   setFilters((prev) => ({ ...prev, timeframes: [tf] }));
                 }}
+                onSelectSeniority={(s) => {
+                  setFilters((prev) => ({ ...prev, seniority: s }));
+                }}
+                onClearSeniorityFilter={() => {
+                  setFilters((prev) => ({ ...prev, seniority: "all" }));
+                }}
               />
             )}
           </div>
@@ -335,7 +409,12 @@ export default function App() {
                 company_name: rec.company_name,
                 location_state: "MEXICO",
                 modality: "presencial",
-                category: "junior",
+                seniority_level: "junior",
+                years_required_min: 0,
+                is_real_first_job: false,
+                audit_status: "preliminary",
+                reasoning: "",
+                has_discrepancy: false,
                 currency: "MXN",
                 description: "",
                 skills: [],

@@ -1,5 +1,5 @@
 import unicodedata
-from typing import List, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 class HeuristicCompatibilityScorer:
     """Instant local heuristic skill-match scorer for calculating Tier 1 compatibility (SC-008)."""
@@ -15,8 +15,9 @@ class HeuristicCompatibilityScorer:
         self,
         candidate_skills: List[str],
         job_skills: List[str],
+        seniority_level: Optional[str] = None,
     ) -> Tuple[int, List[str], List[str]]:
-        """Calculates instantaneous (0-100) compatibility score based on normalized skill token overlap."""
+        """Calculates instantaneous (0-100) compatibility score based on normalized skill token overlap and seniority calibration."""
         if not candidate_skills or not job_skills:
             return (0, [], job_skills)
 
@@ -45,5 +46,16 @@ class HeuristicCompatibilityScorer:
 
         ratio = len(matched) / total_req
         score = min(100, max(0, int(round(ratio * 100))))
+
+        if seniority_level:
+            level = seniority_level.lower()
+            if level in ["primer_empleo", "junior"]:
+                pass
+            elif level == "pasantia":
+                score = min(100, max(0, int(round(score * 0.95))))
+            elif level == "mid":
+                score = min(100, max(0, int(round(score * 0.75))))
+            elif level == "senior":
+                score = min(100, max(0, int(round(score * 0.50))))
 
         return (score, matched, missing)

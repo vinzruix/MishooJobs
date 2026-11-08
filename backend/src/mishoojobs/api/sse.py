@@ -2,6 +2,7 @@ import asyncio
 import json
 import time
 from typing import AsyncGenerator, List
+from sqlalchemy import case
 from sqlalchemy.dialects.postgresql import insert
 
 from mishoojobs.database import async_session_factory
@@ -12,6 +13,7 @@ from mishoojobs.schemas.job import (
     PortalScraperStatus,
     PortalStatusEvent,
     SearchParams,
+    SeniorityFilterEnum,
     VacancyDTO,
 )
 from mishoojobs.services.deduplicator import CrossPortalDeduplicator
@@ -41,7 +43,12 @@ async def persist_vacancies_safe(vacancies: List[VacancyDTO]) -> None:
                         location_city=v.location_city,
                         location_state=v.location_state,
                         modality=v.modality,
-                        category=v.category,
+                        seniority_level=v.seniority_level.value if hasattr(v.seniority_level, "value") else v.seniority_level,
+                        years_required_min=v.years_required_min,
+                        is_real_first_job=v.is_real_first_job,
+                        audit_status=v.audit_status.value if hasattr(v.audit_status, "value") else v.audit_status,
+                        reasoning=v.reasoning,
+                        has_discrepancy=v.has_discrepancy,
                         salary_min=v.salary_min,
                         salary_max=v.salary_max,
                         salary_period=v.salary_period.value if v.salary_period else None,
@@ -58,6 +65,30 @@ async def persist_vacancies_safe(vacancies: List[VacancyDTO]) -> None:
                             "salary_max": v.salary_max,
                             "skills_extracted": v.skills,
                             "published_at": v.published_at,
+                            "audit_status": case(
+                                (JobVacancy.audit_status == "verified", JobVacancy.audit_status),
+                                else_=v.audit_status.value if hasattr(v.audit_status, "value") else v.audit_status,
+                            ),
+                            "seniority_level": case(
+                                (JobVacancy.audit_status == "verified", JobVacancy.seniority_level),
+                                else_=v.seniority_level.value if hasattr(v.seniority_level, "value") else v.seniority_level,
+                            ),
+                            "years_required_min": case(
+                                (JobVacancy.audit_status == "verified", JobVacancy.years_required_min),
+                                else_=v.years_required_min,
+                            ),
+                            "is_real_first_job": case(
+                                (JobVacancy.audit_status == "verified", JobVacancy.is_real_first_job),
+                                else_=v.is_real_first_job,
+                            ),
+                            "reasoning": case(
+                                (JobVacancy.audit_status == "verified", JobVacancy.reasoning),
+                                else_=v.reasoning,
+                            ),
+                            "has_discrepancy": case(
+                                (JobVacancy.audit_status == "verified", JobVacancy.has_discrepancy),
+                                else_=v.has_discrepancy,
+                            ),
                         },
                     )
                     .returning(JobVacancy.id)
@@ -127,7 +158,7 @@ async def job_search_stream_generator(params: SearchParams) -> AsyncGenerator[st
                 query=params.query,
                 location=params.location,
                 modality=params.modality.value if params.modality else "all",
-                category=params.category.value if params.category else "all",
+                seniority=params.seniority.value if params.seniority else "all",
                 limit=params.limit_per_portal,
             )
 
@@ -143,6 +174,14 @@ async def job_search_stream_generator(params: SearchParams) -> AsyncGenerator[st
             # Predatory and scam assessment (FR-012, FR-013)
             for v in verified:
                 v.scam_report = scam_detector.assess_vacancy(v.title, v.description)
+
+            # Filter stream batches if specific seniority requested
+            if params.seniority and params.seniority.value != "all":
+                target_tier = params.seniority.value
+                verified = [
+                    v for v in verified
+                    if (v.seniority_level.value if hasattr(v.seniority_level, "value") else v.seniority_level) == target_tier
+                ]
 
             p_duration = int((time.monotonic() - p_start) * 1000)
             return (p_name, verified, p_duration, "completed")
