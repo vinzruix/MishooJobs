@@ -1,4 +1,5 @@
 import abc
+import hashlib
 import re
 import unicodedata
 from datetime import datetime, timedelta, timezone
@@ -111,16 +112,37 @@ class AbstractBaseScraper(abc.ABC):
         no_accents = "".join(c for c in nfkd if not unicodedata.combining(c))
         return re.sub(r"\s+", " ", no_accents.strip().lower())
 
+    @staticmethod
+    def normalize_string(text: str) -> str:
+        """Normalizes string for robust identity comparison (lowercase, accent-free, trimmed, punctuation stripped)."""
+        if not text:
+            return ""
+        nfkd = unicodedata.normalize("NFKD", text)
+        no_accents = "".join(c for c in nfkd if not unicodedata.combining(c))
+        clean = re.sub(r"[^\w\s]", "", no_accents)
+        return re.sub(r"\s+", " ", clean.strip().lower())
+
     def normalize_state(self, raw_location: Optional[str]) -> str:
         """Maps raw location string to canonical 2-4 letter Mexican state abbreviation or REMOTO."""
         if not raw_location:
             return "MEXICO"
+        upper = raw_location.strip().upper()
+        if upper in MEXICAN_STATE_MAP.values():
+            return upper
         norm = self.normalize_text(raw_location)
         # Prioritize longer matching keys first (e.g. 'nuevo leon' before 'leon', 'baja california sur' before 'baja california')
         for key in sorted(MEXICAN_STATE_MAP.keys(), key=len, reverse=True):
             if key in norm:
                 return MEXICAN_STATE_MAP[key]
         return "MEXICO"
+
+    def generate_fingerprint(self, company_name: str, title: str, location_state: str) -> str:
+        """Generates canonical 64-character SHA-256 fingerprint."""
+        norm_company = self.normalize_string(company_name)
+        norm_title = self.normalize_string(title)
+        norm_state = self.normalize_state(location_state)
+        raw_key = f"{norm_company}:{norm_title}:{norm_state}"
+        return hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
 
     def parse_mexican_salary(
         self, raw_text: Optional[str]

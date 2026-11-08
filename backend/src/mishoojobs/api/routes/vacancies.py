@@ -19,6 +19,8 @@ from mishoojobs.schemas.scam import RiskLevelEnum, ScamReportResponse
 from mishoojobs.services.agy_ai_client import AgyAIClient
 from mishoojobs.services.scam_detector import MexicanScamDetector
 from mishoojobs.services.scrapers.computrabajo import ComputrabajoScraper
+from mishoojobs.services.scrapers.indeed import IndeedScraper
+from mishoojobs.services.scrapers.occ import OCCScraper
 
 router = APIRouter(prefix="/vacancies", tags=["Vacancies"])
 
@@ -64,17 +66,29 @@ async def evaluate_vacancy(
                 candidate_urls.append(link.direct_url)
 
     if len(effective_desc) < 350 or "postúlate" in effective_desc.lower() or "ids comercial" in effective_desc.lower():
-        ct_scraper = ComputrabajoScraper()
         for url in candidate_urls:
+            full_body = None
+            scraper = None
             if "computrabajo" in url:
-                full_body = await ct_scraper.fetch_full_description(url)
-                if full_body and len(full_body) > len(effective_desc):
-                    effective_desc = full_body
-                    if db_vac:
-                        db_vac.description_clean = full_body
-                        db_vac.skills_extracted = ct_scraper.extract_skills(f"{db_vac.title} {full_body}")
-                        await db.commit()
-                    break
+                scraper = ComputrabajoScraper()
+            elif "occ.com.mx" in url:
+                scraper = OCCScraper()
+            elif "indeed.com" in url:
+                scraper = IndeedScraper()
+
+            if scraper:
+                try:
+                    full_body = await scraper.fetch_full_description(url)
+                except Exception:
+                    pass
+
+            if full_body and len(full_body) > len(effective_desc):
+                effective_desc = full_body
+                if db_vac:
+                    db_vac.description_clean = full_body
+                    db_vac.skills_extracted = scraper.extract_skills(f"{db_vac.title} {full_body}")
+                    await db.commit()
+                break
 
     cache_key, skills_hash = compute_eval_cache_key(
         request.vacancy_fingerprint, request.target_role, request.candidate_skills
@@ -117,6 +131,8 @@ async def evaluate_vacancy(
             extracted_skills=extracted_skills_list or None,
         )
 
+    effective_desired_skills = request.desired_skills or extracted_skills_list or []
+
     # 2. Invoke local agy CLI
     ai_client = AgyAIClient()
     try:
@@ -124,6 +140,7 @@ async def evaluate_vacancy(
             target_role=request.target_role,
             candidate_skills=request.candidate_skills,
             job_description=effective_desc,
+            desired_skills=effective_desired_skills,
         )
     except TimeoutError as te:
         raise HTTPException(

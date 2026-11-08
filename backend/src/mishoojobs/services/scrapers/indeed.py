@@ -1,23 +1,139 @@
 import hashlib
+import json
+import re
+from datetime import datetime, timezone
 from typing import List, Optional
+import bleach
 from bs4 import BeautifulSoup
 
 from mishoojobs.schemas.job import ExternalLinkDTO, PortalName, VacancyDTO
 from mishoojobs.services.scrapers.base import AbstractBaseScraper
 
 class IndeedScraper(AbstractBaseScraper):
-    """Scraper adapter for Indeed México."""
+    """Scraper adapter for Indeed México with Cloudflare TLS/HTTP2 bypass."""
 
     portal_name: str = "indeed"
     base_url: str = "https://mx.indeed.com"
 
     def parse_html(self, html_content: str) -> List[VacancyDTO]:
         soup = BeautifulSoup(html_content, "html.parser")
-        cards = soup.select("div.job_seen_beacon")
         vacancies: List[VacancyDTO] = []
 
+        # 1. Attempt to parse high-fidelity structured JSON from script#mosaic-data
+        mosaic_script = soup.find("script", id="mosaic-data")
+        script_text = mosaic_script.get_text() if mosaic_script else ""
+        if script_text:
+            m = re.search(
+                r"window\.mosaic\.providerData\[\"mosaic-provider-jobcards\"\]\s*=\s*(\{.+?\});",
+                script_text,
+                re.DOTALL,
+            )
+            if m:
+                try:
+                    data = json.loads(m.group(1))
+                    results = data.get("metaData", {}).get("mosaicProviderJobCardsModel", {}).get("results", [])
+                    if results:
+                        for res in results:
+                            title = self.sanitize_text(res.get("title", ""))
+                            if not title:
+                                continue
+                            company_name = self.sanitize_text(res.get("company") or "Empresa Confidencial")
+                            loc_text = res.get("formattedLocation", "México")
+                            state = self.normalize_state(loc_text)
+                            jk = res.get("jobkey", "")
+                            direct_url = f"{self.base_url}/viewjob?jk={jk}" if jk else (res.get("link") or self.base_url)
+
+                            # Salary extraction
+                            sal_min = None
+                            sal_max = None
+                            sal_period = None
+                            ext_sal = res.get("extractedSalary")
+                            if isinstance(ext_sal, dict):
+                                sal_min = ext_sal.get("min")
+                                sal_max = ext_sal.get("max")
+                                t_type = str(ext_sal.get("type", "")).lower()
+                                if "month" in t_type:
+                                    sal_period = "mensual"
+                                elif "year" in t_type:
+                                    sal_period = "anual"
+                                elif "week" in t_type:
+                                    sal_period = "semanal"
+
+                            if sal_min is None and sal_max is None:
+                                sal_snip = res.get("salarySnippet", {}).get("text")
+                                if sal_snip:
+                                    sal_min, sal_max, sal_period = self.parse_mexican_salary(sal_snip)
+
+                            # Rich description snippet & requirements
+                            snippet = self.sanitize_text(bleach.clean(res.get("snippet", ""), tags=[], strip=True))
+                            reqs = [
+                                r.get("label")
+                                for r in res.get("jobCardRequirementsModel", {}).get("jobOnlyRequirements", [])
+                                if r.get("label")
+                            ]
+                            types = res.get("jobTypes", [])
+                            desc_parts = [snippet] if snippet else []
+                            if reqs:
+                                desc_parts.append("\n\nRequisitos clave:\n" + "\n".join(f"• {req}" for req in reqs))
+                            if types:
+                                desc_parts.append(f"\nTipo de empleo: {', '.join(types)}")
+                            desc_text = "\n".join(desc_parts).strip() or title
+
+                            # Publication timestamp
+                            published_at = None
+                            if res.get("pubDate"):
+                                try:
+                                    published_at = datetime.fromtimestamp(res["pubDate"] / 1000, tz=timezone.utc)
+                                except Exception:
+                                    pass
+                            if not published_at and res.get("formattedRelativeTime"):
+                                published_at = self.parse_mexican_relative_date(res["formattedRelativeTime"])
+
+                            modality = self.infer_modality(title, f"{loc_text} {desc_text}")
+                            category = self.infer_category(title, desc_text)
+                            skills = self.extract_skills(f"{title} {desc_text} {' '.join(reqs)}")
+                            fingerprint = self.generate_fingerprint(company_name, title, state)
+
+                            external_link = ExternalLinkDTO(
+                                portal_name=PortalName.INDEED,
+                                direct_url=direct_url,
+                                is_active=True,
+                                http_status_code=200,
+                            )
+
+                            vacancies.append(
+                                VacancyDTO(
+                                    fingerprint=fingerprint,
+                                    title=title,
+                                    company_name=company_name,
+                                    location_city=self.sanitize_text(loc_text).split(",")[0] if "," in loc_text else None,
+                                    location_state=state,
+                                    modality=modality,
+                                    category=category,
+                                    salary_min=sal_min,
+                                    salary_max=sal_max,
+                                    salary_period=sal_period,
+                                    currency="MXN",
+                                    description=desc_text,
+                                    skills=skills,
+                                    published_at=published_at,
+                                    external_links=[external_link],
+                                )
+                            )
+
+                        if vacancies:
+                            return vacancies
+                except Exception:
+                    pass
+
+        # 2. DOM fallback for static HTML fixtures or desktop SERP
+        cards = soup.select("div.job_seen_beacon, li.css-5lfssm, div[data-testid='jobListing']")
         for card in cards:
-            link_tag = card.select_one("h2.jobTitle a") or card.select_one("a.jcs-JobTitle")
+            link_tag = (
+                card.select_one("h2.jobTitle a")
+                or card.select_one("a.jcs-JobTitle")
+                or card.select_one("a[data-jk]")
+            )
             if not link_tag:
                 continue
 
@@ -69,9 +185,7 @@ class IndeedScraper(AbstractBaseScraper):
             category = self.infer_category(title, desc_text)
             skills = self.extract_skills(f"{title} {desc_text}")
 
-            norm_company = self.normalize_text(company_name)
-            norm_title = self.normalize_text(title)
-            fingerprint = hashlib.sha256(f"{norm_company}:{norm_title}:{state}".encode("utf-8")).hexdigest()
+            fingerprint = self.generate_fingerprint(company_name, title, state)
 
             external_link = ExternalLinkDTO(
                 portal_name=PortalName.INDEED,
@@ -102,6 +216,57 @@ class IndeedScraper(AbstractBaseScraper):
 
         return vacancies
 
+    async def fetch_full_description(self, direct_url: str) -> Optional[str]:
+        """Attempts to fetch the full vacancy description body from Indeed or direct employer link."""
+        jk = None
+        if "jk=" in direct_url:
+            jk = direct_url.split("jk=")[-1].split("&")[0]
+
+        if jk:
+            try:
+                from curl_cffi.requests import AsyncSession
+                headers = {
+                    "User-Agent": (
+                        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
+                        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1"
+                    ),
+                    "Accept": "application/json",
+                }
+                async with AsyncSession(impersonate="safari17_0") as s:
+                    r = await s.get(f"{self.base_url}/rpc/jobdescs?jks={jk}", headers=headers, timeout=6)
+                    if r.status_code == 200:
+                        data = r.json()
+                        if jk in data and data[jk]:
+                            return self.sanitize_text(
+                                BeautifulSoup(data[jk], "html.parser").get_text("\n", strip=True)
+                            )
+            except Exception:
+                pass
+
+            try:
+                from curl_cffi.requests import AsyncSession
+                headers = {
+                    "User-Agent": (
+                        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
+                        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1"
+                    ),
+                    "Accept": "text/html",
+                }
+                async with AsyncSession(impersonate="safari17_0") as s:
+                    r = await s.get(f"{self.base_url}/rc/clk?jk={jk}", headers=headers, timeout=8)
+                    if r.status_code == 200:
+                        soup = BeautifulSoup(r.text, "html.parser")
+                        desc = soup.select_one("#jobDescriptionText, div.jobsearch-jobDescriptionText, div[id*='jobDescription']")
+                        if desc:
+                            return self.sanitize_text(desc.get_text("\n", strip=True))
+                        for d in soup.find_all(["div", "article", "section"]):
+                            t = d.get_text(strip=True)
+                            if len(t) > 500 and "security check" not in t.lower():
+                                return self.sanitize_text(d.get_text("\n", strip=True))
+            except Exception:
+                pass
+        return None
+
     async def search(
         self,
         query: str,
@@ -110,8 +275,67 @@ class IndeedScraper(AbstractBaseScraper):
         category: Optional[str] = "all",
         limit: int = 15,
     ) -> List[VacancyDTO]:
+        loc = location or "México"
         url = f"{self.base_url}/jobs"
-        params = {"q": query, "l": location or "México"}
+        params = {"q": query, "l": loc}
+
+        # First attempt with curl_cffi impersonating Safari/iPhone to bypass Cloudflare bot challenge
+        try:
+            from curl_cffi.requests import AsyncSession
+            headers = {
+                "User-Agent": (
+                    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
+                    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1"
+                ),
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "es-MX,es;q=0.9,en;q=0.8",
+            }
+            async with AsyncSession(impersonate="safari17_0") as s:
+                r = await s.get(url, params=params, headers=headers, timeout=10)
+                if r.status_code == 200:
+                    vacancies = self.parse_html(r.text)
+                    if vacancies:
+                        vacancies = vacancies[:limit]
+                        # Enrich with full descriptions via rpc/jobdescs
+                        jks = []
+                        for v in vacancies:
+                            for link in v.external_links:
+                                if "jk=" in link.direct_url:
+                                    jk_val = link.direct_url.split("jk=")[-1].split("&")[0]
+                                    jks.append(jk_val)
+                                    break
+                        if jks:
+                            try:
+                                rpc_url = f"{self.base_url}/rpc/jobdescs?jks={','.join(jks)}"
+                                rpc_resp = await s.get(
+                                    rpc_url,
+                                    headers={
+                                        "User-Agent": headers["User-Agent"],
+                                        "Accept": "application/json",
+                                    },
+                                    timeout=8,
+                                )
+                                if rpc_resp.status_code == 200:
+                                    desc_map = rpc_resp.json()
+                                    for v in vacancies:
+                                        for link in v.external_links:
+                                            if "jk=" in link.direct_url:
+                                                jk_val = link.direct_url.split("jk=")[-1].split("&")[0]
+                                                if jk_val in desc_map and desc_map[jk_val]:
+                                                    full_desc = self.sanitize_text(
+                                                        BeautifulSoup(desc_map[jk_val], "html.parser").get_text("\n", strip=True)
+                                                    )
+                                                    if len(full_desc) > len(v.description):
+                                                        v.description = full_desc
+                                                        v.skills = self.extract_skills(f"{v.title} {full_desc}")
+                                                break
+                            except Exception:
+                                pass
+                        return vacancies
+        except Exception:
+            pass
+
+        # Fallback to standard fetch_html
         try:
             html = await self.fetch_html(url, params=params)
             vacancies = self.parse_html(html)

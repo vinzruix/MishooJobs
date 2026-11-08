@@ -14,6 +14,7 @@ class AIEvaluationRequest(BaseModel):
     candidate_skills: List[str] = Field(..., min_length=1, description="List of technical skills extracted from resume")
     job_description: str = Field(..., min_length=10, description="Cleaned description of the job posting")
     direct_url: Optional[str] = Field(default=None, description="Direct URL of the vacancy posting")
+    desired_skills: Optional[List[str]] = Field(default=None, description="Skills required or desired by the vacancy")
 
 class AIEvaluationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)

@@ -1,7 +1,7 @@
 import asyncio
 import json
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from mishoojobs.config import settings
 
 class AgyAIClient:
@@ -14,12 +14,14 @@ class AgyAIClient:
         "{candidate_skills_json}\n\n"
         "ROL OBJETIVO:\n"
         "{target_role}\n\n"
+        "HABILIDADES DESEADAS / REQUERIDAS POR LA VACANTE:\n"
+        "{desired_skills_json}\n\n"
         "DESCRIPCIÓN DE LA VACANTE:\n"
         "{job_description}\n\n"
         "INSTRUCCIONES DE EVALUACIÓN:\n"
-        "1. Calcula un puntaje de compatibilidad real del 0 al 100 evaluando qué porcentaje de los requisitos técnicos esenciales cubre el candidato.\n"
-        "2. Identifica las habilidades del candidato que coinciden exactamente o estrechamente con la vacante.\n"
-        "3. Identifica las habilidades faltantes críticas (skill gaps) que la vacante solicita explícitamente y el candidato no posee.\n"
+        "1. Calcula un puntaje de compatibilidad real del 0 al 100 evaluando qué porcentaje de las habilidades deseadas/requeridas y requisitos técnicos de la vacante cubre el candidato.\n"
+        "2. Identifica las habilidades del candidato que coinciden exactamente o estrechamente con las habilidades requeridas por la vacante y su descripción.\n"
+        "3. Identifica las habilidades faltantes críticas (skill gaps) que la vacante solicita o requiere explícitamente y el candidato no posee.\n"
         "4. Proporciona un resumen de preparación (role_readiness_summary) conciso, honesto y constructivo en español mexicano.\n"
         "5. Ofrece un consejo accionable (actionable_advice) con un proyecto o recurso concreto para subsanar los skill gaps.\n\n"
         "RESPONDE ESTRICTAMENTE EN FORMATO JSON CON ESTA ESTRUCTURA:\n"
@@ -90,12 +92,15 @@ class AgyAIClient:
         target_role: str,
         candidate_skills: List[str],
         job_description: str,
+        desired_skills: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Runs the agy CLI as an asynchronous subprocess and returns structured evaluation."""
+        desired_skills_list = desired_skills or []
         prompt = (
             self.PROMPT_TEMPLATE
             .replace("{candidate_skills_json}", json.dumps(candidate_skills, ensure_ascii=False))
             .replace("{target_role}", target_role)
+            .replace("{desired_skills_json}", json.dumps(desired_skills_list, ensure_ascii=False))
             .replace("{job_description}", job_description[:2500])
         )
 

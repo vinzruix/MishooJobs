@@ -48,3 +48,23 @@ async def test_url_verifier_405_range_get_fallback(monkeypatch):
     result = await verifier.verify_single_url("https://example.com/job/nohead")
     assert result.is_active is True
     assert result.status_code == 206
+
+@pytest.mark.asyncio
+async def test_url_verifier_bot_challenge_active(monkeypatch):
+    verifier = URLVerifier()
+
+    async def mock_head(client, url, **kwargs):
+        req = httpx.Request("HEAD", url)
+        return httpx.Response(401, request=req)
+
+    monkeypatch.setattr(httpx.AsyncClient, "head", mock_head)
+
+    # 401 on indeed should be normalized as active human link
+    res_indeed = await verifier.verify_single_url("https://mx.indeed.com/viewjob?jk=123")
+    assert res_indeed.is_active is True
+    assert res_indeed.status_code == 200
+
+    # 401 on unknown non-portal domain is inactive
+    res_other = await verifier.verify_single_url("https://otherdomain.com/secret")
+    assert res_other.is_active is False
+    assert res_other.status_code == 401

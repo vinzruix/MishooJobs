@@ -108,9 +108,7 @@ class ComputrabajoScraper(AbstractBaseScraper):
             category = self.infer_category(title, desc_text)
             skills = self.extract_skills(f"{title} {desc_text}")
 
-            norm_company = self.normalize_text(company_name)
-            norm_title = self.normalize_text(title)
-            fingerprint = hashlib.sha256(f"{norm_company}:{norm_title}:{state}".encode("utf-8")).hexdigest()
+            fingerprint = self.generate_fingerprint(company_name, title, state)
 
             external_link = ExternalLinkDTO(
                 portal_name=PortalName.COMPUTRABAJO,

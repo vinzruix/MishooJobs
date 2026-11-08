@@ -56,6 +56,7 @@ export function VacancyDetailModal({
         candidate_skills: activeProfile.skills,
         job_description: effectiveDescription,
         direct_url: directUrl,
+        desired_skills: vacancy.skills || [],
       });
       if (result.full_description && result.full_description.length > (vacancy.description?.length || 0)) {
         vacancy.description = result.full_description;

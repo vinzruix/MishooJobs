@@ -1,6 +1,7 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { VacancyDetailModal } from "../../src/components/VacancyDetailModal";
+import * as apiModule from "../../src/services/api";
 import type { JobVacancy } from "../../src/types/job";
 import type { CandidateProfile, AIEvaluation } from "../../src/types/profile";
 
@@ -125,5 +126,38 @@ describe("VacancyDetailModal Component Tests", () => {
 
     // "Evaluar con IA" button must be available for Vacancy B
     expect(screen.getByText("Evaluar con IA (agy)")).toBeInTheDocument();
+  });
+
+  it("sends desired skills to evaluateVacancy when user clicks Evaluar con IA", async () => {
+    const evaluateSpy = vi.spyOn(apiModule, "evaluateVacancy").mockResolvedValue({
+      fit_score: 85,
+      fit_tier: "high",
+      matched_skills: ["Python"],
+      missing_skills: ["Django"],
+      role_readiness_summary: "Buena compatibilidad.",
+      actionable_advice: "Practica Django.",
+    });
+
+    render(
+      <VacancyDetailModal
+        vacancy={vacancyA}
+        onClose={vi.fn()}
+        activeProfile={profile}
+      />
+    );
+
+    const evalBtn = screen.getByText("Evaluar con IA (agy)");
+    fireEvent.click(evalBtn);
+
+    await waitFor(() => {
+      expect(evaluateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          vacancy_fingerprint: "fp-a-111",
+          target_role: "Junior Python Developer",
+          candidate_skills: ["Python", "SQL"],
+          desired_skills: ["Python", "Django"],
+        })
+      );
+    });
   });
 });

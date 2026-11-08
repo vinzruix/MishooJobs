@@ -68,4 +68,57 @@ describe("useJobStream hook", () => {
     expect(merged.external_links).toHaveLength(1);
     expect(merged.external_links[0].portal_name).toBe("computrabajo");
   });
+
+  it("retains accumulated vacancies when deduplication summary arrives without overwriting or clearing state", () => {
+    let capturedCallbacks: sseModule.StreamCallbacks | null = null;
+
+    vi.spyOn(sseModule, "startJobStream").mockImplementation((_params, callbacks) => {
+      capturedCallbacks = callbacks;
+      return () => {};
+    });
+
+    const { result } = renderHook(() => useJobStream());
+
+    act(() => {
+      result.current.search({ query: "Python Junior" });
+    });
+
+    const vacancy: JobVacancy = {
+      fingerprint: "fp-persist-1",
+      title: "Desarrollador Python Jr",
+      company_name: "Empresa Ejemplo",
+      location_state: "CDMX",
+      modality: "remoto",
+      category: "junior",
+      currency: "MXN",
+      description: "Python junior job description",
+      skills: ["Python", "Django"],
+      published_at: "2026-11-07T10:00:00Z",
+      external_links: [{ portal_name: "computrabajo", direct_url: "https://link1.com", is_active: true }],
+    };
+
+    act(() => {
+      capturedCallbacks?.onVacancyBatch?.([vacancy]);
+    });
+
+    expect(result.current.vacancies).toHaveLength(1);
+
+    // Emit deduplication summary event
+    act(() => {
+      capturedCallbacks?.onDeduplicationSummary?.({
+        total_extracted: 1,
+        unique_vacancies: 1,
+        duplicates_merged: 0,
+      });
+    });
+
+    // Vacancies must NOT be deleted or cleared
+    expect(result.current.vacancies).toHaveLength(1);
+    expect(result.current.vacancies[0].fingerprint).toBe("fp-persist-1");
+    expect(result.current.summary).toEqual({
+      total_extracted: 1,
+      unique_vacancies: 1,
+      duplicates_merged: 0,
+    });
+  });
 });

@@ -106,21 +106,8 @@ export function useJobStream() {
             return Array.from(map.values());
           });
         },
-        onDeduplicationSummary: (s, canonicalVacs) => {
+        onDeduplicationSummary: (s) => {
           setSummary(s);
-          if (canonicalVacs && canonicalVacs.length > 0) {
-            setVacancies(
-              canonicalVacs.map((v) => ({
-                ...v,
-                description: v.description || (v as any).description_clean || "",
-                skills: Array.isArray(v.skills)
-                  ? v.skills
-                  : Array.isArray((v as any).skills_extracted)
-                  ? (v as any).skills_extracted
-                  : [],
-              }))
-            );
-          }
         },
         onStreamEnd: (end) => {
           setIsSearching(false);

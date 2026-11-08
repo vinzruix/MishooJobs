@@ -1,6 +1,8 @@
+import asyncio
 import hashlib
 from typing import List, Optional
 from bs4 import BeautifulSoup
+import httpx
 
 from mishoojobs.schemas.job import ExternalLinkDTO, PortalName, VacancyDTO
 from mishoojobs.services.scrapers.base import AbstractBaseScraper
@@ -109,9 +111,7 @@ class OCCScraper(AbstractBaseScraper):
             category = self.infer_category(title, desc_text)
             skills = self.extract_skills(f"{title} {desc_text}")
 
-            norm_company = self.normalize_text(company_name)
-            norm_title = self.normalize_text(title)
-            fingerprint = hashlib.sha256(f"{norm_company}:{norm_title}:{state}".encode("utf-8")).hexdigest()
+            fingerprint = self.generate_fingerprint(company_name, title, state)
 
             external_link = ExternalLinkDTO(
                 portal_name=PortalName.OCC,
@@ -142,6 +142,32 @@ class OCCScraper(AbstractBaseScraper):
 
         return vacancies
 
+    async def fetch_full_description(self, direct_url: str) -> Optional[str]:
+        """Fetches the full vacancy description body from the individual OCC offer page."""
+        try:
+            from curl_cffi.requests import AsyncSession
+            async with AsyncSession(impersonate="chrome124") as s:
+                r = await s.get(direct_url, headers=self.headers, timeout=6)
+                if r.status_code == 200:
+                    soup = BeautifulSoup(r.text, "html.parser")
+                    rich = soup.select_one("div.rich-text, div.break-words")
+                    if rich:
+                        return self.sanitize_text(rich.get_text("\n", strip=True))
+        except Exception:
+            pass
+
+        try:
+            async with httpx.AsyncClient(headers=self.headers, timeout=6.0, follow_redirects=True) as client:
+                resp = await client.get(direct_url)
+                if resp.status_code == 200:
+                    soup = BeautifulSoup(resp.text, "html.parser")
+                    rich = soup.select_one("div.rich-text, div.break-words")
+                    if rich:
+                        return self.sanitize_text(rich.get_text("\n", strip=True))
+        except Exception:
+            pass
+        return None
+
     async def search(
         self,
         query: str,
@@ -158,7 +184,33 @@ class OCCScraper(AbstractBaseScraper):
 
         try:
             html = await self.fetch_html(url)
-            vacancies = self.parse_html(html)
-            return vacancies[:limit]
+            vacancies = self.parse_html(html)[:limit]
         except Exception:
             return []
+
+        # Concurrently enrich vacancies with full description body
+        try:
+            from curl_cffi.requests import AsyncSession
+            async with AsyncSession(impersonate="chrome124") as s:
+                async def enrich_one(v: VacancyDTO):
+                    if not v.external_links:
+                        return
+                    offer_url = v.external_links[0].direct_url
+                    try:
+                        r = await s.get(offer_url, headers=self.headers, timeout=5)
+                        if r.status_code == 200:
+                            soup = BeautifulSoup(r.text, "html.parser")
+                            rich = soup.select_one("div.rich-text, div.break-words")
+                            if rich:
+                                full_text = self.sanitize_text(rich.get_text("\n", strip=True))
+                                if len(full_text) > len(v.description):
+                                    v.description = full_text
+                                    v.skills = self.extract_skills(f"{v.title} {full_text}")
+                    except Exception:
+                        pass
+
+                await asyncio.gather(*(enrich_one(v) for v in vacancies))
+        except Exception:
+            pass
+
+        return vacancies

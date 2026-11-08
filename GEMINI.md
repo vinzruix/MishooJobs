@@ -153,3 +153,9 @@ When implementing tasks or modifying this codebase:
 - [Hotfix] Key VacancyDetailModal by vacancy.fingerprint and sync internal evaluation state to prevent stale AI analysis leak between vacancies; switch FilterDrawer timeframe toggle to single-select to eliminate count mismatch and avoid redundant background re-scraping on client-side filter resets.
 - [Hotfix] Stream-level and client-state fingerprint deduplication with field merging (latest published_at, links, longer description) preventing duplicate React keys and reconciler DOM orphan persistence on date filtering.
 - [Hotfix] Deduplicate external application links by portal name (1 primary active link per portal) and enforce flex-shrink-0 on card actions to prevent button overflow.
+- [Hotfix] Preserve progressive client vacancies state across deduplication summary events and standardize scraper fingerprint generation via AbstractBaseScraper.
+- [Hotfix] Include vacancy desired/required skills in AgyAIClient evaluation prompt and contract (AIEvaluationRequest/EvaluationPayload) for comprehensive Tier 2 AI matching.
+- [Hotfix] Normalize HTTP 401 bot challenges on job portal links in URLVerifier alongside 403/429 to avoid discarding valid candidate links under WAF.
+- [Hotfix] Use curl_cffi with Safari/iOS impersonation for Indeed México scraping and batch fetch full descriptions via Indeed's /rpc/jobdescs endpoint; concurrently enrich OCC vacancies with full offer page descriptions.
+- [Hotfix] Support multi-portal full description enrichment across Computrabajo, OCC, and Indeed in on-demand AI evaluation endpoint.
+- [Hotfix] Restrict card footer platform actions strictly to one primary platform link (preserving all merged portal links in detail modal) to prevent multi-button wrapping and UI clutter.

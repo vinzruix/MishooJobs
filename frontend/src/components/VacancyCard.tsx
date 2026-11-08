@@ -29,15 +29,9 @@ export function VacancyCard({
   const relativeText = formatMexicanRelativeTime(vacancy.published_at, now);
   const isNew = isNewVacancy(vacancy.published_at, now);
 
-  // Unique link per portal to prevent duplicate buttons in card footer
-  const uniquePortalLinks = useMemo(() => {
-    const seen = new Set<string>();
-    return (vacancy.external_links || []).filter((link) => {
-      const portal = (link.portal_name || "").toLowerCase();
-      if (!portal || seen.has(portal)) return false;
-      seen.add(portal);
-      return true;
-    });
+  // Strictly display one primary platform link on the card to prevent multi-button clutter and overflow
+  const primaryPlatformLink = useMemo(() => {
+    return (vacancy.external_links || []).find((link) => link.direct_url) || null;
   }, [vacancy.external_links]);
   const formatSalary = () => {
     if (!vacancy.salary_min && !vacancy.salary_max) {
@@ -152,21 +146,20 @@ export function VacancyCard({
 
       {/* Card Footer: Verified Direct Links & Actions */}
       <div className="pt-3 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2">
-        {/* Direct Links */}
-        <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-          {uniquePortalLinks.map((link, idx) => (
+        {/* Direct Link: strictly one platform on the card */}
+        <div className="flex items-center gap-1.5 min-w-0">
+          {primaryPlatformLink && (
             <a
-              key={idx}
-              href={link.direct_url}
+              href={primaryPlatformLink.direct_url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs text-zinc-300 hover:text-emerald-400 bg-zinc-800/60 hover:bg-zinc-800 px-2 py-1 rounded border border-zinc-700/50 transition-colors"
-              title={`Enlace directo a ${link.portal_name}`}
+              title={`Enlace directo a ${primaryPlatformLink.portal_name}`}
             >
               <ExtLinkIcon className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-              <span className="capitalize text-[11px] font-medium">{link.portal_name}</span>
+              <span className="capitalize text-[11px] font-medium">{primaryPlatformLink.portal_name}</span>
             </a>
-          ))}
+          )}
         </div>
 
         {/* Actions */}

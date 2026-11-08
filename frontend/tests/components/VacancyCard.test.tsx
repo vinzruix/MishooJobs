@@ -49,6 +49,36 @@ describe("Frontend Component Tests", () => {
     expect(handleInspect).toHaveBeenCalledWith(sampleVacancy);
   });
 
+  it("renders only one platform button on the card even if vacancy has multiple merged links", () => {
+    const multiLinkVacancy: JobVacancy = {
+      ...sampleVacancy,
+      external_links: [
+        {
+          portal_name: "indeed",
+          direct_url: "https://mx.indeed.com/viewjob?jk=123",
+          is_active: true,
+        },
+        {
+          portal_name: "computrabajo",
+          direct_url: "https://mx.computrabajo.com/oferta/456",
+          is_active: true,
+        },
+      ],
+    };
+
+    render(
+      <VacancyCard
+        vacancy={multiLinkVacancy}
+        onInspect={vi.fn()}
+      />
+    );
+
+    // Primary link (indeed) should be present
+    expect(screen.getByText("indeed")).toBeInTheDocument();
+    // Secondary link (computrabajo) should NOT be rendered on the card to avoid multi-platform clutter
+    expect(screen.queryByText("computrabajo")).not.toBeInTheDocument();
+  });
+
   it("renders ScamBadge with critical risk warning", () => {
     render(
       <ScamBadge

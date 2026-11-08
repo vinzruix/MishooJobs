@@ -54,6 +54,46 @@ def test_indeed_parser(indeed_html):
     assert len(v1.external_links) == 1
     assert "indeed.com" in v1.external_links[0].direct_url
     assert v1.published_at is not None
+    assert len(v1.description) > 20
+    assert "Python" in v1.skills
+
+def test_indeed_parser_mosaic_json():
+    scraper = IndeedScraper()
+    html_mosaic = """
+    <html><body>
+    <script id="mosaic-data">
+    window.mosaic.providerData["mosaic-provider-jobcards"] = {
+        "metaData": {
+            "mosaicProviderJobCardsModel": {
+                "results": [
+                    {
+                        "jobkey": "testjk123",
+                        "title": "Desarrollador Python Trainee",
+                        "company": "Empresa Innovadora",
+                        "formattedLocation": "Ciudad de México, CDMX",
+                        "snippet": "Únete a nuestro equipo como <b>Desarrollador Python</b>.",
+                        "jobCardRequirementsModel": {
+                            "jobOnlyRequirements": [{"label": "Python"}, {"label": "Git"}]
+                        },
+                        "extractedSalary": {"min": 18000, "max": 22000, "type": "monthly"},
+                        "pubDate": 1700000000000
+                    }
+                ]
+            }
+        }
+    };
+    </script>
+    </body></html>
+    """
+    vacs = scraper.parse_html(html_mosaic)
+    assert len(vacs) == 1
+    v = vacs[0]
+    assert v.title == "Desarrollador Python Trainee"
+    assert v.company_name == "Empresa Innovadora"
+    assert "Python" in v.skills
+    assert "Requisitos clave" in v.description
+    assert v.salary_min == 18000
+    assert v.salary_period == "mensual"
 
 def test_occ_parser(occ_html):
     scraper = OCCScraper()
@@ -65,3 +105,5 @@ def test_occ_parser(occ_html):
     assert len(v1.external_links) == 1
     assert "occ.com.mx" in v1.external_links[0].direct_url
     assert v1.published_at is not None
+    assert len(v1.description) > 20
+    assert "Python" in v1.skills

@@ -9,7 +9,7 @@ from mishoojobs.services.agy_ai_client import AgyAIClient
 @pytest.mark.asyncio
 async def test_full_system_workflow(agy_eval_json, monkeypatch):
     # Mock agy CLI to deterministic fixture
-    async def mock_run_evaluation(self, target_role, candidate_skills, job_description):
+    async def mock_run_evaluation(self, target_role, candidate_skills, job_description, desired_skills=None):
         return agy_eval_json
 
     monkeypatch.setattr(AgyAIClient, "run_evaluation", mock_run_evaluation)

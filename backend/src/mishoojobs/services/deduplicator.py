@@ -27,11 +27,16 @@ class CrossPortalDeduplicator:
 
     @classmethod
     def normalize_state(cls, state_text: str) -> str:
+        if not state_text:
+            return "MEXICO"
+        upper = state_text.strip().upper()
+        if upper in MEXICAN_STATE_MAP.values():
+            return upper
         norm = cls.normalize_string(state_text)
-        for key, code in MEXICAN_STATE_MAP.items():
-            if key in norm or norm in key:
-                return code
-        return norm.upper()
+        for key in sorted(MEXICAN_STATE_MAP.keys(), key=len, reverse=True):
+            if key in norm:
+                return MEXICAN_STATE_MAP[key]
+        return "MEXICO"
 
     def generate_fingerprint(self, company_name: str, title: str, location_state: str) -> str:
         """Generates canonical 64-character SHA-256 fingerprint."""
