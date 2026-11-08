@@ -4,14 +4,45 @@ export type PortalScraperStatus = "searching" | "completed" | "timeout" | "block
 
 export type Modality = "remoto" | "hibrido" | "presencial";
 
-export type Category =
-  | "becario"
-  | "practicas"
-  | "residencias"
-  | "servicio_social"
-  | "dualidad"
-  | "trainee"
-  | "junior";
+export type SeniorityLevel =
+  | "pasantia"
+  | "primer_empleo"
+  | "junior"
+  | "mid"
+  | "senior";
+
+export type SeniorityFilter = "all" | SeniorityLevel;
+
+export type AuditStatus = "preliminary" | "verified";
+
+export interface SeniorityTierOption {
+  id: SeniorityFilter;
+  label: string;
+  sublabel: string;
+  badgeLabel: string;
+  badgeColor: string;
+}
+
+export interface SeniorityCounts {
+  all: number;
+  primer_empleo: number;
+  pasantia: number;
+  junior: number;
+  mid: number;
+  senior: number;
+}
+
+export interface SeniorityAuditResult {
+  vacancy_fingerprint: string;
+  seniority_level: SeniorityLevel;
+  years_required_min: number;
+  is_real_first_job: boolean;
+  audit_status: AuditStatus;
+  reasoning: string;
+  has_discrepancy: boolean;
+  is_cached: boolean;
+  audited_at: string;
+}
 
 export interface ExternalLink {
   portal_name: PortalName;
@@ -36,7 +67,12 @@ export interface JobVacancy {
   location_city?: string | null;
   location_state: string;
   modality: Modality | string;
-  category: Category | string;
+  seniority_level: SeniorityLevel;
+  years_required_min: number;
+  is_real_first_job: boolean;
+  audit_status: AuditStatus;
+  reasoning: string;
+  has_discrepancy: boolean;
   salary_min?: number | null;
   salary_max?: number | null;
   salary_period?: "semanal" | "quincenal" | "mensual" | "anual" | null;

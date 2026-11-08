@@ -98,6 +98,21 @@ export function useJobStream() {
                   skillSet.add(s);
                 }
                 existing.skills = Array.from(skillSet);
+
+                // Preserve or upgrade seniority audit fields
+                if (v.audit_status === "verified") {
+                  existing.audit_status = "verified";
+                  existing.seniority_level = v.seniority_level;
+                  existing.years_required_min = v.years_required_min;
+                  existing.is_real_first_job = v.is_real_first_job;
+                  existing.reasoning = v.reasoning;
+                  existing.has_discrepancy = v.has_discrepancy;
+                } else if (existing.audit_status !== "verified") {
+                  if (v.has_discrepancy) existing.has_discrepancy = true;
+                  if (v.reasoning && v.reasoning.length > (existing.reasoning?.length || 0)) {
+                    existing.reasoning = v.reasoning;
+                  }
+                }
               } else {
                 map.set(v.fingerprint, v);
               }

@@ -69,9 +69,40 @@ export function VacancyCard({
             >
               {vacancy.modality}
             </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-zinc-800/80 text-zinc-300 border border-zinc-700/60">
-              {vacancy.category}
-            </span>
+            {vacancy.seniority_level === "primer_empleo" ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-950/80 text-emerald-300 border border-emerald-500/60 flex items-center gap-1">
+                {vacancy.audit_status === "verified" ? (
+                  <span>[ ✓ AUDITADO 0 EXP ]</span>
+                ) : (
+                  <span>[ 0 EXP PRELIMINAR ]</span>
+                )}
+              </span>
+            ) : vacancy.seniority_level === "pasantia" ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-950/70 text-cyan-300 border border-cyan-500/40">
+                [ PASANTÍA ]
+              </span>
+            ) : vacancy.seniority_level === "mid" ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-950/70 text-amber-300 border border-amber-500/40">
+                [ MID ]
+              </span>
+            ) : vacancy.seniority_level === "senior" ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-rose-950/70 text-rose-300 border border-rose-500/40">
+                [ SR ]
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-violet-950/70 text-violet-300 border border-violet-500/40">
+                [ JR ]
+              </span>
+            )}
+
+            {vacancy.has_discrepancy && (
+              <span
+                className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/50"
+                title={vacancy.reasoning || "Requisitos exceden nivel junior"}
+              >
+                [ REQUISITOS DISCREPANTES ]
+              </span>
+            )}
             {isNew && (
               <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-600/80 animate-pulse">
                 Nueva

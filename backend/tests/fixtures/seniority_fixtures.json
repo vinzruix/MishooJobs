@@ -1,0 +1,120 @@
+{
+  "pasantia": [
+    {
+      "title": "Becario de Desarrollo Web",
+      "text": "Buscamos estudiante de últimos semestres para prácticas profesionales o residencias profesionales en sistemas computacionales. Medio tiempo, convenio escolar y apoyo económico para transporte.",
+      "expected_seniority_level": "pasantia",
+      "expected_years_min": 0,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": false
+    },
+    {
+      "title": "Servicio Social en Sistemas",
+      "text": "Oportunidad para liberar servicio social o estadías profesionales apoyando en soporte técnico y redes. Estudiantes activos.",
+      "expected_seniority_level": "pasantia",
+      "expected_years_min": 0,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": false
+    }
+  ],
+  "primer_empleo": [
+    {
+      "title": "Desarrollador Junior / Trainee (Sin Experiencia)",
+      "text": "Empresa de tecnología busca recién egresado en Ingeniería en Sistemas. No se requiere experiencia laboral previa (0 años de experiencia). Ofrecemos contrato formal por nómina con prestaciones de ley y programa intensivo de mentoría.",
+      "expected_seniority_level": "primer_empleo",
+      "expected_years_min": 0,
+      "expected_is_real_first_job": true,
+      "expected_has_discrepancy": false
+    },
+    {
+      "title": "Programador Java - Primer Empleo",
+      "text": "Excelente oportunidad para tu primer empleo formal. Experiencia no necesaria. Sueldo base competitivo de $18,000 mensuales más capacitación técnica pagada en Spring Boot.",
+      "expected_seniority_level": "primer_empleo",
+      "expected_years_min": 0,
+      "expected_is_real_first_job": true,
+      "expected_has_discrepancy": false
+    }
+  ],
+  "junior": [
+    {
+      "title": "Desarrollador Frontend Junior",
+      "text": "Buscamos desarrollador Jr con mínimo 1 año de experiencia comprobable en React, JavaScript y consumo de APIs REST.",
+      "expected_seniority_level": "junior",
+      "expected_years_min": 1,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": false
+    },
+    {
+      "title": "Junior Python Developer",
+      "text": "Requisitos: De 1 a 2 años de experiencia en desarrollo con FastAPI o Flask, bases de datos PostgreSQL y Git.",
+      "expected_seniority_level": "junior",
+      "expected_years_min": 1,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": false
+    }
+  ],
+  "mid": [
+    {
+      "title": "Desarrollador Fullstack",
+      "text": "Requerimos 3 años de experiencia construyendo aplicaciones web con Node.js, React y TypeScript. Autonomía técnica y diseño de arquitecturas.",
+      "expected_seniority_level": "mid",
+      "expected_years_min": 3,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": false
+    },
+    {
+      "title": "Ingeniero de Software Backend",
+      "text": "Experiencia requerida: 2 a 4 años en desarrollo backend con microservicios, Docker y colas de mensajes RabbitMQ.",
+      "expected_seniority_level": "mid",
+      "expected_years_min": 2,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": false
+    }
+  ],
+  "senior": [
+    {
+      "title": "Senior Solutions Architect",
+      "text": "Buscamos Tech Lead con 5+ años de experiencia sólida en arquitectura de software en la nube AWS, Kubernetes y liderazgo de equipos de ingeniería.",
+      "expected_seniority_level": "senior",
+      "expected_years_min": 5,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": false
+    },
+    {
+      "title": "Principal Data Engineer",
+      "text": "Mínimo 6 años de experiencia en pipelines de datos distribuidos, Spark y modelos de machine learning en producción.",
+      "expected_seniority_level": "senior",
+      "expected_years_min": 6,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": false
+    }
+  ],
+  "fake_junior": [
+    {
+      "title": "Junior React Developer",
+      "text": "Se solicita desarrollador Junior. Requisitos indispensables: mínimo 3 años de experiencia comprobable en React, Redux y microfrontends.",
+      "expected_seniority_level": "mid",
+      "expected_years_min": 3,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": true
+    },
+    {
+      "title": "Trainee Backend Python",
+      "text": "Puesto de Trainee pero requerimos 5 años de experiencia técnica sólida en arquitectura orientada a servicios y gestión de bases de datos de alta escala.",
+      "expected_seniority_level": "senior",
+      "expected_years_min": 5,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": true
+    }
+  ],
+  "ambiguous": [
+    {
+      "title": "Programador Web PHP",
+      "text": "Desarrollo y mantenimiento de plataformas internas. Conocimiento en PHP, MySQL y HTML5.",
+      "expected_seniority_level": "junior",
+      "expected_years_min": 0,
+      "expected_is_real_first_job": false,
+      "expected_has_discrepancy": false
+    }
+  ]
+}

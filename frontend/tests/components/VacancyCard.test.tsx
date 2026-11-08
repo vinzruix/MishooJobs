@@ -13,7 +13,12 @@ describe("Frontend Component Tests", () => {
     location_city: "Guadalajara",
     location_state: "JAL",
     modality: "hibrido",
-    category: "junior",
+    seniority_level: "junior",
+    years_required_min: 1,
+    is_real_first_job: false,
+    audit_status: "preliminary",
+    reasoning: "Junior con 1 año de experiencia",
+    has_discrepancy: false,
     salary_min: 15000,
     salary_max: 18000,
     salary_period: "mensual",
@@ -43,6 +48,7 @@ describe("Frontend Component Tests", () => {
     expect(screen.getByText("Tech Solutions MX")).toBeInTheDocument();
     expect(screen.getByText(/15,000/)).toBeInTheDocument();
     expect(screen.getByText("85% Compatibilidad")).toBeInTheDocument();
+    expect(screen.getByText("[ JR ]")).toBeInTheDocument();
 
     const detailsButton = screen.getByText("Detalles");
     fireEvent.click(detailsButton);
@@ -73,9 +79,7 @@ describe("Frontend Component Tests", () => {
       />
     );
 
-    // Primary link (indeed) should be present
     expect(screen.getByText("indeed")).toBeInTheDocument();
-    // Secondary link (computrabajo) should NOT be rendered on the card to avoid multi-platform clutter
     expect(screen.queryByText("computrabajo")).not.toBeInTheDocument();
   });
 
@@ -152,5 +156,61 @@ describe("Frontend Component Tests", () => {
 
     expect(screen.queryByText("Nueva")).not.toBeInTheDocument();
     expect(screen.getByText("Fecha no especificada")).toBeInTheDocument();
+  });
+
+  it("renders amber discrepancy warning tag [ REQUISITOS DISCREPANTES ] when has_discrepancy is true", () => {
+    const discrepantVacancy: JobVacancy = {
+      ...sampleVacancy,
+      seniority_level: "mid",
+      years_required_min: 3,
+      has_discrepancy: true,
+      reasoning: "Título marcado como Junior pero exige 3 años de experiencia.",
+    };
+
+    render(
+      <VacancyCard
+        vacancy={discrepantVacancy}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("[ REQUISITOS DISCREPANTES ]")).toBeInTheDocument();
+    expect(screen.getByText("[ MID ]")).toBeInTheDocument();
+  });
+
+  it("renders emerald primer empleo real badge with verified indicator", () => {
+    const verifiedFirstJob: JobVacancy = {
+      ...sampleVacancy,
+      seniority_level: "primer_empleo",
+      years_required_min: 0,
+      is_real_first_job: true,
+      audit_status: "verified",
+    };
+
+    const { rerender } = render(
+      <VacancyCard
+        vacancy={verifiedFirstJob}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("[ ✓ AUDITADO 0 EXP ]")).toBeInTheDocument();
+
+    const preliminaryFirstJob: JobVacancy = {
+      ...sampleVacancy,
+      seniority_level: "primer_empleo",
+      years_required_min: 0,
+      is_real_first_job: true,
+      audit_status: "preliminary",
+    };
+
+    rerender(
+      <VacancyCard
+        vacancy={preliminaryFirstJob}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("[ 0 EXP PRELIMINAR ]")).toBeInTheDocument();
   });
 });

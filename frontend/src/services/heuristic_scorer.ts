@@ -42,6 +42,7 @@ export interface CompatibilityOptions {
   fallbackText?: string;
   targetRole?: string;
   jobTitle?: string;
+  seniority_level?: SeniorityLevel | string;
   category?: string;
 }
 
@@ -55,7 +56,7 @@ export function calculateHeuristicScore(
   const fallbackText = typeof options === "string" ? options : options?.fallbackText || "";
   const targetRole = typeof options === "object" ? options?.targetRole || "" : "";
   const jobTitle = typeof options === "object" ? options?.jobTitle || "" : "";
-  const category = typeof options === "object" ? options?.category || "" : "";
+  const seniority = typeof options === "object" ? options?.seniority_level || options?.category || "" : "";
 
   const candNorm = candidateSkills.map(normalizeSkill);
 
@@ -109,7 +110,7 @@ export function calculateHeuristicScore(
   }
 
   // 2. Role Title & Domain Alignment (S_role)
-  const combinedTitleText = `${jobTitle} ${category} ${fallbackText}`;
+  const combinedTitleText = `${jobTitle} ${seniority} ${fallbackText}`;
   const titleWords = new Set(normalizeWords(combinedTitleText));
 
   let sRole = 50;
@@ -136,19 +137,37 @@ export function calculateHeuristicScore(
   }
 
   // 3. Seniority Level Fit (S_level)
-  const isSenior = ["sr", "senior", "lider", "lead", "gerente", "arquitecto", "principal", "director"].some((w) =>
-    titleWords.has(w)
-  );
-  const isJunior =
-    ["jr", "junior", "becario", "practicas", "practicante", "trainee", "pasante", "intern"].some((w) =>
-      titleWords.has(w)
-    ) || ["becario", "practicas", "residencias", "trainee", "junior"].includes(category.toLowerCase());
+  const senLevel = (options && typeof options === "object" ? options.seniority_level || options.category || "" : "").toLowerCase();
 
-  let sLevel = 65;
+  const isSenior =
+    senLevel === "senior" ||
+    ["sr", "senior", "lider", "lead", "gerente", "arquitecto", "principal", "director"].some((w) =>
+      titleWords.has(w)
+    );
+  const isMid =
+    senLevel === "mid" ||
+    ["mid", "semi senior", "ssr"].some((w) => titleWords.has(w));
+  const isFirstJob =
+    senLevel === "primer_empleo" ||
+    ["primer empleo", "sin experiencia"].some((w) => combinedTitleText.toLowerCase().includes(w));
+  const isPasantia =
+    senLevel === "pasantia" ||
+    ["becario", "practicas", "residencias", "servicio social", "estadias"].some((w) => titleWords.has(w));
+  const isJunior =
+    senLevel === "junior" ||
+    ["jr", "junior", "trainee"].some((w) => titleWords.has(w));
+
+  let sLevel = 75; // neutral baseline
   if (isSenior) {
-    sLevel = 30;
+    sLevel = 25; // penalty for senior postings
+  } else if (isMid) {
+    sLevel = 50; // penalty for mid postings
+  } else if (isFirstJob) {
+    sLevel = 100; // full fit weight for 0-exp primer empleo
   } else if (isJunior) {
-    sLevel = 95;
+    sLevel = 95; // full fit weight for junior
+  } else if (isPasantia) {
+    sLevel = 75; // neutral for pasantia
   }
 
   // Weighted composite score: 50% tech stack, 30% role title, 20% seniority

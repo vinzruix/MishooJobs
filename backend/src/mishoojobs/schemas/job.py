@@ -48,15 +48,24 @@ class ModalityEnum(str, Enum):
     HIBRIDO = "hibrido"
     PRESENCIAL = "presencial"
 
-class CategoryEnum(str, Enum):
-    ALL = "all"
-    BECARIO = "becario"
-    PRACTICAS = "practicas"
-    RESIDENCIAS = "residencias"
-    SERVICIO_SOCIAL = "servicio_social"
-    DUALIDAD = "dualidad"
-    TRAINEE = "trainee"
+class SeniorityLevelEnum(str, Enum):
+    PASANTIA = "pasantia"
+    PRIMER_EMPLEO = "primer_empleo"
     JUNIOR = "junior"
+    MID = "mid"
+    SENIOR = "senior"
+
+class SeniorityFilterEnum(str, Enum):
+    ALL = "all"
+    PASANTIA = "pasantia"
+    PRIMER_EMPLEO = "primer_empleo"
+    JUNIOR = "junior"
+    MID = "mid"
+    SENIOR = "senior"
+
+class AuditStatusEnum(str, Enum):
+    PRELIMINARY = "preliminary"
+    VERIFIED = "verified"
 
 class SalaryPeriodEnum(str, Enum):
     SEMANAL = "semanal"
@@ -120,7 +129,12 @@ class VacancyDTO(BaseModel):
     location_city: Optional[str] = Field(default=None, max_length=100)
     location_state: str = Field(..., max_length=50)
     modality: str = Field(default="presencial")
-    category: str = Field(default="junior")
+    seniority_level: SeniorityLevelEnum = Field(default=SeniorityLevelEnum.JUNIOR)
+    years_required_min: int = Field(default=0, ge=0)
+    is_real_first_job: bool = Field(default=False)
+    audit_status: AuditStatusEnum = Field(default=AuditStatusEnum.PRELIMINARY)
+    reasoning: str = Field(default="")
+    has_discrepancy: bool = Field(default=False)
     salary_min: Optional[float] = Field(default=None, ge=0)
     salary_max: Optional[float] = Field(default=None, ge=0)
     salary_period: Optional[SalaryPeriodEnum] = None
@@ -148,5 +162,5 @@ class SearchParams(BaseModel):
     query: str = Field(..., min_length=2, max_length=100)
     location: Optional[str] = Field(default="México")
     modality: ModalityEnum = Field(default=ModalityEnum.ALL)
-    category: CategoryEnum = Field(default=CategoryEnum.ALL)
+    seniority: Optional[SeniorityFilterEnum] = SeniorityFilterEnum.ALL
     limit_per_portal: int = Field(default=15, ge=1, le=15)

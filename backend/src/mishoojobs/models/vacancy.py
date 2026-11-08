@@ -36,20 +36,38 @@ class JobVacancy(Base):
         default="presencial",
         nullable=False,
     )
-    category: Mapped[str] = mapped_column(
+    seniority_level: Mapped[str] = mapped_column(
         Enum(
-            "becario",
-            "practicas",
-            "residencias",
-            "servicio_social",
-            "dualidad",
-            "trainee",
+            "pasantia",
+            "primer_empleo",
             "junior",
-            name="category_enum",
+            "mid",
+            "senior",
+            name="seniority_level_enum",
         ),
         default="junior",
         nullable=False,
+        index=True,
     )
+    years_required_min: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+    is_real_first_job: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        index=True,
+    )
+    audit_status: Mapped[str] = mapped_column(
+        Enum("preliminary", "verified", name="audit_status_enum"),
+        default="preliminary",
+        nullable=False,
+        index=True,
+    )
+    reasoning: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    has_discrepancy: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     salary_min: Mapped[Optional[float]] = mapped_column(Numeric(10, 2), nullable=True)
     salary_max: Mapped[Optional[float]] = mapped_column(Numeric(10, 2), nullable=True)
     salary_period: Mapped[Optional[str]] = mapped_column(
@@ -82,6 +100,10 @@ class JobVacancy(Base):
         CheckConstraint(
             "salary_min IS NULL OR salary_max IS NULL OR salary_max >= salary_min",
             name="check_salary_range",
+        ),
+        CheckConstraint(
+            "years_required_min >= 0",
+            name="ck_vacancies_years_required_min",
         ),
     )
 

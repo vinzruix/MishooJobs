@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Loader2, ExternalLink, AlertTriangle, Check, X, DollarSign } from "lucide-react";
-import type { JobVacancy } from "../types/job";
+import { Sparkles, Loader2, ExternalLink, AlertTriangle, Check, X, DollarSign, ShieldCheck } from "lucide-react";
+import type { JobVacancy, SeniorityAuditResult } from "../types/job";
 import type { CandidateProfile, AIEvaluation } from "../types/profile";
-import { evaluateVacancy } from "../services/api";
+import { auditVacancy, evaluateVacancy } from "../services/api";
 import { ScamBadge } from "./ScamBadge";
 
 interface VacancyDetailModalProps {
@@ -23,12 +23,52 @@ export function VacancyDetailModal({
   const [evaluation, setEvaluation] = useState<AIEvaluation | null>(cachedEvaluation || null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [auditResult, setAuditResult] = useState<SeniorityAuditResult | null>(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditError, setAuditError] = useState<string | null>(null);
 
   // Sync state whenever vacancy or cachedEvaluation changes
   useEffect(() => {
     setEvaluation(cachedEvaluation || null);
     setIsLoadingAI(false);
     setAiError(null);
+    setAuditError(null);
+
+    if (vacancy && vacancy.audit_status === "preliminary") {
+      setIsAuditing(true);
+      auditVacancy(
+        vacancy.fingerprint,
+        vacancy.external_links?.[0]?.direct_url,
+        vacancy.description
+      )
+        .then((res) => {
+          setAuditResult(res);
+          vacancy.seniority_level = res.seniority_level;
+          vacancy.years_required_min = res.years_required_min;
+          vacancy.is_real_first_job = res.is_real_first_job;
+          vacancy.audit_status = res.audit_status;
+          vacancy.reasoning = res.reasoning;
+          vacancy.has_discrepancy = res.has_discrepancy;
+        })
+        .catch((err) => {
+          setAuditError(err instanceof Error ? err.message : "Error al auditar experiencia.");
+        })
+        .finally(() => {
+          setIsAuditing(false);
+        });
+    } else if (vacancy && vacancy.audit_status === "verified") {
+      setAuditResult({
+        vacancy_fingerprint: vacancy.fingerprint,
+        seniority_level: vacancy.seniority_level,
+        years_required_min: vacancy.years_required_min,
+        is_real_first_job: vacancy.is_real_first_job,
+        audit_status: "verified",
+        reasoning: vacancy.reasoning,
+        has_discrepancy: vacancy.has_discrepancy,
+        is_cached: true,
+        audited_at: vacancy.last_verified_at || new Date().toISOString(),
+      });
+    }
   }, [vacancy?.fingerprint, cachedEvaluation]);
 
   if (!vacancy) return null;
@@ -95,9 +135,43 @@ export function VacancyDetailModal({
               <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-zinc-800 text-zinc-300 border border-zinc-700">
                 {vacancy.modality}
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-zinc-800 text-zinc-300 border border-zinc-700">
-                {vacancy.category}
-              </span>
+              {/* Seniority Badges */}
+              {(auditResult?.seniority_level || vacancy.seniority_level) === "primer_empleo" ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-950/70 text-emerald-300 border border-emerald-500/50 flex items-center gap-1">
+                  {(auditResult?.audit_status || vacancy.audit_status) === "verified" ? (
+                    <>
+                      <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                      <span>✓ AUDITADO 0 EXP</span>
+                    </>
+                  ) : (
+                    <span>0 EXP PRELIMINAR</span>
+                  )}
+                </span>
+              ) : (auditResult?.seniority_level || vacancy.seniority_level) === "pasantia" ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-950/70 text-cyan-300 border border-cyan-500/40">
+                  PASANTÍA / PRÁCTICAS
+                </span>
+              ) : (auditResult?.seniority_level || vacancy.seniority_level) === "mid" ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-950/70 text-amber-300 border border-amber-500/40">
+                  MID (2–4 AÑOS)
+                </span>
+              ) : (auditResult?.seniority_level || vacancy.seniority_level) === "senior" ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-rose-950/70 text-rose-300 border border-rose-500/40">
+                  SENIOR (5+ AÑOS)
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-violet-950/70 text-violet-300 border border-violet-500/40">
+                  JR (1–2 AÑOS)
+                </span>
+              )}
+
+              {(auditResult?.has_discrepancy || vacancy.has_discrepancy) && (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/50 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>REQUISITOS DISCREPANTES</span>
+                </span>
+              )}
+
               {vacancy.scam_report && <ScamBadge report={vacancy.scam_report} />}
             </div>
             <h2 className="text-lg font-bold text-zinc-100">{vacancy.title}</h2>
@@ -132,6 +206,45 @@ export function VacancyDetailModal({
               <div>
                 <p className="font-bold text-xs uppercase mb-0.5">{vacancy.scam_report.badge_label}</p>
                 <p className="text-[11px] opacity-90">{vacancy.scam_report.explanation}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Seniority Audit Section */}
+          {isAuditing && (
+            <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center gap-2 text-xs text-zinc-400">
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+              <span>Auditando experiencia real con IA (agy)...</span>
+            </div>
+          )}
+
+          {auditError && (
+            <div className="p-2.5 rounded bg-rose-950/40 border border-rose-800 text-[11px] text-rose-300">
+              {auditError}
+            </div>
+          )}
+
+          {(auditResult?.reasoning || vacancy.reasoning) && (
+            <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800/80 flex items-start gap-2.5 text-xs">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-[10px] uppercase tracking-wider text-zinc-400">
+                    Auditoría de Experiencia
+                  </span>
+                  {(auditResult?.audit_status || vacancy.audit_status) === "verified" ? (
+                    <span className="text-[10px] text-emerald-400 font-mono font-semibold">
+                      [ Verificada por IA ]
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      [ Heurística Preliminar ]
+                    </span>
+                  )}
+                </div>
+                <p className="text-zinc-300 leading-relaxed text-[11px]">
+                  {auditResult?.reasoning || vacancy.reasoning}
+                </p>
               </div>
             </div>
           )}

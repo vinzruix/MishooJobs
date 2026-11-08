@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from mishoojobs.config import settings
 from mishoojobs.schemas.job import VacancyDTO
+from mishoojobs.services.seniority_classifier import SeniorityClassifier
 
 COMMON_TECH_SKILLS = [
     "Python", "JavaScript", "TypeScript", "React", "Vue", "Angular", "Node.js", "Express",
@@ -93,7 +94,7 @@ class AbstractBaseScraper(abc.ABC):
         query: str,
         location: Optional[str] = "México",
         modality: Optional[str] = "all",
-        category: Optional[str] = "all",
+        seniority: Optional[str] = "all",
         limit: int = 15,
     ) -> List[VacancyDTO]:
         """Performs live query against the portal, returning up to `limit` vacancies."""
@@ -273,22 +274,9 @@ class AbstractBaseScraper(abc.ABC):
                 found.append(skill)
         return found
 
-    def infer_category(self, title: str, text: str) -> str:
-        """Infers Mexican early-career category from title and text."""
-        combined = self.normalize_text(f"{title} {text}")
-        if "servicio social" in combined:
-            return "servicio_social"
-        if "residencia" in combined:
-            return "residencias"
-        if "practica" in combined or "practicas" in combined:
-            return "practicas"
-        if "becari" in combined or "intern" in combined:
-            return "becario"
-        if "dual" in combined:
-            return "dualidad"
-        if "trainee" in combined:
-            return "trainee"
-        return "junior"
+    def classify_seniority_fast(self, title: str, text: str, is_scam: bool = False) -> dict:
+        """Classifies vacancy seniority using deterministic Step 1 regex rules."""
+        return SeniorityClassifier.classify_fast(title, text, is_scam=is_scam)
 
     def infer_modality(self, title: str, text: str) -> str:
         """Infers work modality from title and text."""

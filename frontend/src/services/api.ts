@@ -1,5 +1,5 @@
 import type { AIEvaluation } from "../types/profile";
-import type { ScamReport } from "../types/job";
+import type { ScamReport, SeniorityAuditResult } from "../types/job";
 
 export interface EvaluationPayload {
   vacancy_fingerprint: string;
@@ -44,5 +44,34 @@ export async function fetchScamReport(fingerprint: string): Promise<ScamReport> 
   if (!response.ok) {
     throw new Error(`Error al consultar reporte de fraude: HTTP ${response.status}`);
   }
+  return response.json();
+}
+
+export async function auditVacancy(
+  fingerprint: string,
+  directUrl?: string,
+  jobDescription?: string,
+): Promise<SeniorityAuditResult> {
+  const response = await fetch(`/api/v1/vacancies/${encodeURIComponent(fingerprint)}/audit`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      vacancy_fingerprint: fingerprint,
+      direct_url: directUrl,
+      job_description: jobDescription,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    let msg = `Error en auditoría de experiencia: HTTP ${response.status}`;
+    if (typeof errorData.detail === "string") {
+      msg = errorData.detail;
+    }
+    throw new Error(msg);
+  }
+
   return response.json();
 }

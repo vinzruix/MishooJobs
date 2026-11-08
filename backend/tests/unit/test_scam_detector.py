@@ -43,3 +43,13 @@ def test_safe_legitimate_posting():
     assert report.risk_level == "safe"
     assert len(report.risk_categories) == 0
     assert report.badge_label == "VERIFICADO SEGURO"
+
+def test_scam_posting_disqualified_from_real_first_job():
+    from mishoojobs.services.seniority_classifier import SeniorityClassifier
+    detector = MexicanScamDetector()
+    title = "Actividades sencillas de oficina ingresos altos"
+    desc = "Gana de 3000 a 5000 semanales por actividades sencillas de oficina medio tiempo. Sé tu propio jefe, sin experiencia."
+    scam_rep = detector.assess_vacancy(title, desc)
+    is_scam = scam_rep.risk_level.value != "safe"
+    classification = SeniorityClassifier.classify_fast(title, desc, is_scam=is_scam)
+    assert classification["is_real_first_job"] is False
