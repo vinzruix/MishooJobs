@@ -99,7 +99,7 @@ cd ..
 1. Search or supply a listing with title "Junior React Developer" that requires "3 años de experiencia en proyectos comerciales".
 2. **Expected Outcome**:
    - Listing is reclassified away from entry-level to `mid`.
-   - A visible amber discrepancy tag `[ REQUISITOS DISCREPANTES: 2+ AÑOS ]` appears on the card.
+   - A visible amber discrepancy tag `[ REQUISITOS DISCREPANTES ]` appears on the card (with actual required years indicated in tooltip/detail modal).
    - Listing is excluded when filtering by `Primer Empleo Real` or `Junior`.
 
 ### Scenario 4: Step 2 On-Demand Deep AI Audit

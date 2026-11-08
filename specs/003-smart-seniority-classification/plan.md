@@ -148,13 +148,14 @@ frontend/
 
 ### Phase 2.4: Frontend Type Migration & State Management
 - Update `frontend/src/types/job.ts`: delete `Category` / `category`, add `SeniorityLevel`, `SeniorityFilter`, `AuditStatus`, and update `JobVacancy`.
-- Update `frontend/src/services/api.ts` with `auditVacancy(fingerprint: string)` client method.
+- Update `frontend/src/services/api.ts` with `auditVacancy(fingerprint: string, directUrl?: string, jobDescription?: string)` client method passing `{ vacancy_fingerprint: fingerprint, direct_url: directUrl, job_description: jobDescription }`.
 - Update `frontend/src/services/sse.ts` to pass `seniority` parameter.
 - Update `frontend/src/App.tsx`: replace `category` filter state with `seniority`, synchronize with URL query `?seniority=<value>`, compute live `tierCounts` across all 6 options, and handle browser navigation history.
 
-### Phase 2.5: Visual Badges, Discrepancy Alerts & Smart Sorting
-- Update `frontend/src/components/VacancyCard.tsx` to render color-coded seniority badges (`[ PRIMER EMPLEO REAL ]` emerald, `[ PASANTÍA ]` cyan, `[ JR ]` violet, `[ MID ]` amber, `[ SR ]` red), discrepancy alert tags (`[ REQUISITOS DISCREPANTES ]`), and verified indicators.
-- Update `frontend/src/components/VacancyDetailModal.tsx` to display audit status, trigger on-demand `auditVacancy` when `audit_status === 'preliminary'`, and render audit reasoning.
+### Phase 2.5: Visual Badges, Discrepancy Alerts, Heuristic Fit & Smart Sorting
+- Update `frontend/src/components/VacancyCard.tsx` to render color-coded seniority badges (`[ PRIMER EMPLEO REAL ]` emerald with verified icon indicator, `[ PASANTÍA ]` cyan, `[ JR ]` violet, `[ MID ]` amber, `[ SR ]` rose/red), amber discrepancy alert tags (`[ REQUISITOS DISCREPANTES ]`), and verified indicators.
+- Update `frontend/src/components/VacancyDetailModal.tsx` to display audit status, trigger on-demand `auditVacancy` when `audit_status === 'preliminary'`, and render verified badge `[ ✓ AUDITADO 0 EXP ]` with audit reasoning.
+- Update heuristic fit scorers in `frontend/src/services/heuristic_scorer.ts` and `backend/src/mishoojobs/services/heuristic_scorer.py` to migrate from legacy `category` to `seniority_level` (candidate with early-career profile receives full match weight on `primer_empleo` and `junior`, neutral on `pasantia`, and score penalty on `mid` and `senior`).
 - Update `frontend/src/components/FilterDrawer.tsx` and quick filter pills in `VacancyList.tsx` / `App.tsx` with 5-tier controls and real-time count badges.
 - Implement smart default sorting for "Primer Empleo Real" (verified first, then preliminary, by publication date).
 - Implement empty state in `VacancyList.tsx` with recommendation to expand to Pasantía or Junior and a "Limpiar filtro de experiencia" button.

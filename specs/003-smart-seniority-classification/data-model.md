@@ -216,7 +216,7 @@ class VacancyDTO(BaseModel):
 ### 3.3 Seniority Audit Request & Response
 ```python
 class SeniorityAuditRequest(BaseModel):
-    vacancy_fingerprint: str = Field(..., max_length=64)
+    vacancy_fingerprint: Optional[str] = Field(default=None, max_length=64)
     direct_url: Optional[str] = None
     job_description: Optional[str] = None
 

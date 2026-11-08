@@ -95,7 +95,7 @@ Executes or retrieves a cached deep AI audit for a specific vacancy using `agy` 
 #### Request Headers
 - `Content-Type: application/json`
 
-#### Request Body
+#### Request Body (All fields optional; path parameter `{fingerprint}` is authoritative)
 ```json
 {
   "vacancy_fingerprint": "a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0",

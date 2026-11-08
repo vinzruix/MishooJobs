@@ -64,7 +64,7 @@ As a candidate reviewing search results, I want the system to flag deceptive lis
 
 **Acceptance Scenarios**:
 
-1. **Given** a listing titled "Becario" or "Junior" whose text requirements mandate 2 or more years of verifiable experience, **When** the vacancy is classified and displayed, **Then** it is reclassified to "Mid" (or "Senior" if ≥ 5 years) and displays a visible discrepancy alert tag (e.g., `[ REQUISITOS DISCREPANTES: 2+ AÑOS ]`).
+1. **Given** a listing titled "Becario" or "Junior" whose text requirements mandate 2 or more years of verifiable experience, **When** the vacancy is classified and displayed, **Then** it is reclassified to "Mid" (or "Senior" if ≥ 5 years) and displays a visible amber discrepancy alert tag `[ REQUISITOS DISCREPANTES ]` with actual required years detailed in tooltip and modal reasoning.
 2. **Given** a candidate filtering by "Primer Empleo Real" or "Junior", **When** a mislabeled "Fake Junior" listing exists in the pool, **Then** that listing is excluded from the entry-level results and only appears under its audited tier ("Mid" or "Senior").
 3. **Given** an inspected vacancy with a discrepancy flag, **When** the candidate views the vacancy details modal, **Then** the AI audit reasoning explains why the listing was reclassified away from its nominal title.
 
@@ -82,10 +82,10 @@ As a candidate scanning the vacancy feed, I want each card to feature distinct, 
 
 1. **Given** a list of vacancies, **When** rendered on screen, **Then** each card displays a standardized, color-coded badge corresponding to its audited tier:
    - `[ PASANTÍA ]` in cyan/blue tones.
-   - `[ PRIMER EMPLEO REAL ]` in high-contrast emerald tones.
+   - `[ PRIMER EMPLEO REAL ]` in high-contrast emerald tones (with an emerald verification indicator when verified; detail modal renders `[ ✓ AUDITADO 0 EXP ]`).
    - `[ JR ]` in violet/indigo tones.
    - `[ MID ]` in amber tones.
-   - `[ SR ]` in orange/red tones.
+   - `[ SR ]` in rose/red tones.
 2. **Given** a candidate selects the "Primer Empleo Real" filter, **When** results are displayed, **Then** the list sorts by default to prioritize listings with the highest audit confidence of zero commercial experience.
 3. **Given** a candidate changes the sorting dropdown manually (e.g., to "Más recientes primero"), **When** the sort option is changed, **Then** the user's explicit sorting selection is respected and preserved.
 
@@ -160,12 +160,12 @@ As a candidate searching within a specialized niche where some postings do not s
 - **FR-010**: The active experience filter MUST be persisted to the browser URL query string via `?seniority=<value>` (e.g., `?seniority=primer_empleo`), supporting browser back/forward navigation and direct URL sharing.
 - **FR-011**: When the candidate filters by "Primer Empleo Real", the system MUST sort results by default to prioritize verified zero-experience listings (`audit_status == 'verified'`) first, followed by preliminary listings (`audit_status == 'preliminary'`), ordered by most recent publication date within each group, while allowing the candidate to manually override the sorting order.
 - **FR-012**: The system MUST render distinct, standardized visual badges on each vacancy card corresponding to its audited seniority tier:
-  - `[ PRIMER EMPLEO REAL ]`: High-contrast emerald styling (`emerald-500/20 text-emerald-400 border-emerald-500/30`) with an emerald verification indicator when `audit_status == 'verified'` and standard preliminary badge styling when `audit_status == 'preliminary'`.
+  - `[ PRIMER EMPLEO REAL ]`: High-contrast emerald styling (`emerald-500/20 text-emerald-400 border-emerald-500/30`) with an emerald verification indicator when `audit_status == 'verified'` and standard preliminary badge styling when `audit_status == 'preliminary'` (vacancy detail modal renders verified badge `[ ✓ AUDITADO 0 EXP ]`).
   - `[ PASANTÍA ]`: Cyan/blue badge styling.
   - `[ JR ]`: Violet/indigo badge styling.
   - `[ MID ]`: Amber badge styling.
-  - `[ SR ]`: Orange/red badge styling.
-- **FR-013**: If a vacancy exhibits an experience discrepancy between title and audited requirements, the vacancy card and detail view MUST render an alert badge (e.g., `[ REQUISITOS DISCREPANTES ]`) and display the audit reasoning.
+  - `[ SR ]`: Rose/red badge styling (`text-rose-400`).
+- **FR-013**: If a vacancy exhibits an experience discrepancy between title and audited requirements, the vacancy card MUST render an amber alert badge `[ REQUISITOS DISCREPANTES ]` and the detail view MUST render the discrepancy badge alongside the deep audit reasoning explaining the reclassification.
 - **FR-014**: If an employer description omits explicit numerical years of experience, the Step 1 fast-pass MUST provisionally default to the `junior` tier with `audit_status == 'preliminary'`; upon candidate inspection, the Step 2 deep audit MUST infer the fairest tier based on the scope of responsibilities, technical complexity of the stack, and explicit mentions of mentorship, training, or supervision, updating the classification and cache accordingly.
 - **FR-015**: When an experience filter produces zero matching vacancies, the system MUST render a dedicated empty state suggesting expanding the filter to "Pasantía" or "Junior", and provide a one-click "Limpiar filtro de experiencia" button that resets the filter to "Todos los niveles".
 
