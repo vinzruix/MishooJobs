@@ -153,15 +153,14 @@ export default function App() {
       query,
       location,
       modality: filters.modality,
-      seniority: filters.seniority,
+      seniority: "all",
     });
   };
 
   const handleFilterChange = (newFilters: FilterState) => {
     const backendFilterChanged =
       newFilters.location !== filters.location ||
-      newFilters.modality !== filters.modality ||
-      newFilters.seniority !== filters.seniority;
+      newFilters.modality !== filters.modality;
 
     setFilters(newFilters);
 
@@ -170,7 +169,7 @@ export default function App() {
         query: currentQuery,
         location: newFilters.location,
         modality: newFilters.modality,
-        seniority: newFilters.seniority,
+        seniority: "all",
       });
     }
   };
@@ -178,7 +177,6 @@ export default function App() {
   const handleFilterReset = () => {
     const backendFilterChanged =
       filters.modality !== "all" ||
-      filters.seniority !== "all" ||
       (filters.location !== "México" && filters.location !== "");
 
     const defaultFilters: FilterState = {
@@ -194,7 +192,7 @@ export default function App() {
         query: currentQuery,
         location: defaultFilters.location,
         modality: defaultFilters.modality,
-        seniority: defaultFilters.seniority,
+        seniority: "all",
       });
     }
   };

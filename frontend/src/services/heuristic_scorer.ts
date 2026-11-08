@@ -1,3 +1,5 @@
+import type { SeniorityLevel } from "../types/job";
+
 export function normalizeSkill(skill: string): string {
   return skill
     .normalize("NFD")

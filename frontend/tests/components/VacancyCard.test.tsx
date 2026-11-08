@@ -47,7 +47,7 @@ describe("Frontend Component Tests", () => {
     expect(screen.getByText("Desarrollador Python Junior")).toBeInTheDocument();
     expect(screen.getByText("Tech Solutions MX")).toBeInTheDocument();
     expect(screen.getByText(/15,000/)).toBeInTheDocument();
-    expect(screen.getByText("85% Compatibilidad")).toBeInTheDocument();
+    expect(screen.getByText("85% Match")).toBeInTheDocument();
     expect(screen.getByText("[ JR ]")).toBeInTheDocument();
 
     const detailsButton = screen.getByText("Detalles");
@@ -174,7 +174,7 @@ describe("Frontend Component Tests", () => {
       />
     );
 
-    expect(screen.getByText("[ REQUISITOS DISCREPANTES ]")).toBeInTheDocument();
+    expect(screen.getByText("[ REQ. DISCREPANTES ]")).toBeInTheDocument();
     expect(screen.getByText("[ MID ]")).toBeInTheDocument();
   });
 
@@ -194,7 +194,7 @@ describe("Frontend Component Tests", () => {
       />
     );
 
-    expect(screen.getByText("[ ✓ AUDITADO 0 EXP ]")).toBeInTheDocument();
+    expect(screen.getByText("[ ✓ 0 EXP ]")).toBeInTheDocument();
 
     const preliminaryFirstJob: JobVacancy = {
       ...sampleVacancy,
@@ -211,6 +211,6 @@ describe("Frontend Component Tests", () => {
       />
     );
 
-    expect(screen.getByText("[ 0 EXP PRELIMINAR ]")).toBeInTheDocument();
+    expect(screen.getByText("[ 0 EXP ]")).toBeInTheDocument();
   });
 });

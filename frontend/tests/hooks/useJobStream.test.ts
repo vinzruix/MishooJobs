@@ -148,6 +148,6 @@ describe("useJobStream hook", () => {
     });
 
     expect(capturedParams).not.toBeNull();
-    expect(capturedParams?.seniority).toBe("primer_empleo");
+    expect(capturedParams!.seniority).toBe("primer_empleo");
   });
 });
