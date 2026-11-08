@@ -8,6 +8,16 @@
 
 **Input**: User description: "Feature: Smart Seniority Classification & 'First REAL Job' Detection. Goal: Replace the redundant, verbose student tags (residencias, dualidad, servicio_social, intern, becario) with a clean, streamlined 5-tier experience filter: Pasantía (Internship), First REAL Job (0 Exp), Junior, Mid, and Senior. Leverage AI (orchestrated via the local agy CLI) to classify and audit each vacancy, ensuring the First REAL Job filter strictly surfaces authentic formal employment offers that require zero previous commercial work experience."
 
+## Clarifications
+
+### Session 2026-11-07
+
+- Q: When should the Step 2 (Deep AI Audit) be executed within the vacancy processing lifecycle? (FR-002) → A: Option A (On-Demand & Modal Inspection): Live streaming uses deterministic fast-pass; the deep AI audit runs when a candidate opens vacancy details or requests an evaluation, permanently caching results in PostgreSQL by fingerprint hash.
+- Q: How should the new 5-tier experience filter replace the existing `category` ("Todos los formatos", "Becario", "Prácticas", etc.) filter across the UI and data layer? (FR-001) → A: Option B (Full-Stack Purge): Delete `category` entirely from PostgreSQL, backend DTOs, scrapers, and frontend types, migrating the entire codebase exclusively to `seniority_level`.
+- Q: How should the system distinguish between a preliminary fast-pass classification and a confirmed AI audit on vacancy cards and in sorting? (FR-011, FR-012) → A: Option A (Explicit audit_status: preliminary / verified): Track audit state with an enum (`preliminary` | `verified`); prioritize verified listings at the top of the "Primer Empleo Real" feed and display an emerald verification indicator on verified cards.
+- Q: What provisional tier should the Step 1 fast-pass assign to vacancies with neutral titles and descriptions that lack any mention of years of experience or seniority keywords? (FR-014) → A: Option A (Default to junior): Provisional tier defaults to `junior` with `preliminary` status, reflecting the early-career developer baseline until refined by deep AI audit upon modal inspection.
+- Q: How should the system verify "formal compensated employment" for "Primer Empleo Real" when a vacancy omits explicit numerical salary figures (e.g., states "Sueldo no mostrado" or "A convenir")? (FR-001, FR-006) → A: Option A (Presumed Paid Unless Flagged): Postings with undisclosed or negotiable salaries qualify as `primer_empleo` if they require 0 years of experience, represent commercial employment, and pass the Anti-Scam Shield with zero unpaid labor / fee flags.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Authentic "First REAL Job" (0 Exp) Discovery & Verification (Priority: P1)
@@ -106,6 +116,8 @@ As a candidate searching within a specialized niche where some postings do not s
   - The requirements section takes precedence: the system classifies the role as "Mid" and activates the "Fake Junior" discrepancy indicator.
 - What happens when a job requires academic credentials (e.g., "Carta de pasante o título universitario") but specifies zero years of commercial work experience?
   - It qualifies as "Primer Empleo Real" because academic degree requirements do not constitute commercial work experience, provided the employment is formal and paid.
+- What happens when a posting states 0 years of experience but omits numerical salary figures (e.g., "Sueldo a convenir" or "No mostrado")?
+  - It qualifies as "Primer Empleo Real" provided it represents commercial employment and the Anti-Scam Shield raises zero unpaid labor or recruitment fee flags.
 - What happens when an external portal provides minimal or stub text during live streaming?
   - The deterministic fast-pass assigns a provisional category from title and visible summary keywords; upon on-demand inspection or background enrichment, the deep audit refines the classification and updates the cached fingerprint record.
 - What happens when a user navigates browser history (Back / Forward) across different seniority filters?
@@ -117,24 +129,25 @@ As a candidate searching within a specialized niche where some postings do not s
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST replace legacy verbose student tags (`residencias`, `dualidad`, `servicio_social`, `intern`, `becario`) with a unified 5-tier experience taxonomy:
+- **FR-001**: The system MUST replace legacy verbose student tags (`residencias`, `dualidad`, `servicio_social`, `intern`, `becario`) and the legacy `category` attribute completely across the full stack (PostgreSQL `JobVacancy` table, Pydantic DTOs, scrapers, and TypeScript types), migrating exclusively to a unified 5-tier experience taxonomy:
   - `pasantia`: Internship, student placement, or academic credit fulfillment (*becarios*, *prácticas profesionales*, *residencias*, *servicio social*, *formación dual*).
   - `primer_empleo`: Authentic first commercial job requiring strictly 0 years of experience, offering formal paid employment (*nómina* or professional contract).
   - `junior`: Early-career positions requiring between 1 and 2 years of verifiable professional experience.
   - `mid`: Intermediate positions requiring between 2 and 4 years of professional experience and technical autonomy.
   - `senior`: Advanced positions requiring 5 or more years of experience, technical leadership, or architectural ownership.
 - **FR-002**: The system MUST execute a two-step hybrid classification workflow:
-  1. *Step 1 (Deterministic Fast-Pass)*: Fast keyword and pattern-based pre-classification applied immediately during live multi-portal data streaming.
-  2. *Step 2 (Deep AI Audit)*: Comprehensive semantic evaluation of job title, full description, and requirement clauses to verify actual years of experience required, formal employment status, and classification reasoning.
-- **FR-003**: The deep audit MUST produce structured classification attributes for each vacancy:
-  - `seniority_level`: The audited tier (`pasantia`, `primer_empleo`, `junior`, `mid`, `senior`).
+  1. *Step 1 (Deterministic Fast-Pass)*: Fast keyword and pattern-based pre-classification applied immediately during live multi-portal data streaming to instantly render vacancy cards and populate filter counts without blocking the SSE stream.
+  2. *Step 2 (Deep AI Audit)*: Comprehensive semantic evaluation of job title, full description, and requirement clauses executed on-demand via the local `agy` CLI when a candidate opens the vacancy details modal or requests compatibility evaluation, verifying actual years of experience required, formal employment status, and classification reasoning, with results permanently cached in PostgreSQL by fingerprint hash.
+- **FR-003**: The classification workflow MUST produce structured classification attributes for each vacancy:
+  - `seniority_level`: The assigned tier (`pasantia`, `primer_empleo`, `junior`, `mid`, `senior`).
   - `years_required_min`: The exact minimum years of verifiable commercial experience required (e.g., `0`, `1`, `2`, `5`).
   - `is_real_first_job`: A boolean flag that evaluates to `true` strictly when `years_required_min == 0` and the position represents formal compensated employment.
+  - `audit_status`: Classification lifecycle status (`preliminary` when generated by Step 1 fast-pass pattern matching; `verified` once audited and confirmed by Step 2 deep AI evaluation).
   - `reasoning`: A concise, 1-sentence human-readable explanation in Mexican Spanish justifying the assigned tier.
   - `has_discrepancy`: A boolean flag indicating whether the nominal title (e.g., "Junior", "Becario") contradicts the audited experience requirement.
 - **FR-004**: The system MUST cache all deep audit classification results indexed by vacancy fingerprint hash to eliminate redundant evaluation processing for previously analyzed postings.
 - **FR-005**: The system MUST implement a "Fake Junior & Deceptive Posting Shield" that automatically reclassifies any posting whose title claims entry-level status ("Becario", "Junior", "Trainee") but whose body text demands 2 or more years of commercial experience to "Mid" (or "Senior" if ≥ 5 years), appending a visible discrepancy indicator.
-- **FR-006**: The system MUST ensure that listings identified as unpaid labor, volunteer work disguised as employment, or scams requiring candidate payments (uniforms, exams, placement fees) are flagged by the Anti-Scam Shield and disqualified from the "Primer Empleo Real" tier.
+- **FR-006**: The system MUST ensure that listings identified as unpaid labor, volunteer work disguised as employment, or scams requiring candidate payments (uniforms, exams, placement fees) are flagged by the Anti-Scam Shield and disqualified from the "Primer Empleo Real" tier. Conversely, vacancies with undisclosed or negotiable salaries ("A convenir", "Sueldo no mostrado") that mandate 0 years of commercial experience MUST qualify for "Primer Empleo Real" provided they are free of scam/unpaid flags and represent commercial employment rather than academic service credit.
 - **FR-007**: The system MUST provide streamlined experience filter controls in both the collapsible FilterDrawer and as prominent quick filter pills above the vacancy list.
 - **FR-008**: The filter controls MUST include the following selectable options with real-time matching vacancy counters:
   - "Todos los niveles" (All levels — default).
@@ -145,15 +158,15 @@ As a candidate searching within a specialized niche where some postings do not s
   - "Senior (5+ años)".
 - **FR-009**: Selecting any experience filter option MUST immediately update the displayed vacancy list, preserve active search query keywords, location selections, and date filters, and reset the active pagination to page 1.
 - **FR-010**: The active experience filter MUST be persisted to the browser URL query string via `?seniority=<value>` (e.g., `?seniority=primer_empleo`), supporting browser back/forward navigation and direct URL sharing.
-- **FR-011**: When the candidate filters by "Primer Empleo Real", the system MUST sort results by default to prioritize listings with the highest confidence of authentic zero-experience requirements, while allowing the candidate to manually override the sorting order.
+- **FR-011**: When the candidate filters by "Primer Empleo Real", the system MUST sort results by default to prioritize verified zero-experience listings (`audit_status == 'verified'`) first, followed by preliminary listings (`audit_status == 'preliminary'`), ordered by most recent publication date within each group, while allowing the candidate to manually override the sorting order.
 - **FR-012**: The system MUST render distinct, standardized visual badges on each vacancy card corresponding to its audited seniority tier:
-  - `[ PRIMER EMPLEO REAL ]`: High-contrast emerald styling (`emerald-500/20 text-emerald-400 border-emerald-500/30`) with an explanatory tooltip or caption.
+  - `[ PRIMER EMPLEO REAL ]`: High-contrast emerald styling (`emerald-500/20 text-emerald-400 border-emerald-500/30`) with an emerald verification indicator when `audit_status == 'verified'` and standard preliminary badge styling when `audit_status == 'preliminary'`.
   - `[ PASANTÍA ]`: Cyan/blue badge styling.
   - `[ JR ]`: Violet/indigo badge styling.
   - `[ MID ]`: Amber badge styling.
   - `[ SR ]`: Orange/red badge styling.
 - **FR-013**: If a vacancy exhibits an experience discrepancy between title and audited requirements, the vacancy card and detail view MUST render an alert badge (e.g., `[ REQUISITOS DISCREPANTES ]`) and display the audit reasoning.
-- **FR-014**: If an employer description omits explicit numerical years of experience, the deep audit MUST infer the fairest tier based on the scope of responsibilities, technical complexity of the stack, and explicit mentions of mentorship, training, or supervision.
+- **FR-014**: If an employer description omits explicit numerical years of experience, the Step 1 fast-pass MUST provisionally default to the `junior` tier with `audit_status == 'preliminary'`; upon candidate inspection, the Step 2 deep audit MUST infer the fairest tier based on the scope of responsibilities, technical complexity of the stack, and explicit mentions of mentorship, training, or supervision, updating the classification and cache accordingly.
 - **FR-015**: When an experience filter produces zero matching vacancies, the system MUST render a dedicated empty state suggesting expanding the filter to "Pasantía" or "Junior", and provide a one-click "Limpiar filtro de experiencia" button that resets the filter to "Todos los niveles".
 
 ---
@@ -161,9 +174,10 @@ As a candidate searching within a specialized niche where some postings do not s
 ### Key Entities
 
 - **Vacancy Experience Classification**:
-  - `seniority_level`: Categorical tier (`pasantia`, `primer_empleo`, `junior`, `mid`, `senior`).
+  - `seniority_level`: Categorical tier (`pasantia`, `primer_empleo`, `junior`, `mid`, `senior`), completely replacing the legacy `category` field across PostgreSQL, DTOs, and frontend.
   - `years_required_min`: Non-negative integer representing the minimum years of commercial experience demanded.
   - `is_real_first_job`: Boolean indicator marking verified formal positions accepting 0 prior commercial experience.
+  - `audit_status`: Lifecycle status (`preliminary`, `verified`) indicating whether the classification was produced by fast-pass pattern heuristics or confirmed by deep AI audit.
   - `reasoning`: Localized string explaining the classification rationale.
   - `has_discrepancy`: Boolean flag marking postings where the title misrepresents the actual experience tier.
 - **Experience Filter State**:
