@@ -8,6 +8,13 @@
 
 **Input**: User description: "Feature: Hide Applied Vacancies & Search Feed Clean-Up. Goal: Provide candidates with a fast, keyboard-accessible, client-side toggle to exclude job vacancies they have already applied to. This eliminates visual noise during repeat searches, keeps candidate attention strictly focused on fresh opportunities, and operates 100% locally via browser storage (IndexedDB via Dexie.js + localStorage) with zero candidate data sent to the backend."
 
+## Clarifications
+
+### Session 2026-11-08
+- Q: Should the faceted counter badges on the seniority pills and timeframe filters update dynamically to reflect only visible (unapplied) vacancies when the hide-applied toggle is active? → A: Dynamic Net Counts: Seniority and timeframe badges count only visible (unapplied) vacancies when the toggle is active, matching the exact number of cards rendered in the feed.
+- Q: Should the hide-applied filter state be synchronized with the browser URL query parameters (e.g., ?hide_applied=true), or remain strictly isolated to local browser storage (localStorage)? → A: Strictly Local Storage: The preference is stored exclusively in localStorage and omitted from the URL query string, keeping shared links clean and device-specific.
+- Q: Should the "Ocultar postuladas" filter control also be exposed inside the mobile FilterDrawer panel, or exist exclusively in the search results header toolbar? → A: Both Toolbar and FilterDrawer: Render the toggle pill in the search header and also include a toggle switch inside FilterDrawer, keeping both synchronized.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Instant Hiding of Applied Vacancies via Toolbar Toggle (Priority: P1)
@@ -24,6 +31,8 @@ As a candidate conducting repeated job searches across Mexican tech portals, I w
 2. **Given** vacancies saved to the candidate's pipeline for future review (`saved`) or untracked vacancies (`new`), **When** the filter is active, **Then** these listings remain visible in the feed.
 3. **Given** an active "Ocultar postuladas" filter, **When** the candidate deactivates the toggle (switching to "Mostrar todas"), **Then** all previously hidden vacancies reappear in their original sorted positions without requiring a network refetch.
 4. **Given** active search parameters (keywords, location, modality, experience tier, date timeframe, and sort order), **When** the candidate toggles the filter on or off, **Then** all active search parameters and sort orders are preserved without reset or page refresh.
+5. **Given** an active "Ocultar postuladas" filter, **When** reviewing faceted filter badges (seniority pills and timeframe options), **Then** all counter badges reflect only visible (unapplied) vacancies matching each facet.
+6. **Given** a candidate on a mobile viewport, **When** opening the FilterDrawer, **Then** a dedicated "Ocultar postuladas" toggle switch is displayed, bidirectionally synchronized with the search header toggle.
 
 ---
 
@@ -72,6 +81,7 @@ As a returning candidate, I want my preferred toggle state ("Ocultar postuladas"
 1. **Given** a candidate sets the toggle to active ("Ocultar postuladas"), **When** the page is reloaded or revisited in a future session, **Then** the toggle remains active by default.
 2. **Given** a candidate sets the toggle to inactive ("Mostrar todas"), **When** the page is reloaded, **Then** the toggle remains inactive.
 3. **Given** a first-time visitor with no prior stored preference, **When** the application loads, **Then** the toggle defaults to inactive ("Mostrar todas").
+4. **Given** a candidate activates or deactivates the toggle, **When** inspecting the browser URL address bar, **Then** the URL query string remains untouched with zero application or filter parameters leaked.
 
 ---
 
@@ -124,17 +134,18 @@ As a candidate who has diligently applied to every matching opportunity in a spe
 - **FR-004**: Vacancies marked with status `ignored` MUST remain excluded globally from the feed regardless of the toggle state.
 - **FR-005**: All filtering operations MUST execute entirely client-side using local browser storage with zero candidate identifiers or application history transmitted to the backend server.
 - **FR-006**: When a candidate marks a vacancy as applied while `hide_applied` is active, the system MUST immediately remove the vacancy from the visible feed in real time without requiring a manual refresh.
-- **FR-007**: System MUST provide a toolbar toggle pill positioned in the search results header, displaying the active/inactive state and the live count of hidden vacancies `(N)`.
+- **FR-007**: System MUST provide a toolbar toggle pill positioned in the search results header and a synchronized toggle switch inside FilterDrawer, each displaying the active/inactive state and the live count of hidden vacancies `(N)`.
 - **FR-008**: The toolbar toggle pill MUST visually distinguish between its active state (high-contrast emerald styling) and inactive state (subtle zinc styling).
 - **FR-009**: The toolbar toggle pill MUST display a tooltip indicating its purpose and keyboard shortcut: `"Ocultar vacantes con postulación enviada (Atajo: H)"`.
 - **FR-010**: System MUST update the search results summary text to reflect both visible and hidden counts (e.g., `"Mostrando 14 vacantes verificadas en vivo (4 postuladas ocultas)"`).
 - **FR-011**: System MUST provide a dedicated keyboard shortcut `h` / `H` to toggle the filter on and off when focus is not inside an input, textarea, select, or modal window.
-- **FR-012**: System MUST persist the candidate's chosen toggle state in local browser storage under the key `mishoojobs_hide_applied` across page reloads and browser sessions.
+- **FR-012**: System MUST persist the candidate's chosen toggle state in local browser storage under the key `mishoojobs_hide_applied` across page reloads and browser sessions, and MUST NOT synchronize or expose this state in the URL query string.
 - **FR-013**: Toggling the filter MUST preserve all existing search parameters, including keyword query, location, modality, experience tier, publication timeframe, and active sort order.
 - **FR-014**: System MUST match applications by canonical vacancy fingerprint so that applying to a vacancy on one portal automatically hides duplicate postings of that vacancy from other portals.
 - **FR-015**: Status updates performed in the application pipeline view or vacancy detail modal MUST immediately synchronize with the search feed upon returning to the search view.
 - **FR-016**: When all matching vacancies for a search query are hidden by the filter, system MUST render a dedicated positive empty state indicating that all matching positions have been applied to, with a one-click action to reveal them.
 - **FR-017**: Postings from anonymous employers ("Empresa Confidencial") MUST utilize distinct canonical fingerprints to prevent unintended cross-post hiding of unrelated jobs.
+- **FR-018**: When the hide-applied toggle is active, faceted counter badges on horizontal seniority pills and FilterDrawer timeframe filters MUST dynamically display contextual net visible counts (excluding hidden applied vacancies) so that badge numbers match the exact count of cards rendered upon selection.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -153,6 +164,7 @@ As a candidate who has diligently applied to every matching opportunity in a spe
 - **SC-005**: 100% of duplicate multi-portal postings sharing a canonical fingerprint are excluded simultaneously when one instance is marked as applied.
 - **SC-006**: Candidates who have applied to all matching jobs in a query reach a recovery action ("Mostrar vacantes postuladas") in a single click, with zero dead-end screens.
 - **SC-007**: Keyboard shortcut `h` responds reliably in under 50ms while maintaining 0% false triggers during text entry in input fields or notes.
+- **SC-008**: Faceted filter badges for seniority and timeframe categories match 100% of the rendered card counts for those categories when the hide-applied filter is active.
 
 ## Assumptions
 
@@ -161,3 +173,4 @@ As a candidate who has diligently applied to every matching opportunity in a spe
 - Status `saved` is intentionally preserved in the feed because saving a job represents an intent to review and apply later, not an existing application submission.
 - Vacancies marked as `ignored` remain hidden globally across all views as established by the platform's existing discard behavior.
 - The default toggle state for new candidates who have never set a preference is "Mostrar todas" (`false`), ensuring no vacancies are hidden unexpectedly.
+- The hide-applied toggle preference is intentionally excluded from URL query parameters to protect candidate privacy and ensure shared job search URLs do not impose local application filters on other recipients.
