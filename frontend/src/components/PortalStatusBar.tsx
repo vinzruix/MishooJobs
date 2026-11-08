@@ -26,6 +26,7 @@ export function PortalStatusBar({ statuses, isSearching }: PortalStatusBarProps)
           return (
             <div
               key={key}
+              title={`${label}: ${count} vacantes verificadas en vivo (límite de hasta 15 por portal para respuesta rápida)`}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-800/60 bg-emerald-950/40 text-emerald-300 font-medium text-[11px]"
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />

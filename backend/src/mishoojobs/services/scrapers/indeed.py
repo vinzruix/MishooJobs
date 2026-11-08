@@ -92,7 +92,7 @@ class IndeedScraper(AbstractBaseScraper):
                             modality = self.infer_modality(title, f"{loc_text} {desc_text}")
                             sen_info = self.classify_seniority_fast(title, desc_text)
                             skills = self.extract_skills(f"{title} {desc_text} {' '.join(reqs)}")
-                            fingerprint = self.generate_fingerprint(company_name, title, state)
+                            fingerprint = self.generate_fingerprint(company_name, title, state, disambiguator=direct_url)
 
                             external_link = ExternalLinkDTO(
                                 portal_name=PortalName.INDEED,
@@ -190,7 +190,7 @@ class IndeedScraper(AbstractBaseScraper):
             sen_info = self.classify_seniority_fast(title, desc_text)
             skills = self.extract_skills(f"{title} {desc_text}")
 
-            fingerprint = self.generate_fingerprint(company_name, title, state)
+            fingerprint = self.generate_fingerprint(company_name, title, state, disambiguator=direct_url)
 
             external_link = ExternalLinkDTO(
                 portal_name=PortalName.INDEED,
@@ -235,15 +235,8 @@ class IndeedScraper(AbstractBaseScraper):
         if jk:
             try:
                 from curl_cffi.requests import AsyncSession
-                headers = {
-                    "User-Agent": (
-                        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
-                        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1"
-                    ),
-                    "Accept": "application/json",
-                }
-                async with AsyncSession(impersonate="safari17_0") as s:
-                    r = await s.get(f"{self.base_url}/rpc/jobdescs?jks={jk}", headers=headers, timeout=6)
+                async with AsyncSession(impersonate="chrome") as s:
+                    r = await s.get(f"{self.base_url}/rpc/jobdescs?jks={jk}", timeout=6)
                     if r.status_code == 200:
                         data = r.json()
                         if jk in data and data[jk]:
@@ -255,15 +248,8 @@ class IndeedScraper(AbstractBaseScraper):
 
             try:
                 from curl_cffi.requests import AsyncSession
-                headers = {
-                    "User-Agent": (
-                        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
-                        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1"
-                    ),
-                    "Accept": "text/html",
-                }
-                async with AsyncSession(impersonate="safari17_0") as s:
-                    r = await s.get(f"{self.base_url}/rc/clk?jk={jk}", headers=headers, timeout=8)
+                async with AsyncSession(impersonate="chrome") as s:
+                    r = await s.get(f"{self.base_url}/rc/clk?jk={jk}", timeout=8)
                     if r.status_code == 200:
                         soup = BeautifulSoup(r.text, "html.parser")
                         desc = soup.select_one("#jobDescriptionText, div.jobsearch-jobDescriptionText, div[id*='jobDescription']")
@@ -289,19 +275,11 @@ class IndeedScraper(AbstractBaseScraper):
         url = f"{self.base_url}/jobs"
         params = {"q": query, "l": loc}
 
-        # First attempt with curl_cffi impersonating Safari/iPhone to bypass Cloudflare bot challenge
+        # First attempt with curl_cffi impersonating modern Chrome to bypass Cloudflare bot challenge
         try:
             from curl_cffi.requests import AsyncSession
-            headers = {
-                "User-Agent": (
-                    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
-                    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1"
-                ),
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "es-MX,es;q=0.9,en;q=0.8",
-            }
-            async with AsyncSession(impersonate="safari17_0") as s:
-                r = await s.get(url, params=params, headers=headers, timeout=10)
+            async with AsyncSession(impersonate="chrome") as s:
+                r = await s.get(url, params=params, timeout=10)
                 if r.status_code == 200:
                     vacancies = self.parse_html(r.text)
                     if vacancies:
@@ -317,14 +295,7 @@ class IndeedScraper(AbstractBaseScraper):
                         if jks:
                             try:
                                 rpc_url = f"{self.base_url}/rpc/jobdescs?jks={','.join(jks)}"
-                                rpc_resp = await s.get(
-                                    rpc_url,
-                                    headers={
-                                        "User-Agent": headers["User-Agent"],
-                                        "Accept": "application/json",
-                                    },
-                                    timeout=8,
-                                )
+                                rpc_resp = await s.get(rpc_url, timeout=8)
                                 if rpc_resp.status_code == 200:
                                     desc_map = rpc_resp.json()
                                     for v in vacancies:

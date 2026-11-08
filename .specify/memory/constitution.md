@@ -5,7 +5,7 @@ Sync Impact Report:
   - Principle I: Clarified candidate zero-account rule vs. PostgreSQL backend cache.
   - Principle II: Explicitly designated Computrabajo, Indeed Mexico, and OCC Mundial as primary target portals.
   - Principle IV: Architectural Simplicity → Midudev-Inspired Aesthetic & Technical Whitelist (FastAPI, Pydantic v2, PostgreSQL, React+Vite+Tailwind, Geist Mono/Pixel).
-  - Principle V: Zero Forced Cost for the Job-Seeker → Cost-Optimized AI & Scraping (AGY CLI + Apify MCP).
+  - Principle V: Zero Forced Cost for the Job-Seeker → Cost-Optimized AI & Scraping (AGY CLI).
 - Added sections:
   - Security & Defensive Coding Standards (XSS sanitization, credential isolation, strict typing)
   - Testing & Quality Gates (Deterministic offline fixtures, verification checklist)

@@ -5,7 +5,7 @@ from typing import Dict, List, NamedTuple, Tuple
 from pydantic import BaseModel, Field
 
 from mishoojobs.schemas.job import VacancyDTO
-from mishoojobs.services.scrapers.base import MEXICAN_STATE_MAP
+from mishoojobs.services.scrapers.base import MEXICAN_STATE_MAP, is_generic_company
 
 class DeduplicationSummary(BaseModel):
     total_extracted: int = Field(default=0, ge=0)
@@ -38,12 +38,24 @@ class CrossPortalDeduplicator:
                 return MEXICAN_STATE_MAP[key]
         return "MEXICO"
 
-    def generate_fingerprint(self, company_name: str, title: str, location_state: str) -> str:
+    def generate_fingerprint(
+        self,
+        company_name: str,
+        title: str,
+        location_state: str,
+        disambiguator: str = "",
+    ) -> str:
         """Generates canonical 64-character SHA-256 fingerprint."""
         norm_company = self.normalize_string(company_name)
         norm_title = self.normalize_string(title)
         norm_state = self.normalize_state(location_state)
-        raw_key = f"{norm_company}:{norm_title}:{norm_state}"
+
+        if is_generic_company(norm_company) and disambiguator:
+            clean_disambiguator = self.normalize_string(disambiguator.split("#")[0].split("?")[0])
+            raw_key = f"{norm_company}:{norm_title}:{norm_state}:{clean_disambiguator}"
+        else:
+            raw_key = f"{norm_company}:{norm_title}:{norm_state}"
+
         return hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
 
     def merge_vacancies(self, existing: VacancyDTO, incoming: VacancyDTO) -> VacancyDTO:
@@ -97,7 +109,8 @@ class CrossPortalDeduplicator:
 
         for v in vacancies:
             # Recompute canonical fingerprint to guarantee uniform hashing
-            fp = self.generate_fingerprint(v.company_name, v.title, v.location_state)
+            disambiguator = v.external_links[0].direct_url if v.external_links else ""
+            fp = self.generate_fingerprint(v.company_name, v.title, v.location_state, disambiguator=disambiguator)
             v.fingerprint = fp
 
             if fp in vacancy_map:

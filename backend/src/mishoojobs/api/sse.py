@@ -200,29 +200,34 @@ async def job_search_stream_generator(params: SearchParams) -> AsyncGenerator[st
 
         if status_str == "completed":
             p_status = PortalScraperStatus.COMPLETED
-            msg = f"{portal_name.value.capitalize()}: {len(verified_vacs)} vacantes verificadas"
+            deduped_portal_vacs, _ = deduplicator.deduplicate_batch(verified_vacs) if verified_vacs else ([], None)
+            delivered_count = len(deduped_portal_vacs)
+            msg = f"{portal_name.value.capitalize()}: {delivered_count} vacantes verificadas"
         elif status_str == "timeout":
             p_status = PortalScraperStatus.TIMEOUT
+            deduped_portal_vacs = []
+            delivered_count = 0
             msg = f"{portal_name.value.capitalize()}: Tiempo de espera agotado"
         else:
             p_status = PortalScraperStatus.ERROR
+            deduped_portal_vacs = []
+            delivered_count = 0
             msg = f"{portal_name.value.capitalize()}: No disponible temporalmente"
 
-        # Emit portal status update
+        # Emit portal status update with actual verified vacancies delivered
         yield format_sse(
             "portal_status",
             PortalStatusEvent(
                 portal=portal_name,
                 status=p_status,
-                count=len(verified_vacs),
+                count=delivered_count,
                 message=msg,
                 duration_ms=duration_ms,
             ).model_dump(mode="json"),
         )
 
         # Emit batch if vacancies found
-        if verified_vacs:
-            deduped_portal_vacs, _ = deduplicator.deduplicate_batch(verified_vacs)
+        if deduped_portal_vacs:
             all_extracted_vacancies.extend(deduped_portal_vacs)
             yield format_sse(
                 "vacancy_batch",

@@ -111,7 +111,7 @@ class OCCScraper(AbstractBaseScraper):
             sen_info = self.classify_seniority_fast(title, desc_text)
             skills = self.extract_skills(f"{title} {desc_text}")
 
-            fingerprint = self.generate_fingerprint(company_name, title, state)
+            fingerprint = self.generate_fingerprint(company_name, title, state, disambiguator=direct_url)
 
             external_link = ExternalLinkDTO(
                 portal_name=PortalName.OCC,

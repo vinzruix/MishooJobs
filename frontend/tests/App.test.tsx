@@ -4,6 +4,7 @@ import App from "../src/App";
 import type { JobVacancy } from "../src/types/job";
 
 const mockSearch = vi.fn();
+let mockSummary: { total_extracted: number; unique_vacancies: number; duplicates_merged: number } | null = null;
 
 const sampleVacancies: JobVacancy[] = [
   {
@@ -51,7 +52,7 @@ vi.mock("../src/hooks/useJobStream", () => ({
       occ: { portal: "occ", status: "completed", count: 0 },
     },
     vacancies: sampleVacancies,
-    summary: null,
+    summary: mockSummary,
     search: mockSearch,
   }),
 }));
@@ -80,6 +81,7 @@ vi.mock("../src/hooks/useApplications", () => ({
 describe("App Seniority Filtering Integration Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSummary = null;
   });
 
   it("filters vacancies by experience level in-memory without calling search()", () => {
@@ -128,5 +130,17 @@ describe("App Seniority Filtering Integration Tests", () => {
 
     // Quick filter pills reflect the active timeframe without triggering search
     expect(mockSearch).not.toHaveBeenCalled();
+  });
+
+  it("displays deduplication metric badge with coherent duplicate count and total extracted", () => {
+    mockSummary = {
+      total_extracted: 2,
+      unique_vacancies: 1,
+      duplicates_merged: 1,
+    };
+
+    render(<App />);
+    expect(screen.getByText(/Se combinaron/)).toBeInTheDocument();
+    expect(screen.getByText(/Total extraídas: 2/)).toBeInTheDocument();
   });
 });

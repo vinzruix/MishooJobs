@@ -56,6 +56,30 @@ MEXICAN_STATE_MAP = {
     "remoto": "REMOTO", "remote": "REMOTO", "teletrabajo": "REMOTO", "home office": "REMOTO"
 }
 
+GENERIC_COMPANY_NAMES = {
+    "empresa confidencial",
+    "confidencial",
+    "compania confidencial",
+    "compañia confidencial",
+    "compañía confidencial",
+    "importante empresa",
+    "importante empresa del sector",
+    "importante empresa lider en su ramo",
+    "importante empresa de tecnologia",
+}
+
+def is_generic_company(name: str) -> bool:
+    """Detects whether a company name is an anonymous recruiter placeholder."""
+    if not name:
+        return True
+    nfkd = unicodedata.normalize("NFKD", name)
+    no_accents = "".join(c for c in nfkd if not unicodedata.combining(c))
+    clean = re.sub(r"[^\w\s]", "", no_accents)
+    norm = re.sub(r"\s+", " ", clean.strip().lower())
+    if norm in GENERIC_COMPANY_NAMES:
+        return True
+    return "confidencial" in norm or "importante empresa" in norm
+
 class AbstractBaseScraper(abc.ABC):
     """Abstract base class defining contract and shared utilities for Mexican job portal scrapers."""
 
@@ -137,12 +161,24 @@ class AbstractBaseScraper(abc.ABC):
                 return MEXICAN_STATE_MAP[key]
         return "MEXICO"
 
-    def generate_fingerprint(self, company_name: str, title: str, location_state: str) -> str:
+    def generate_fingerprint(
+        self,
+        company_name: str,
+        title: str,
+        location_state: str,
+        disambiguator: str = "",
+    ) -> str:
         """Generates canonical 64-character SHA-256 fingerprint."""
         norm_company = self.normalize_string(company_name)
         norm_title = self.normalize_string(title)
         norm_state = self.normalize_state(location_state)
-        raw_key = f"{norm_company}:{norm_title}:{norm_state}"
+
+        if is_generic_company(norm_company) and disambiguator:
+            clean_disambiguator = self.normalize_string(disambiguator.split("#")[0].split("?")[0])
+            raw_key = f"{norm_company}:{norm_title}:{norm_state}:{clean_disambiguator}"
+        else:
+            raw_key = f"{norm_company}:{norm_title}:{norm_state}"
+
         return hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
 
     def parse_mexican_salary(

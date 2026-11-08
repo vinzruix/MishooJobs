@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from mishoojobs.services.scrapers.base import AbstractBaseScraper
 from mishoojobs.services.scrapers.computrabajo import ComputrabajoScraper
@@ -107,3 +108,65 @@ def test_occ_parser(occ_html):
     assert v1.published_at is not None
     assert len(v1.description) > 20
     assert "Python" in v1.skills
+
+@pytest.mark.asyncio
+async def test_indeed_search_mocked_curl_cffi():
+    scraper = IndeedScraper()
+    mock_session = AsyncMock()
+    mock_resp_search = MagicMock()
+    mock_resp_search.status_code = 200
+    mock_resp_search.text = """<html><body><script id="mosaic-data">
+    window.mosaic.providerData["mosaic-provider-jobcards"] = {
+        "metaData": {
+            "mosaicProviderJobCardsModel": {
+                "results": [
+                    {
+                        "jobkey": "jk_mock_123",
+                        "title": "Desarrollador Python Jr",
+                        "company": "Tech Corp",
+                        "formattedLocation": "CDMX",
+                        "snippet": "Short initial snippet",
+                        "pubDate": 1700000000000
+                    }
+                ]
+            }
+        }
+    };
+    </script></body></html>"""
+
+    mock_resp_rpc = MagicMock()
+    mock_resp_rpc.status_code = 200
+    mock_resp_rpc.json.return_value = {
+        "jk_mock_123": "<p>Full enriched job description with Python, Django, and Git details.</p>"
+    }
+
+    mock_session.get.side_effect = [mock_resp_search, mock_resp_rpc]
+    mock_session_cls = MagicMock()
+    mock_session_cls.return_value.__aenter__.return_value = mock_session
+
+    with patch("curl_cffi.requests.AsyncSession", mock_session_cls):
+        results = await scraper.search("python")
+        assert len(results) == 1
+        v = results[0]
+        assert v.title == "Desarrollador Python Jr"
+        assert "Full enriched job description" in v.description
+        assert "Django" in v.skills or "Python" in v.skills
+        mock_session_cls.assert_called_with(impersonate="chrome")
+
+@pytest.mark.asyncio
+async def test_indeed_fetch_full_description_mocked():
+    scraper = IndeedScraper()
+    mock_session = AsyncMock()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "jk_desc_456": "<div>Descripción completa de vacante con requerimientos y prestaciones</div>"
+    }
+    mock_session.get.return_value = mock_resp
+    mock_session_cls = MagicMock()
+    mock_session_cls.return_value.__aenter__.return_value = mock_session
+
+    with patch("curl_cffi.requests.AsyncSession", mock_session_cls):
+        desc = await scraper.fetch_full_description("https://mx.indeed.com/viewjob?jk=jk_desc_456")
+        assert desc == "Descripción completa de vacante con requerimientos y prestaciones"
+        mock_session_cls.assert_called_with(impersonate="chrome")
