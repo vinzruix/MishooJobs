@@ -211,4 +211,85 @@ describe("FilterDrawer Component Tests", () => {
       })
     );
   });
+
+  it("contextually computes timeframe counts based on the active seniority filter", () => {
+    const fixedNow = new Date("2026-11-07T12:00:00Z");
+    const testVacancies: JobVacancy[] = [
+      {
+        ...sampleVacancies[0],
+        published_at: new Date("2026-11-07T11:30:00Z").toISOString(), // 30 mins ago
+      },
+      {
+        ...sampleVacancies[1],
+        published_at: new Date("2026-11-05T12:00:00Z").toISOString(), // 2 days ago
+      },
+      {
+        ...sampleVacancies[2],
+        published_at: new Date("2026-09-01T12:00:00Z").toISOString(), // > 1 month ago
+      },
+    ];
+
+    // With seniority: "all", testVacancies has 1 in >1 month (v3)
+    const { rerender } = render(
+      <FilterDrawer
+        filters={{ ...defaultFilters, seniority: "all" }}
+        vacancies={testVacancies}
+        now={fixedNow}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+      />
+    );
+
+    const monthBtnAll = screen.getByText(/Más de 1 mes/).closest("button");
+    expect(monthBtnAll).toHaveTextContent("1");
+
+    // When seniority is "primer_empleo" (v1 only, 30 min old), "Más de 1 mes" must drop to 0
+    rerender(
+      <FilterDrawer
+        filters={{ ...defaultFilters, seniority: "primer_empleo" }}
+        vacancies={testVacancies}
+        now={fixedNow}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+      />
+    );
+
+    const monthBtnFirstJob = screen.getByText(/Más de 1 mes/).closest("button");
+    expect(monthBtnFirstJob).toHaveTextContent("0");
+  });
+
+  it("contextually computes seniority counts based on the active timeframe filter", () => {
+    const fixedNow = new Date("2026-11-07T12:00:00Z");
+    const testVacancies: JobVacancy[] = [
+      {
+        ...sampleVacancies[0],
+        published_at: new Date("2026-11-07T11:30:00Z").toISOString(), // 30 mins ago
+      },
+      {
+        ...sampleVacancies[1],
+        published_at: new Date("2026-11-05T12:00:00Z").toISOString(), // 2 days ago
+      },
+      {
+        ...sampleVacancies[2],
+        published_at: new Date("2026-09-01T12:00:00Z").toISOString(), // > 1 month ago
+      },
+    ];
+
+    // With timeframe: "24h", only v1 (primer_empleo) is included
+    render(
+      <FilterDrawer
+        filters={{ ...defaultFilters, timeframes: ["24h"] }}
+        vacancies={testVacancies}
+        now={fixedNow}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+      />
+    );
+
+    const pasantiaBtn = screen.getByText("Pasantía / Prácticas").closest("button");
+    expect(pasantiaBtn).toHaveTextContent("0");
+
+    const firstJobBtn = screen.getByText("Primer Empleo Real").closest("button");
+    expect(firstJobBtn).toHaveTextContent("1");
+  });
 });

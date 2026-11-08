@@ -1,5 +1,6 @@
+import { useMemo } from "react";
 import { Clock, Filter, RotateCcw, Briefcase } from "lucide-react";
-import { calculateTimeframeCount, TIMEFRAMES, TimeframeConfig } from "../services/date_utils";
+import { calculateTimeframeCount, filterVacanciesByTimeframes, TIMEFRAMES, TimeframeConfig } from "../services/date_utils";
 import type { JobVacancy, SeniorityFilter, TimeframeId } from "../types/job";
 
 export interface FilterState {
@@ -70,10 +71,17 @@ export function FilterDrawer({
     }
   };
 
+  // Contextual vacancies for seniority counts: scoped to active timeframe filter
+  const timeframeFilteredVacancies = useMemo(() => {
+    if (!vacancies) return [];
+    if (filters.timeframes.includes("all") || filters.timeframes.length === 0) return vacancies;
+    return filterVacanciesByTimeframes(vacancies, filters.timeframes, now);
+  }, [vacancies, filters.timeframes, now]);
+
   const getSeniorityCount = (tierId: SeniorityFilter): number => {
     if (!vacancies) return 0;
-    if (tierId === "all") return vacancies.length;
-    return vacancies.filter((v) => v.seniority_level === tierId).length;
+    if (tierId === "all") return timeframeFilteredVacancies.length;
+    return timeframeFilteredVacancies.filter((v) => v.seniority_level === tierId).length;
   };
 
   const handleTimeframeToggle = (tfId: TimeframeId) => {
@@ -90,9 +98,16 @@ export function FilterDrawer({
     onChange({ ...filters, timeframes: [tfId] });
   };
 
+  // Contextual vacancies for timeframe counts: scoped to active seniority filter
+  const seniorityFilteredVacancies = useMemo(() => {
+    if (!vacancies) return [];
+    if (filters.seniority === "all") return vacancies;
+    return vacancies.filter((v) => v.seniority_level === filters.seniority);
+  }, [vacancies, filters.seniority]);
+
   const getCount = (tf: TimeframeConfig) => {
     if (!vacancies) return null;
-    return calculateTimeframeCount(vacancies, tf, now);
+    return calculateTimeframeCount(seniorityFilteredVacancies, tf, now);
   };
 
   return (

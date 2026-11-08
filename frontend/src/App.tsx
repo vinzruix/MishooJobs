@@ -210,23 +210,28 @@ export default function App() {
     return result;
   }, [vacancies, ignoredSet]);
 
-  // Dynamic real-time counters across all 6 seniority options
+  // Dynamic real-time counters across all 6 seniority options (scoped to active timeframe if set)
   const tierCounts = useMemo<SeniorityCounts>(() => {
+    const base =
+      !filters.timeframes.includes("all") && filters.timeframes.length > 0
+        ? filterVacanciesByTimeframes(visibleVacancies, filters.timeframes, currentNow)
+        : visibleVacancies;
+
     const counts: SeniorityCounts = {
-      all: visibleVacancies.length,
+      all: base.length,
       primer_empleo: 0,
       pasantia: 0,
       junior: 0,
       mid: 0,
       senior: 0,
     };
-    for (const v of visibleVacancies) {
+    for (const v of base) {
       if (v.seniority_level in counts) {
         counts[v.seniority_level as keyof SeniorityCounts]++;
       }
     }
     return counts;
-  }, [visibleVacancies]);
+  }, [visibleVacancies, filters.timeframes, currentNow]);
 
   // 2. Client-side experience tier filtering
   const seniorityFilteredVacancies = useMemo(() => {

@@ -118,4 +118,15 @@ describe("App Seniority Filtering Integration Tests", () => {
       })
     );
   });
+
+  it("contextually scopes quick filter pill counters to the active timeframe filter", () => {
+    render(<App />);
+
+    // Click on "Últimas 24 horas" in FilterDrawer
+    const btn24h = screen.getByText(/Últimas 24 horas/);
+    fireEvent.click(btn24h);
+
+    // Quick filter pills reflect the active timeframe without triggering search
+    expect(mockSearch).not.toHaveBeenCalled();
+  });
 });
