@@ -29,7 +29,7 @@ As a candidate conducting repeated job searches across Mexican tech portals, I w
 
 1. **Given** a feed of active vacancies containing a mix of new, saved, and already applied listings, **When** the candidate activates the "Ocultar postuladas" toggle, **Then** all vacancies with post-application statuses (`applied`, `interviewing`, `rejected`, `offer`) are instantly excluded from the visible list.
 2. **Given** vacancies saved to the candidate's pipeline for future review (`saved`) or untracked vacancies (`new`), **When** the filter is active, **Then** these listings remain visible in the feed.
-3. **Given** an active "Ocultar postuladas" filter, **When** the candidate deactivates the toggle (switching to "Mostrar todas"), **Then** all previously hidden vacancies reappear in their original sorted positions without requiring a network refetch.
+3. **Given** an active "Ocultar postuladas" filter, **When** the candidate deactivates the toggle (switching to inactive "Ocultar postuladas"), **Then** all previously hidden vacancies reappear in their original sorted positions without requiring a network refetch.
 4. **Given** active search parameters (keywords, location, modality, experience tier, date timeframe, and sort order), **When** the candidate toggles the filter on or off, **Then** all active search parameters and sort orders are preserved without reset or page refresh.
 5. **Given** an active "Ocultar postuladas" filter, **When** reviewing faceted filter badges (seniority pills and timeframe options), **Then** all counter badges reflect only visible (unapplied) vacancies matching each facet.
 6. **Given** a candidate on a mobile viewport, **When** opening the FilterDrawer, **Then** a dedicated "Ocultar postuladas" toggle switch is displayed, bidirectionally synchronized with the search header toggle.
@@ -70,7 +70,7 @@ As a power user navigating search results primarily with the keyboard, I want a 
 
 ### User Story 4 - Persistent Filter Preference Across Sessions (Priority: P2)
 
-As a returning candidate, I want my preferred toggle state ("Ocultar postuladas" or "Mostrar todas") to persist across page reloads and browser sessions, so that I do not have to re-enable my preferred workflow every time I open the application.
+As a returning candidate, I want my preferred toggle state (active "Ocultando postuladas" or inactive "Ocultar postuladas") to persist across page reloads and browser sessions, so that I do not have to re-enable my preferred workflow every time I open the application.
 
 **Why this priority**: Eliminates repetitive friction for regular users and preserves personalization without requiring server-side accounts.
 
@@ -79,8 +79,8 @@ As a returning candidate, I want my preferred toggle state ("Ocultar postuladas"
 **Acceptance Scenarios**:
 
 1. **Given** a candidate sets the toggle to active ("Ocultar postuladas"), **When** the page is reloaded or revisited in a future session, **Then** the toggle remains active by default.
-2. **Given** a candidate sets the toggle to inactive ("Mostrar todas"), **When** the page is reloaded, **Then** the toggle remains inactive.
-3. **Given** a first-time visitor with no prior stored preference, **When** the application loads, **Then** the toggle defaults to inactive ("Mostrar todas").
+2. **Given** a candidate sets the toggle to inactive ("Ocultar postuladas"), **When** the page is reloaded, **Then** the toggle remains inactive.
+3. **Given** a first-time visitor with no prior stored preference, **When** the application loads, **Then** the toggle defaults to inactive ("Ocultar postuladas").
 4. **Given** a candidate activates or deactivates the toggle, **When** inspecting the browser URL address bar, **Then** the URL query string remains untouched with zero application or filter parameters leaked.
 
 ---
@@ -172,5 +172,5 @@ As a candidate who has diligently applied to every matching opportunity in a spe
 - The existing canonical vacancy fingerprinting mechanism correctly distinguishes identical postings across portals while disambiguating generic "Empresa Confidencial" listings.
 - Status `saved` is intentionally preserved in the feed because saving a job represents an intent to review and apply later, not an existing application submission.
 - Vacancies marked as `ignored` remain hidden globally across all views as established by the platform's existing discard behavior.
-- The default toggle state for new candidates who have never set a preference is "Mostrar todas" (`false`), ensuring no vacancies are hidden unexpectedly.
+- The default toggle state for new candidates who have never set a preference is inactive (`false`, displaying "Ocultar postuladas"), ensuring no vacancies are hidden unexpectedly.
 - The hide-applied toggle preference is intentionally excluded from URL query parameters to protect candidate privacy and ensure shared job search URLs do not impose local application filters on other recipients.

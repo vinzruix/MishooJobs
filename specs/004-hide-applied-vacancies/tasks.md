@@ -31,7 +31,7 @@ description: "Task list for Hide Applied Vacancies & Search Feed Clean-Up"
 
 - [ ] T002 Extend ApplicationStatus union in frontend/src/types/application.ts with enum values `"new" | "saved" | "applied" | "interviewing" | "rejected" | "offer" | "ignored"`, export constant `APPLIED_STATUSES = new Set<ApplicationStatus>(["applied", "interviewing", "rejected", "offer"])`, and define `AppliedFilterPreference` with key `"mishoojobs_hide_applied"` and value `boolean`
 - [ ] T003 [P] Compute and export memoized `appliedFingerprintSet: Set<string>` containing fingerprints with status in `APPLIED_STATUSES` in frontend/src/hooks/useApplications.ts
-- [ ] T004 Implement foundational filtering pipeline in frontend/src/App.tsx: derive `unignoredVacancies` (excluding `ignoredSet`), calculate `baseActiveVacancies` (excluding `appliedFingerprintSet` when `hideApplied` is true), calculate `hiddenAppliedCount`, and compute dynamic net `tierCounts` against `baseActiveVacancies`
+- [ ] T004 Implement foundational filtering pipeline in frontend/src/App.tsx: derive `unignoredVacancies` (excluding `ignoredSet`), calculate `baseActiveVacancies` (excluding `appliedFingerprintSet` when `hideApplied` is true), calculate `hiddenAppliedCount`, compute dynamic net `tierCounts` against `baseActiveVacancies`, and ensure FilterDrawer receives `baseActiveVacancies` as its `vacancies` prop to guarantee net visible timeframe counts (FR-018)
 
 **Checkpoint**: Core types, applied set, and foundational filtering pipeline ready; user story implementation can now begin.
 
@@ -53,7 +53,7 @@ description: "Task list for Hide Applied Vacancies & Search Feed Clean-Up"
 - [ ] T007 [US1] Implement toolbar toggle pill in frontend/src/components/VacancyList.tsx with inactive state (`Ocultar postuladas`, `bg-zinc-900 border-zinc-800 text-zinc-400`), active state (`Ocultando postuladas`, `bg-emerald-950 border-emerald-600 text-emerald-300`), tooltip `"Ocultar vacantes con postulación enviada (Atajo: H)"`, and live hidden count badge `(N)`
 - [ ] T008 [US1] Update results summary text in frontend/src/components/VacancyList.tsx to display `Mostrando X vacantes verificadas en vivo (Y postuladas ocultas)` when `hideApplied` is active and `hiddenCount > 0`
 - [ ] T009 [US1] Implement dedicated "Ocultar postuladas" switch in frontend/src/components/FilterDrawer.tsx with role `switch`, `aria-checked`, emerald toggle track, and live `(N)` hidden count badge
-- [ ] T010 [US1] Wire `hideApplied`, `hiddenCount`, and `onToggleHideApplied` props between frontend/src/App.tsx, frontend/src/components/VacancyList.tsx, and frontend/src/components/FilterDrawer.tsx
+- [ ] T010 [US1] Wire `hideApplied`, `hiddenCount`, and `onToggleHideApplied` props between frontend/src/App.tsx, frontend/src/components/VacancyList.tsx, and frontend/src/components/FilterDrawer.tsx, passing `baseActiveVacancies` to FilterDrawer for net facet calculation
 
 **Checkpoint**: User Story 1 is functional and independently testable as an MVP increment.
 
@@ -71,7 +71,7 @@ description: "Task list for Hide Applied Vacancies & Search Feed Clean-Up"
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Update frontend/src/hooks/useKeyboardNavigation.ts to clamp `selectedIndex` when visible `vacancies` shrink (`Math.min(prev, vacancies.length - 1)`), preventing focus orphan states on card disappearance
+- [ ] T012 [US2] Update frontend/src/hooks/useKeyboardNavigation.ts to clamp `selectedIndex` when visible `vacancies` shrink (`vacancies.length === 0 ? -1 : Math.max(0, Math.min(prev, vacancies.length - 1))`), preventing focus orphan or negative out-of-bounds states on card disappearance
 - [ ] T013 [US2] Optimize application state updates in frontend/src/hooks/useApplications.ts to ensure instantaneous (<16ms) local state updates upon calling `setApplicationStatus(vacancy, "applied")`
 
 **Checkpoint**: User Story 2 is functional; marking vacancies as applied removes them in real time without feed desynchronization.
@@ -124,7 +124,7 @@ description: "Task list for Hide Applied Vacancies & Search Feed Clean-Up"
 
 ### Tests for User Story 5
 
-- [ ] T020 [P] [US5] Create unit tests verifying multi-portal canonical fingerprint matching and Search/Pipeline tab synchronization in frontend/tests/hooks/useApplications.test.ts
+- [ ] T020 [P] [US5] Create unit tests verifying multi-portal canonical fingerprint matching, Search/Pipeline tab synchronization, and distinct fingerprint separation for anonymous employers ("Empresa Confidencial", FR-017) in frontend/tests/hooks/useApplications.test.ts
 
 ### Implementation for User Story 5
 
