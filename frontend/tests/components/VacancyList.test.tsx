@@ -141,4 +141,128 @@ describe("VacancyList Component Tests", () => {
     fireEvent.click(firstJobPill);
     expect(handleSelectSeniority).toHaveBeenCalledWith("primer_empleo");
   });
+
+  it("renders inactive toolbar toggle pill ('Ocultar postuladas') with hiddenCount badge and tooltip", () => {
+    const handleToggle = vi.fn();
+    render(
+      <VacancyList
+        vacancies={[baseVacancy]}
+        isSearching={false}
+        hideApplied={false}
+        hiddenCount={3}
+        onToggleHideApplied={handleToggle}
+        onInspect={vi.fn()}
+      />
+    );
+
+    const toggleBtn = screen.getByRole("button", { name: /Ocultar postuladas/i });
+    expect(toggleBtn).toBeInTheDocument();
+    expect(toggleBtn).toHaveAttribute("title", "Ocultar vacantes con postulación enviada (Atajo: H)");
+    expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
+    expect(toggleBtn).toHaveTextContent("3");
+
+    fireEvent.click(toggleBtn);
+    expect(handleToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders active toolbar toggle pill ('Ocultando postuladas') with emerald styling and active aria-pressed", () => {
+    const handleToggle = vi.fn();
+    render(
+      <VacancyList
+        vacancies={[baseVacancy]}
+        isSearching={false}
+        hideApplied={true}
+        hiddenCount={3}
+        onToggleHideApplied={handleToggle}
+        onInspect={vi.fn()}
+      />
+    );
+
+    const toggleBtn = screen.getByRole("button", { name: /Ocultando postuladas/i });
+    expect(toggleBtn).toBeInTheDocument();
+    expect(toggleBtn).toHaveAttribute("title", "Mostrar vacantes con postulación enviada (Atajo: H)");
+    expect(toggleBtn).toHaveAttribute("aria-pressed", "true");
+    expect(toggleBtn).toHaveTextContent("3");
+
+    fireEvent.click(toggleBtn);
+    expect(handleToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it("displays summary text with hidden count when hideApplied is true and hiddenCount > 0", () => {
+    render(
+      <VacancyList
+        vacancies={[baseVacancy]}
+        isSearching={false}
+        hideApplied={true}
+        hiddenCount={2}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText(/Mostrando/i)).toBeInTheDocument();
+    expect(screen.getByText("(2 postuladas ocultas)")).toBeInTheDocument();
+  });
+
+  it("displays standard summary text without hidden count when hideApplied is false", () => {
+    render(
+      <VacancyList
+        vacancies={[baseVacancy]}
+        isSearching={false}
+        hideApplied={false}
+        hiddenCount={2}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText(/Mostrando/i)).toBeInTheDocument();
+    expect(screen.queryByText("(2 postuladas ocultas)")).not.toBeInTheDocument();
+  });
+
+  it("renders 100% applied empty state when hideApplied is true and all matching vacancies are applied", () => {
+    const handleToggle = vi.fn();
+    render(
+      <VacancyList
+        vacancies={[]}
+        isSearching={false}
+        hideApplied={true}
+        hiddenCount={4}
+        totalUnignoredCount={4}
+        onToggleHideApplied={handleToggle}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByText("¡Te has postulado a todas las vacantes encontradas para este criterio!")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Has completado la postulación de las 4 vacantes coincidentes/i)
+    ).toBeInTheDocument();
+
+    const showAppliedBtn = screen.getByRole("button", {
+      name: /Mostrar vacantes postuladas \(4\)/i,
+    });
+    expect(showAppliedBtn).toBeInTheDocument();
+
+    fireEvent.click(showAppliedBtn);
+    expect(handleToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders singular grammar for 1 hidden vacancy in 100% applied empty state", () => {
+    render(
+      <VacancyList
+        vacancies={[]}
+        isSearching={false}
+        hideApplied={true}
+        hiddenCount={1}
+        totalUnignoredCount={1}
+        onToggleHideApplied={vi.fn()}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByText(/Has completado la postulación de las 1 vacante coincidente/i)
+    ).toBeInTheDocument();
+  });
 });

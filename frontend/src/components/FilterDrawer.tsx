@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Clock, Filter, RotateCcw, Briefcase } from "lucide-react";
+import { Clock, Filter, RotateCcw, Briefcase, EyeOff } from "lucide-react";
 import { calculateTimeframeCount, filterVacanciesByTimeframes, TIMEFRAMES, TimeframeConfig } from "../services/date_utils";
 import type { JobVacancy, SeniorityFilter, TimeframeId } from "../types/job";
 
@@ -14,6 +14,9 @@ interface FilterDrawerProps {
   filters: FilterState;
   vacancies?: JobVacancy[];
   now?: Date;
+  hideApplied?: boolean;
+  hiddenCount?: number;
+  onToggleHideApplied?: () => void;
   onChange: (filters: FilterState) => void;
   onReset: () => void;
 }
@@ -22,6 +25,9 @@ export function FilterDrawer({
   filters,
   vacancies,
   now = new Date(),
+  hideApplied = false,
+  hiddenCount = 0,
+  onToggleHideApplied,
   onChange,
   onReset,
 }: FilterDrawerProps) {
@@ -128,7 +134,7 @@ export function FilterDrawer({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* Modality Filter */}
         <div>
           <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1.5">
@@ -252,6 +258,43 @@ export function FilterDrawer({
             ))}
           </select>
         </div>
+
+        {/* Hide Applied Switch */}
+        {onToggleHideApplied && (
+          <div>
+            <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1.5 flex items-center gap-1">
+              <EyeOff className="w-3 h-3 text-emerald-400" />
+              <span>Postuladas</span>
+            </label>
+            <div className="flex items-center justify-between p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <div className="flex items-center gap-2">
+                <EyeOff className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-xs font-medium text-zinc-300">Ocultar postuladas</span>
+                {hiddenCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-400">
+                    {hiddenCount}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-label="Ocultar postuladas"
+                aria-checked={hideApplied}
+                onClick={onToggleHideApplied}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  hideApplied ? "bg-emerald-600" : "bg-zinc-800"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    hideApplied ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

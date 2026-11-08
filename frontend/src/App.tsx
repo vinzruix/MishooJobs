@@ -97,9 +97,33 @@ export default function App() {
     applications,
     statusMap,
     ignoredSet,
+    appliedFingerprintSet = new Set<string>(),
     setApplicationStatus,
     removeApplication,
   } = useApplications();
+
+  const [hideApplied, setHideApplied] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const stored = window.localStorage.getItem("mishoojobs_hide_applied");
+      return stored !== null ? JSON.parse(stored) === true : false;
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem("mishoojobs_hide_applied", JSON.stringify(hideApplied));
+    } catch {
+      // Graceful ignore
+    }
+  }, [hideApplied]);
+
+  const handleToggleHideApplied = () => {
+    setHideApplied((prev) => !prev);
+  };
 
   // URL query sync: update ?published_within=... and ?seniority=... on filter changes
   useEffect(() => {
@@ -197,8 +221,8 @@ export default function App() {
     }
   };
 
-  // 1. Visible vacancies excluding discarded ones (US5, SC-007) with strict fingerprint uniqueness
-  const visibleVacancies = useMemo(() => {
+  // 1. Unignored vacancies with strict fingerprint uniqueness
+  const unignoredVacancies = useMemo(() => {
     const seen = new Set<string>();
     const result: JobVacancy[] = [];
     for (const v of vacancies) {
@@ -210,12 +234,31 @@ export default function App() {
     return result;
   }, [vacancies, ignoredSet]);
 
+  // 2. Base active vacancies (excluding applied vacancies when hideApplied is active)
+  const baseActiveVacancies = useMemo(() => {
+    if (!hideApplied) return unignoredVacancies;
+    return unignoredVacancies.filter((v) => !appliedFingerprintSet.has(v.fingerprint));
+  }, [unignoredVacancies, hideApplied, appliedFingerprintSet]);
+
+  // 3. Contextual matching unignored vacancies to compute hidden count and empty state
+  const matchingUnignoredVacancies = useMemo(() => {
+    const bySeniority =
+      filters.seniority === "all"
+        ? unignoredVacancies
+        : unignoredVacancies.filter((v) => v.seniority_level === filters.seniority);
+    return filterVacanciesByTimeframes(bySeniority, filters.timeframes, currentNow);
+  }, [unignoredVacancies, filters.seniority, filters.timeframes, currentNow]);
+
+  const hiddenAppliedCount = useMemo(() => {
+    return matchingUnignoredVacancies.filter((v) => appliedFingerprintSet.has(v.fingerprint)).length;
+  }, [matchingUnignoredVacancies, appliedFingerprintSet]);
+
   // Dynamic real-time counters across all 6 seniority options (scoped to active timeframe if set)
   const tierCounts = useMemo<SeniorityCounts>(() => {
     const base =
       !filters.timeframes.includes("all") && filters.timeframes.length > 0
-        ? filterVacanciesByTimeframes(visibleVacancies, filters.timeframes, currentNow)
-        : visibleVacancies;
+        ? filterVacanciesByTimeframes(baseActiveVacancies, filters.timeframes, currentNow)
+        : baseActiveVacancies;
 
     const counts: SeniorityCounts = {
       all: base.length,
@@ -231,13 +274,13 @@ export default function App() {
       }
     }
     return counts;
-  }, [visibleVacancies, filters.timeframes, currentNow]);
+  }, [baseActiveVacancies, filters.timeframes, currentNow]);
 
   // 2. Client-side experience tier filtering
   const seniorityFilteredVacancies = useMemo(() => {
-    if (filters.seniority === "all") return visibleVacancies;
-    return visibleVacancies.filter((v) => v.seniority_level === filters.seniority);
-  }, [visibleVacancies, filters.seniority]);
+    if (filters.seniority === "all") return baseActiveVacancies;
+    return baseActiveVacancies.filter((v) => v.seniority_level === filters.seniority);
+  }, [baseActiveVacancies, filters.seniority]);
 
   // 3. Client-side date timeframe filtering
   const dateFilteredVacancies = useMemo(() => {
@@ -273,6 +316,7 @@ export default function App() {
     },
     onSave: (v) => setApplicationStatus(v, "saved"),
     onMarkApplied: (v) => setApplicationStatus(v, "applied"),
+    onToggleHideApplied: handleToggleHideApplied,
   });
 
   // Instant Tier 1 heuristic match score calculation across displayed cards (<2s)
@@ -339,8 +383,11 @@ export default function App() {
             {/* Mexican Filters Drawer */}
             <FilterDrawer
               filters={filters}
-              vacancies={visibleVacancies}
+              vacancies={baseActiveVacancies}
               now={currentNow}
+              hideApplied={hideApplied}
+              hiddenCount={hiddenAppliedCount}
+              onToggleHideApplied={handleToggleHideApplied}
               onChange={handleFilterChange}
               onReset={handleFilterReset}
             />
@@ -359,7 +406,7 @@ export default function App() {
             )}
 
             {/* Vacancy Results Feed */}
-            {displayedVacancies.length === 0 && !isSearching && visibleVacancies.length === 0 ? (
+            {displayedVacancies.length === 0 && !isSearching && unignoredVacancies.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-zinc-500 border border-dashed border-zinc-800 rounded-lg">
                 <Terminal className="w-10 h-10 text-zinc-700 mb-3" />
                 <p className="text-sm font-semibold text-zinc-300">Empieza tu búsqueda de empleo en México</p>
@@ -378,6 +425,10 @@ export default function App() {
                 now={currentNow}
                 scoresByFingerprint={scoresByFingerprint}
                 applicationStatuses={statusMap}
+                hideApplied={hideApplied}
+                hiddenCount={hiddenAppliedCount}
+                totalUnignoredCount={matchingUnignoredVacancies.length}
+                onToggleHideApplied={handleToggleHideApplied}
                 onInspect={(v) => setSelectedVacancy(v)}
                 onSave={(v) => setApplicationStatus(v, "saved")}
                 onMarkApplied={(v) => setApplicationStatus(v, "applied")}

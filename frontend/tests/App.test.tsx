@@ -73,6 +73,7 @@ vi.mock("../src/hooks/useApplications", () => ({
     applications: [],
     statusMap: {},
     ignoredSet: new Set(),
+    appliedFingerprintSet: new Set(),
     setApplicationStatus: vi.fn(),
     removeApplication: vi.fn(),
   }),
@@ -82,6 +83,7 @@ describe("App Seniority Filtering Integration Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSummary = null;
+    window.history.replaceState({}, "", "/");
   });
 
   it("filters vacancies by experience level in-memory without calling search()", () => {
@@ -142,5 +144,57 @@ describe("App Seniority Filtering Integration Tests", () => {
     render(<App />);
     expect(screen.getByText(/Se combinaron/)).toBeInTheDocument();
     expect(screen.getByText(/Total extraídas: 2/)).toBeInTheDocument();
+  });
+});
+
+describe("App Hide Applied localStorage and URL Isolation Tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSummary = null;
+    window.history.replaceState({}, "", "/");
+    window.localStorage.clear();
+  });
+
+  it("hydrates hideApplied preference synchronously from localStorage ('true')", () => {
+    window.localStorage.setItem("mishoojobs_hide_applied", "true");
+    render(<App />);
+
+    const toggleBtn = screen.getByTitle("Mostrar vacantes con postulación enviada (Atajo: H)");
+    expect(toggleBtn).toBeInTheDocument();
+    expect(toggleBtn).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("persists hideApplied preference to localStorage on toggle", () => {
+    render(<App />);
+
+    const toggleBtn = screen.getByTitle("Ocultar vacantes con postulación enviada (Atajo: H)");
+    expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(toggleBtn);
+    expect(window.localStorage.getItem("mishoojobs_hide_applied")).toBe("true");
+  });
+
+  it("gracefully falls back to false when localStorage.getItem throws an exception", () => {
+    const spy = vi.spyOn(window.localStorage, "getItem").mockImplementationOnce(() => {
+      throw new Error("SecurityError: Access Denied");
+    });
+
+    render(<App />);
+
+    const toggleBtn = screen.getByTitle("Ocultar vacantes con postulación enviada (Atajo: H)");
+    expect(toggleBtn).toBeInTheDocument();
+    expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
+
+    spy.mockRestore();
+  });
+
+  it("strictly isolates hideApplied preference from URL query parameters", () => {
+    render(<App />);
+
+    const toggleBtn = screen.getByTitle("Ocultar vacantes con postulación enviada (Atajo: H)");
+    fireEvent.click(toggleBtn);
+
+    expect(window.location.search).not.toContain("hide_applied");
+    expect(window.location.search).not.toContain("mishoojobs_hide_applied");
   });
 });

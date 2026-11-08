@@ -4,7 +4,20 @@ export type ApplicationStatus =
   | "applied"
   | "interviewing"
   | "rejected"
+  | "offer"
   | "ignored";
+
+export const APPLIED_STATUSES = new Set<ApplicationStatus>([
+  "applied",
+  "interviewing",
+  "rejected",
+  "offer",
+]);
+
+export interface AppliedFilterPreference {
+  key: "mishoojobs_hide_applied";
+  value: boolean;
+}
 
 export interface ApplicationRecord {
   vacancy_fingerprint: string;
