@@ -1,4 +1,4 @@
-import { Briefcase, Clock, RotateCcw, Sparkles } from "lucide-react";
+import { Briefcase, Clock, RotateCcw, Sparkles, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import type { JobVacancy, SeniorityFilter, SortOrder, TimeframeId } from "../types/job";
 import type { ApplicationStatus } from "../types/application";
 import { VacancyCard } from "./VacancyCard";
@@ -13,6 +13,10 @@ interface VacancyListProps {
   now?: Date;
   scoresByFingerprint?: Record<string, number>;
   applicationStatuses?: Record<string, ApplicationStatus>;
+  hideApplied?: boolean;
+  hiddenCount?: number;
+  totalUnignoredCount?: number;
+  onToggleHideApplied?: () => void;
   onInspect: (vacancy: JobVacancy) => void;
   onSave?: (vacancy: JobVacancy) => void;
   onMarkApplied?: (vacancy: JobVacancy) => void;
@@ -34,6 +38,10 @@ export function VacancyList({
   now,
   scoresByFingerprint = {},
   applicationStatuses = {},
+  hideApplied = false,
+  hiddenCount = 0,
+  totalUnignoredCount,
+  onToggleHideApplied,
   onInspect,
   onSave,
   onMarkApplied,
@@ -53,6 +61,34 @@ export function VacancyList({
           <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin mb-3" />
           <p className="text-sm font-semibold text-zinc-300">Consultando bolsas de empleo mexicanas en vivo...</p>
           <p className="text-xs text-zinc-500 mt-1">Verificando enlaces directos vía HTTP HEAD en tiempo real.</p>
+        </div>
+      );
+    }
+
+    if (hideApplied && hiddenCount > 0 && (totalUnignoredCount === undefined || totalUnignoredCount > 0)) {
+      return (
+        <div className="py-16 text-center flex flex-col items-center justify-center border border-dashed border-emerald-900/60 bg-emerald-950/10 rounded-lg p-6">
+          <div className="w-12 h-12 rounded-full bg-emerald-950/80 border border-emerald-600/60 flex items-center justify-center mb-3">
+            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          </div>
+          <p className="text-sm font-semibold text-zinc-200">
+            ¡Te has postulado a todas las vacantes encontradas para este criterio!
+          </p>
+          <p className="text-xs text-zinc-400 mt-1 max-w-md">
+            Has completado la postulación de las {hiddenCount}{" "}
+            {hiddenCount === 1 ? "vacante coincidente" : "vacantes coincidentes"}. Puedes
+            revisar tu progreso en la pestaña de Postulaciones o verlas nuevamente aquí.
+          </p>
+          {onToggleHideApplied && (
+            <button
+              type="button"
+              onClick={onToggleHideApplied}
+              className="mt-4 px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-emerald-400 text-xs font-semibold border border-zinc-700 flex items-center gap-1.5 transition-colors"
+            >
+              <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Mostrar vacantes postuladas ({hiddenCount})</span>
+            </button>
+          )}
         </div>
       );
     }
@@ -185,9 +221,50 @@ export function VacancyList({
 
       {/* Header toolbar with count & sorting dropdown */}
       <div className="flex flex-wrap items-center justify-between text-xs text-zinc-400 px-1 gap-2">
-        <span>
-          Mostrando <strong className="text-emerald-400 font-semibold">{vacancies.length}</strong> vacantes verificadas en vivo
-        </span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <span>
+            Mostrando <strong className="text-emerald-400 font-semibold">{vacancies.length}</strong> vacantes verificadas en vivo
+            {hideApplied && hiddenCount > 0 && (
+              <span className="text-zinc-500 text-[11px] ml-1.5">
+                ({hiddenCount} {hiddenCount === 1 ? "postulada oculta" : "postuladas ocultas"})
+              </span>
+            )}
+          </span>
+
+          {onToggleHideApplied && (
+            <button
+              type="button"
+              title={
+                hideApplied
+                  ? "Mostrar vacantes con postulación enviada (Atajo: H)"
+                  : "Ocultar vacantes con postulación enviada (Atajo: H)"
+              }
+              aria-pressed={hideApplied}
+              onClick={onToggleHideApplied}
+              className={`px-2.5 py-1 rounded text-xs font-mono font-medium border transition-colors flex items-center gap-1.5 ${
+                hideApplied
+                  ? "bg-emerald-950 border-emerald-600 text-emerald-300 font-semibold shadow-xs shadow-emerald-500/20"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+              }`}
+            >
+              {hideApplied ? (
+                <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <EyeOff className="w-3.5 h-3.5 text-zinc-400" />
+              )}
+              <span>{hideApplied ? "Ocultando postuladas" : "Ocultar postuladas"}</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                  hideApplied
+                    ? "bg-emerald-900/90 text-emerald-200 font-bold"
+                    : "bg-zinc-800 text-zinc-400"
+                }`}
+              >
+                {hiddenCount}
+              </span>
+            </button>
+          )}
+        </div>
 
         {onSortChange && (
           <div className="flex items-center gap-2">

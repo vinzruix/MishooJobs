@@ -1,6 +1,10 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { db } from "../db";
-import type { ApplicationRecord, ApplicationStatus } from "../types/application";
+import {
+  APPLIED_STATUSES,
+  type ApplicationRecord,
+  type ApplicationStatus,
+} from "../types/application";
 import type { JobVacancy } from "../types/job";
 
 export function useApplications() {
@@ -38,6 +42,16 @@ export function useApplications() {
     return set;
   }, [applications]);
 
+  const appliedFingerprintSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const app of applications) {
+      if (APPLIED_STATUSES.has(app.status)) {
+        set.add(app.vacancy_fingerprint);
+      }
+    }
+    return set;
+  }, [applications]);
+
   const setApplicationStatus = useCallback(
     async (vacancy: JobVacancy, status: ApplicationStatus, notes: string = "") => {
       const now = new Date().toISOString();
@@ -55,6 +69,17 @@ export function useApplications() {
         updated_at: now,
       };
 
+      // Optimistic instant state update (<16ms)
+      setApplications((prev) => {
+        const existingIdx = prev.findIndex((a) => a.vacancy_fingerprint === vacancy.fingerprint);
+        if (existingIdx >= 0) {
+          const next = [...prev];
+          next[existingIdx] = record;
+          return next;
+        }
+        return [...prev, record];
+      });
+
       await db.applications.put(record);
       await refreshApplications();
     },
@@ -63,6 +88,9 @@ export function useApplications() {
 
   const removeApplication = useCallback(
     async (fingerprint: string) => {
+      // Optimistic instant state update (<16ms)
+      setApplications((prev) => prev.filter((a) => a.vacancy_fingerprint !== fingerprint));
+
       await db.applications.delete(fingerprint);
       await refreshApplications();
     },
@@ -73,6 +101,7 @@ export function useApplications() {
     applications,
     statusMap,
     ignoredSet,
+    appliedFingerprintSet,
     isLoading,
     setApplicationStatus,
     removeApplication,

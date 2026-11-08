@@ -292,4 +292,67 @@ describe("FilterDrawer Component Tests", () => {
     const firstJobBtn = screen.getByText("Primer Empleo Real").closest("button");
     expect(firstJobBtn).toHaveTextContent("1");
   });
+
+  it("renders 'Ocultar postuladas' switch in FilterDrawer with correct initial state and badge", () => {
+    const handleToggle = vi.fn();
+    render(
+      <FilterDrawer
+        filters={defaultFilters}
+        vacancies={sampleVacancies}
+        hideApplied={false}
+        hiddenCount={2}
+        onToggleHideApplied={handleToggle}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("Ocultar postuladas")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+
+    const switchBtn = screen.getByRole("switch");
+    expect(switchBtn).toHaveAttribute("aria-checked", "false");
+
+    fireEvent.click(switchBtn);
+    expect(handleToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders active switch state when hideApplied is true", () => {
+    render(
+      <FilterDrawer
+        filters={defaultFilters}
+        vacancies={sampleVacancies}
+        hideApplied={true}
+        hiddenCount={2}
+        onToggleHideApplied={vi.fn()}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+      />
+    );
+
+    const switchBtn = screen.getByRole("switch");
+    expect(switchBtn).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("synchronizes dynamic net facet counts when vacancies prop is already filtered", () => {
+    // When vacancies passed to FilterDrawer excludes primer_empleo (v1)
+    const netVacancies = sampleVacancies.filter((v) => v.seniority_level !== "primer_empleo");
+    render(
+      <FilterDrawer
+        filters={defaultFilters}
+        vacancies={netVacancies}
+        hideApplied={true}
+        hiddenCount={1}
+        onToggleHideApplied={vi.fn()}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+      />
+    );
+
+    const firstJobBtn = screen.getByText("Primer Empleo Real").closest("button");
+    expect(firstJobBtn).toHaveTextContent("0");
+
+    const juniorBtn = screen.getByText("Junior").closest("button");
+    expect(juniorBtn).toHaveTextContent("1");
+  });
 });

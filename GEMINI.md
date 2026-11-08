@@ -165,3 +165,7 @@ When implementing tasks or modifying this codebase:
 - [003] Deceptive Fake Junior shield automatically reclassifying 2+ year requirements to Mid/Senior with discrepancy warning tags.
 - [indeed-block] Resolve Indeed Cloudflare 403 block by switching curl_cffi from safari17_0 with manual iPhone headers to clean impersonate="chrome", restoring live vacancy streaming and RPC description enrichment.
 - [vancancies-count-dismatch] Synchronize SSE stream portal status counts with net delivered vacancies, and disambiguate anonymous employer fingerprints ("Empresa Confidencial") to prevent false duplicate collisions.
+- [004] Client-side hide-applied toggle persisted in localStorage ('mishoojobs_hide_applied') with zero backend transmission and strictly omitted from URL query string.
+- [004] Dynamic net faceted counter synchronization across seniority pills and timeframe filters matching rendered visible cards.
+- [004] Real-time in-flight removal (<16ms) of applied vacancies with keyboard focus index clamping to prevent out-of-bounds or orphan focus states.
+- [004] Dedicated 100% applied empty state with one-click filter recovery action and multi-portal canonical fingerprint matching.
