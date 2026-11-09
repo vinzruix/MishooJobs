@@ -10,6 +10,10 @@ export default defineConfig({
         target: "http://localhost:8000",
         changeOrigin: true,
       },
+      "/cv": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
     },
   },
 });

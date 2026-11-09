@@ -169,3 +169,8 @@ When implementing tasks or modifying this codebase:
 - [004] Dynamic net faceted counter synchronization across seniority pills and timeframe filters matching rendered visible cards.
 - [004] Real-time in-flight removal (<16ms) of applied vacancies with keyboard focus index clamping to prevent out-of-bounds or orphan focus states.
 - [004] Dedicated 100% applied empty state with one-click filter recovery action and multi-portal canonical fingerprint matching.
+- [005] Upgrade Dexie schema to version 2 (master_profile, master_profile_photo, resumes) with zero server-side candidate data.
+- [005] Canonical Master Career Knowledge Base YAML with client-side AST line-level syntax validation and Mexican early-career defaults.
+- [005] Ephemeral agy CLI resume parsing and STAR-format single-page CV generation (<500 words) with anti-hallucination fact shield.
+- [005] Universal skills extraction synchronizing Master Profile skills across heuristic match scores, cards, and deep AI evaluation.
+- [005] High-density 2-column formal engineering CV template with instant template switching (<100ms), inline text click-to-edit, dual ATS plain text / markdown clipboard export, and print-calibrated single-page vector PDF.

@@ -176,3 +176,28 @@ export function calculateHeuristicScore(
   const finalScore = Math.round(0.50 * sTech + 0.30 * sRole + 0.20 * sLevel);
   return Math.min(98, Math.max(0, finalScore));
 }
+
+/**
+ * Returns the subset of job skills that match the candidate's normalized skills.
+ */
+export function getMatchingSkills(candidateSkills: string[], jobSkills: string[]): string[] {
+  if (!candidateSkills || !jobSkills) return [];
+  const candNorm = candidateSkills.map(normalizeSkill);
+  const matched: string[] = [];
+
+  for (const jSkill of jobSkills) {
+    const jNorm = normalizeSkill(jSkill);
+    for (let i = 0; i < candNorm.length; i++) {
+      const cNorm = candNorm[i];
+      if (
+        cNorm === jNorm ||
+        (cNorm.length >= 3 && jNorm.length >= 3 && (cNorm.includes(jNorm) || jNorm.includes(cNorm)))
+      ) {
+        matched.push(jSkill);
+        break;
+      }
+    }
+  }
+
+  return matched;
+}

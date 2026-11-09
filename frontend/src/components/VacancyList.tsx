@@ -12,6 +12,7 @@ interface VacancyListProps {
   sortOrder?: SortOrder;
   now?: Date;
   scoresByFingerprint?: Record<string, number>;
+  candidateSkills?: string[];
   applicationStatuses?: Record<string, ApplicationStatus>;
   hideApplied?: boolean;
   hiddenCount?: number;
@@ -37,6 +38,7 @@ export function VacancyList({
   sortOrder = "recent",
   now,
   scoresByFingerprint = {},
+  candidateSkills,
   applicationStatuses = {},
   hideApplied = false,
   hiddenCount = 0,
@@ -290,6 +292,7 @@ export function VacancyList({
             vacancy={vacancy}
             now={now}
             fitScore={scoresByFingerprint[vacancy.fingerprint]}
+            candidateSkills={candidateSkills}
             applicationStatus={applicationStatuses[vacancy.fingerprint]}
             onInspect={onInspect}
             onSave={onSave}
