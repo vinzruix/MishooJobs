@@ -177,3 +177,5 @@ When implementing tasks or modifying this codebase:
 - [005] Enforce z-[60] stacking over z-50 detail modal and sequential Escape/cancel closing to retain underlying vacancy context.
 - [005] Direct master profile editing navigation from Resume Library action bar and empty state.
 - [005] Calibrate Modern Executive template and print canvas threshold buffer (1080px) to guarantee strict single-page Letter rendering.
+- [005] Scale Technical High-Density photo container to 96x96px (w-24 h-24) to align proportionally with full header text span.
+- [005] Immediately close Master Profile Editor modal on successful IndexedDB save.

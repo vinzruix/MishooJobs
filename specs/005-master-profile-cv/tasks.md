@@ -189,15 +189,17 @@ description: "Task list for Master Career Knowledge Base & Dynamic AI CV Generat
 
 ---
 
-## Phase 10: Post-Validation Polish & UI Hardening (Issues 1-3)
+## Phase 10: Post-Validation Polish & UI Hardening (Issues 1-5)
 
-**Purpose**: Resolve UI stacking, generator navigation, and template Letter page overflow issues identified during user review.
+**Purpose**: Resolve UI stacking, generator navigation, template Letter page overflow, photo scaling, and editor modal closure issues identified during user review.
 
 - [X] T054 [US3] Modal stacking and sequential closing: Extend `frontend/tailwind.config.js` with `zIndex: { '60': '60', '70': '70' }` and enforce `z-[60]` on `VacancyTailorModal.tsx`, `RoleArchetypeModal.tsx`, and `SyncImprovementsModal.tsx` so they render strictly above `VacancyDetailModal` (`z-50`); ensure sequential closing so closing the tailor modal leaves vacancy details open underneath, and successful generation closes both to open the CV viewer
 - [X] T055 [US6] Direct Master Profile button in Resume Library: In `frontend/src/components/ResumeLibraryView.tsx`, add an "Editar Perfil Maestro" button in the top header action bar alongside "Crear CV por Rol" and in the empty state actions, wire `onOpenMasterProfile` prop in `frontend/src/App.tsx` to open `MasterProfileEditor`
 - [X] T056 [US5] 1-Page Letter layout calibration for Modern Executive: Compact `ModernExecutive.tsx` layout and spacing (tighten header banner `p-4 mb-3`, container `p-6`, section `mb-3`, experience items `gap-2`, project cards `p-2.5`, `leading-snug`), remove artificial `min-h-[11in]` forces, and calibrate `LiveCVViewer.tsx` overflow threshold buffer (`height > 1080px`) with non-blocking informational warning banner
-- [X] T057 [P] [US3] [US5] [US6] Update frontend component tests in `frontend/tests/components/` (`ResumeLibraryView.test.tsx`, `VacancyTailorModal.test.tsx`, `LiveCVViewer.test.tsx`) to verify z-index stacking, Master Profile direct edit button rendering/interaction, and absence of overflow warning on Modern Executive default content
-- [X] T058 Update `GEMINI.md` Architectural Decisions log with conventions for modal stacking (`z-[60]` over `z-50`), direct master profile navigation from Resume Library, and template Letter page height calibration
+- [X] T057 [US5] Candidate photo scaling in Technical High-Density: Resize candidate photo container in `TechnicalHighDensity.tsx` from `w-16 h-16` (64px) to `w-24 h-24` (96px, `rounded-md`) ensuring it aligns proportionally with the vertical height of the adjacent header name, headline, and about_me summary text
+- [X] T058 [US1] Immediate modal closure on Master Profile save: Update `handleSave` in `MasterProfileEditor.tsx` to immediately invoke `onClose()` upon successful IndexedDB persistence of the Master Profile
+- [X] T059 [P] [US1] [US3] [US5] [US6] Update frontend component tests in `frontend/tests/components/` (`ResumeLibraryView.test.tsx`, `VacancyTailorModal.test.tsx`, `LiveCVViewer.test.tsx`, `MasterProfileEditor.test.tsx`) to verify z-index stacking, Master Profile direct edit button, photo dimensions, modal closure on save, and absence of overflow warning on Modern Executive default content
+- [X] T060 Update `GEMINI.md` Architectural Decisions log with conventions for modal stacking (`z-[60]` over `z-50`), direct master profile navigation from Resume Library, template Letter page height calibration, and photo scaling standards
 
 ---
 

@@ -59,9 +59,10 @@ describe("MasterProfileEditor Component Tests", () => {
     expect(screen.getByText("¿Sobreescribir Perfil Maestro?")).toBeInTheDocument();
   });
 
-  it("saves valid master profile to IndexedDB", async () => {
+  it("saves valid master profile to IndexedDB and immediately closes modal", async () => {
     const onSaved = vi.fn();
-    render(<MasterProfileEditor isOpen={true} onClose={() => {}} onProfileSaved={onSaved} />);
+    const onClose = vi.fn();
+    render(<MasterProfileEditor isOpen={true} onClose={onClose} onProfileSaved={onSaved} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("syntax-valid-badge")).toBeInTheDocument();
@@ -72,6 +73,7 @@ describe("MasterProfileEditor Component Tests", () => {
 
     await waitFor(() => {
       expect(onSaved).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
     });
 
     const record = await db.master_profile.get("current");

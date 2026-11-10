@@ -57,8 +57,8 @@ describe("LiveCVViewer Component Tests", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders with default technical high-density template", async () => {
-    render(<LiveCVViewer resumeId={mockResume.id} onBack={() => {}} />);
+  it("renders with default technical high-density template and proportional 96px photo", async () => {
+    render(<LiveCVViewer resumeId={mockResume.id} onBack={() => {}} photoUrl="data:image/png;base64,fake" />);
 
     await waitFor(() => {
       expect(screen.getByTestId("technical-high-density-template")).toBeInTheDocument();
@@ -66,9 +66,12 @@ describe("LiveCVViewer Component Tests", () => {
 
     expect(screen.getByText("Santiago Mendoza Ruiz")).toBeInTheDocument();
     expect(screen.getByText("Mercado Libre - Backend Junior")).toBeInTheDocument();
+    const avatarImg = screen.getByAltText("Avatar");
+    expect(avatarImg.parentElement).toHaveClass("w-24");
+    expect(avatarImg.parentElement).toHaveClass("h-24");
   });
 
-  it("switches templates instantly on click", async () => {
+  it("switches templates instantly on click without false-positive overflow on Modern Executive", async () => {
     render(<LiveCVViewer resumeId={mockResume.id} onBack={() => {}} />);
 
     await waitFor(() => {
@@ -88,6 +91,9 @@ describe("LiveCVViewer Component Tests", () => {
     await waitFor(() => {
       expect(screen.getByTestId("modern-executive-template")).toBeInTheDocument();
     });
+
+    // Default content should not show page exceeded warning badge
+    expect(screen.queryByTestId("overflow-warning-badge")).not.toBeInTheDocument();
   });
 
   it("toggles photo visibility setting in Dexie", async () => {

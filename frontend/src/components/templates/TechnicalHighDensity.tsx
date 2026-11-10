@@ -31,7 +31,7 @@ export const TechnicalHighDensity: React.FC<TemplateProps> = ({
       <div className="border-b border-zinc-300 pb-3 mb-3">
         <div className="flex items-start gap-4">
           {photoEnabled && photoUrl && (
-            <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0 border border-zinc-300">
+            <div className="w-24 h-24 rounded-md overflow-hidden flex-shrink-0 border border-zinc-300 shadow-xs">
               <img src={photoUrl} alt="Avatar" className="w-full h-full object-cover" />
             </div>
           )}

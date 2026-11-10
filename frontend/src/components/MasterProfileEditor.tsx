@@ -71,7 +71,7 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
       if (onProfileSaved) {
         onProfileSaved();
       }
-      setTimeout(() => setSaveSuccess(false), 3000);
+      onClose();
     } catch (e) {
       console.error("Error al guardar perfil maestro:", e);
     } finally {
@@ -335,7 +335,7 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
       {showOverwriteConfirm && (
         <div
           data-testid="overwrite-confirm-modal"
-          className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 p-4 font-mono"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 font-mono"
         >
           <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-lg max-w-md w-full flex flex-col gap-4 shadow-2xl">
             <div className="flex items-center gap-3 text-amber-400">
