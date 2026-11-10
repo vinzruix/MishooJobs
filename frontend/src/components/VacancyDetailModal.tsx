@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Sparkles, Loader2, ExternalLink, AlertTriangle, Check, X, DollarSign, ShieldCheck } from "lucide-react";
 import type { JobVacancy, SeniorityAuditResult } from "../types/job";
 import type { CandidateProfile, AIEvaluation } from "../types/profile";
+import type { MasterProfileData } from "../types/master_profile";
 import { auditVacancy, evaluateVacancy } from "../services/api";
 import { ScamBadge } from "./ScamBadge";
 
@@ -9,16 +10,22 @@ interface VacancyDetailModalProps {
   vacancy: JobVacancy | null;
   onClose: () => void;
   activeProfile?: CandidateProfile;
+  masterProfile?: MasterProfileData | null;
+  universalSkills?: string[];
   cachedEvaluation?: AIEvaluation;
   onEvaluationComplete?: (fingerprint: string, evalResult: AIEvaluation) => void;
+  onOpenTailorModal?: (vacancy: JobVacancy) => void;
 }
 
 export function VacancyDetailModal({
   vacancy,
   onClose,
   activeProfile,
+  masterProfile,
+  universalSkills,
   cachedEvaluation,
   onEvaluationComplete,
+  onOpenTailorModal,
 }: VacancyDetailModalProps) {
   const [evaluation, setEvaluation] = useState<AIEvaluation | null>(cachedEvaluation || null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
@@ -74,8 +81,18 @@ export function VacancyDetailModal({
   if (!vacancy) return null;
 
   const handleRunAiEvaluation = async () => {
-    if (!activeProfile) {
-      alert("Por favor carga o activa un perfil CV primero para evaluar con IA.");
+    const candidateSkills =
+      universalSkills && universalSkills.length > 0
+        ? universalSkills
+        : activeProfile?.skills || [];
+
+    const targetRole =
+      masterProfile?.personal_info?.headline ||
+      activeProfile?.target_role ||
+      "Desarrollador de Software Junior";
+
+    if (candidateSkills.length === 0) {
+      alert("Por favor configura tu Perfil Maestro con al menos una habilidad técnica para evaluar con IA.");
       return;
     }
 
@@ -92,8 +109,8 @@ export function VacancyDetailModal({
     try {
       const result = await evaluateVacancy({
         vacancy_fingerprint: vacancy.fingerprint,
-        target_role: activeProfile.target_role,
-        candidate_skills: activeProfile.skills,
+        target_role: targetRole,
+        candidate_skills: candidateSkills,
         job_description: effectiveDescription,
         direct_url: directUrl,
         desired_skills: vacancy.skills || [],
@@ -400,6 +417,17 @@ export function VacancyDetailModal({
         {/* Footer Direct Links */}
         <div className="p-3 border-t border-zinc-800 flex items-center justify-between bg-zinc-950">
           <div className="flex flex-wrap items-center gap-2">
+            {onOpenTailorModal && (
+              <button
+                type="button"
+                data-testid="tailor-cv-btn"
+                onClick={() => onOpenTailorModal(vacancy)}
+                className="px-3.5 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 text-emerald-400 border border-emerald-800/80 font-bold text-xs flex items-center gap-1.5 transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Generar CV Adaptado</span>
+              </button>
+            )}
             {(vacancy.external_links || [])
               .filter(
                 (link, idx, arr) =>

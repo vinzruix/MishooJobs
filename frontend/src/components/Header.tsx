@@ -1,17 +1,17 @@
-import { Terminal, Search, SlidersHorizontal, User } from "lucide-react";
+import { Terminal, Search, SlidersHorizontal, User, FileText } from "lucide-react";
 
 interface HeaderProps {
-  activeTab: "search" | "pipeline";
-  setActiveTab: (tab: "search" | "pipeline") => void;
-  onOpenProfileManager: () => void;
-  activeProfileName?: string;
+  activeTab: "search" | "pipeline" | "resumes";
+  setActiveTab: (tab: "search" | "pipeline" | "resumes") => void;
+  onOpenMasterProfile: () => void;
+  resumesCount?: number;
 }
 
 export function Header({
   activeTab,
   setActiveTab,
-  onOpenProfileManager,
-  activeProfileName,
+  onOpenMasterProfile,
+  resumesCount = 0,
 }: HeaderProps) {
   return (
     <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-40 px-4 py-3">
@@ -49,13 +49,31 @@ export function Header({
             <SlidersHorizontal className="w-3.5 h-3.5" />
             Mi Pipeline
           </button>
+          <button
+            onClick={() => setActiveTab("resumes")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded border transition-colors flex items-center gap-1.5 ${
+              activeTab === "resumes"
+                ? "bg-zinc-800 border-zinc-700 text-emerald-400"
+                : "border-transparent text-zinc-400 hover:text-zinc-200"
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            Mis CVs
+            {resumesCount > 0 && (
+              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-400">
+                {resumesCount}
+              </span>
+            )}
+          </button>
           <div className="h-4 w-px bg-zinc-800 mx-1" />
           <button
-            onClick={onOpenProfileManager}
+            data-testid="open-master-profile-btn"
+            onClick={onOpenMasterProfile}
             className="px-3 py-1.5 text-xs font-semibold rounded bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:text-emerald-400 transition-colors flex items-center gap-1.5"
+            title="Abrir editor de Perfil Maestro (Master Career Knowledge Base)"
           >
             <User className="w-3.5 h-3.5 text-emerald-400" />
-            {activeProfileName ? activeProfileName : "Cargar CV"}
+            Perfil Maestro
           </button>
         </div>
       </div>

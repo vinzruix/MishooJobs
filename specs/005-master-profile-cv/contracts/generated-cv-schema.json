@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GeneratedCVContent",
+  "description": "Schema for tailored or role-based CV content rendered on single-page templates",
+  "type": "object",
+  "required": [
+    "header",
+    "skills_categorized",
+    "languages",
+    "experience",
+    "projects",
+    "education",
+    "certificates",
+    "logros_academicos"
+  ],
+  "properties": {
+    "header": {
+      "type": "object",
+      "required": ["full_name", "headline", "email", "phone", "location", "links", "about_me"],
+      "properties": {
+        "full_name": { "type": "string" },
+        "headline": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "location": { "type": "string" },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["label", "url"],
+            "properties": {
+              "label": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          }
+        },
+        "about_me": { "type": "string" }
+      }
+    },
+    "skills_categorized": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["language", "level"],
+        "properties": {
+          "language": { "type": "string" },
+          "level": { "type": "string" }
+        }
+      }
+    },
+    "experience": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["company", "role", "period", "highlights"],
+        "properties": {
+          "company": { "type": "string" },
+          "role": { "type": "string" },
+          "location": { "type": "string" },
+          "period": { "type": "string" },
+          "highlights": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description", "technologies", "highlights"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "technologies": { "type": "array", "items": { "type": "string" } },
+          "link": { "type": "string" },
+          "highlights": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "education": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["institution", "degree", "period"],
+        "properties": {
+          "institution": { "type": "string" },
+          "degree": { "type": "string" },
+          "period": { "type": "string" },
+          "details": { "type": "string" }
+        }
+      }
+    },
+    "certificates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "issuer", "date"],
+        "properties": {
+          "name": { "type": "string" },
+          "issuer": { "type": "string" },
+          "date": { "type": "string" }
+        }
+      }
+    },
+    "logros_academicos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "organization", "date", "description"],
+        "properties": {
+          "title": { "type": "string" },
+          "organization": { "type": "string" },
+          "date": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

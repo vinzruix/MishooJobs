@@ -1,0 +1,195 @@
+openapi: 3.1.0
+info:
+  title: MishooJobs CV & Master Profile API
+  version: 1.0.0
+  description: Stateless, privacy-first endpoints for resume parsing and dynamic ATS CV generation powered by local agy CLI with zero candidate PII storage.
+paths:
+  /cv/parse-resume:
+    post:
+      summary: Ephemeral Stateless Resume Parser
+      description: Ingests an uploaded PDF, Markdown, or text resume file, extracts raw text, structures the content via local agy CLI according to the Master Profile canonical schema, and returns validated YAML. Zero files or database records are persisted.
+      operationId: parseResume
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Resume file (.pdf, .md, .txt, .yml, .yaml)
+      responses:
+        '200':
+          description: Structured Master Profile YAML and parsing diagnostics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParseResumeResponse'
+        '400':
+          description: Unsupported file format or unparseable corrupted text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '504':
+          description: agy CLI execution timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cv/generate-tailored:
+    post:
+      summary: Generate Vacancy-Tailored ATS CV
+      description: Analyzes the candidate's Master Profile against a target vacancy, selects top relevant experiences and projects, rephrases bullet points in STAR format, and enforces a strict 1-page budget (max 500 words).
+      operationId: generateTailoredCV
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateTailoredCVRequest'
+      responses:
+        '200':
+          description: Curated and tailored CV content conforming to single-page budget
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateCVResponse'
+        '422':
+          description: Incomplete Master Profile (<1 experience/project or <2 skills)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '504':
+          description: agy CLI execution timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cv/generate-role:
+    post:
+      summary: Generate Role Archetype ATS CV
+      description: Curates and balances the candidate's Master Profile towards a broad target role title and focus tags without linking to a specific vacancy.
+      operationId: generateRoleCV
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRoleCVRequest'
+      responses:
+        '200':
+          description: Curated role archetype CV content conforming to single-page budget
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateCVResponse'
+        '422':
+          description: Incomplete Master Profile (<1 experience/project or <2 skills)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ParseResumeResponse:
+      type: object
+      required:
+        - yaml_content
+        - warnings
+      properties:
+        yaml_content:
+          type: string
+          description: Canonical formatted YAML document ready for browser editor
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Informational parsing notices (e.g. omitted unparsed tables)
+
+    GenerateTailoredCVRequest:
+      type: object
+      required:
+        - master_profile
+        - vacancy_title
+        - vacancy_company
+        - job_description
+      properties:
+        master_profile:
+          type: object
+          description: Parsed JSON of candidate Master Profile
+        vacancy_fingerprint:
+          type: string
+        vacancy_title:
+          type: string
+        vacancy_company:
+          type: string
+        job_description:
+          type: string
+        desired_skills:
+          type: array
+          items:
+            type: string
+        language:
+          type: string
+          enum: [es, en]
+          default: es
+
+    GenerateRoleCVRequest:
+      type: object
+      required:
+        - master_profile
+        - target_role_title
+      properties:
+        master_profile:
+          type: object
+          description: Parsed JSON of candidate Master Profile
+        target_role_title:
+          type: string
+          example: "Frontend Developer"
+        focus_tags:
+          type: array
+          items:
+            type: string
+          example: ["React", "TypeScript", "Tailwind CSS"]
+        language:
+          type: string
+          enum: [es, en]
+          default: es
+
+    GenerateCVResponse:
+      type: object
+      required:
+        - content
+        - ats_match_score
+        - word_count
+      properties:
+        content:
+          type: object
+          description: Structured sections conforming to GeneratedCVContent schema
+        ats_match_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        word_count:
+          type: integer
+          maximum: 500
+        curation_notes:
+          type: string
+          description: Explanatory note detailing which experiences/projects were selected
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string

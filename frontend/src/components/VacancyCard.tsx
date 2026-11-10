@@ -3,11 +3,13 @@ import { ExternalLink as ExtLinkIcon, MapPin, DollarSign, Bookmark, CheckCircle,
 import type { JobVacancy } from "../types/job";
 import type { ApplicationStatus } from "../types/application";
 import { formatMexicanRelativeTime, isNewVacancy } from "../services/date_utils";
+import { normalizeSkill } from "../services/heuristic_scorer";
 import { ScamBadge } from "./ScamBadge";
 
 interface VacancyCardProps {
   vacancy: JobVacancy;
   fitScore?: number | null;
+  candidateSkills?: string[];
   applicationStatus?: ApplicationStatus;
   now?: Date;
   onInspect: (vacancy: JobVacancy) => void;
@@ -19,6 +21,7 @@ interface VacancyCardProps {
 export function VacancyCard({
   vacancy,
   fitScore,
+  candidateSkills,
   applicationStatus,
   now = new Date(),
   onInspect,
@@ -28,6 +31,22 @@ export function VacancyCard({
 }: VacancyCardProps) {
   const relativeText = formatMexicanRelativeTime(vacancy.published_at, now);
   const isNew = isNewVacancy(vacancy.published_at, now);
+
+  const matchedSkillsSet = useMemo(() => {
+    if (!candidateSkills || candidateSkills.length === 0) return new Set<string>();
+    const candNorm = new Set(candidateSkills.map(normalizeSkill));
+    const matched = new Set<string>();
+    for (const s of vacancy.skills || []) {
+      const sNorm = normalizeSkill(s);
+      for (const c of candNorm) {
+        if (sNorm === c || (sNorm.length >= 3 && c.length >= 3 && (sNorm.includes(c) || c.includes(sNorm)))) {
+          matched.add(s);
+          break;
+        }
+      }
+    }
+    return matched;
+  }, [candidateSkills, vacancy.skills]);
 
   // Strictly display one primary platform link on the card to prevent multi-button clutter and overflow
   const primaryPlatformLink = useMemo(() => {
@@ -165,7 +184,11 @@ export function VacancyCard({
             {vacancy.skills.slice(0, 6).map((skill) => (
               <span
                 key={skill}
-                className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-800/80 text-zinc-300 border border-zinc-700/50"
+                className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                  matchedSkillsSet.has(skill)
+                    ? "bg-emerald-950/70 text-emerald-300 border-emerald-800"
+                    : "bg-zinc-800/80 text-zinc-300 border-zinc-700/50"
+                }`}
               >
                 {skill}
               </span>

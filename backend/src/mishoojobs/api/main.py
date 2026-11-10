@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from mishoojobs.api.routes.health import router as health_router
 from mishoojobs.api.routes.jobs import router as jobs_router
 from mishoojobs.api.routes.vacancies import router as vacancies_router
+from mishoojobs.api.routes.cv import router as cv_router
 from mishoojobs.config import settings
 from mishoojobs.schemas.job import ErrorResponse
 
@@ -52,6 +53,8 @@ def create_app() -> FastAPI:
     app.include_router(health_router, prefix="/api/v1")
     app.include_router(jobs_router, prefix="/api/v1")
     app.include_router(vacancies_router, prefix="/api/v1")
+    app.include_router(cv_router, prefix="/cv", tags=["cv"])
+    app.include_router(cv_router, prefix="/api/v1/cv", tags=["cv"])
 
     return app
 

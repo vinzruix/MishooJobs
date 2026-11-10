@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MasterProfileData",
+  "description": "Canonical data structure for 100% of candidate career history in MishooJobs",
+  "type": "object",
+  "required": [
+    "personal_info",
+    "about_me",
+    "tech",
+    "languages",
+    "experience",
+    "projects",
+    "education",
+    "certificates",
+    "logros_academicos"
+  ],
+  "properties": {
+    "personal_info": {
+      "type": "object",
+      "required": ["full_name", "headline", "email", "phone", "location", "photo"],
+      "properties": {
+        "full_name": { "type": "string" },
+        "headline": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "location": { "type": "string" },
+        "website": { "type": "string" },
+        "github": { "type": "string" },
+        "linkedin": { "type": "string" },
+        "photo": { "type": "boolean" }
+      }
+    },
+    "about_me": { "type": "string" },
+    "tech": {
+      "type": "object",
+      "required": ["backend", "frontend", "databases", "messaging_distributed", "ai_data", "devops_cloud", "tools"],
+      "properties": {
+        "backend": { "type": "array", "items": { "type": "string" } },
+        "frontend": { "type": "array", "items": { "type": "string" } },
+        "databases": { "type": "array", "items": { "type": "string" } },
+        "messaging_distributed": { "type": "array", "items": { "type": "string" } },
+        "ai_data": { "type": "array", "items": { "type": "string" } },
+        "devops_cloud": { "type": "array", "items": { "type": "string" } },
+        "tools": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["language", "level"],
+        "properties": {
+          "language": { "type": "string" },
+          "level": { "type": "string" }
+        }
+      }
+    },
+    "experience": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["company", "role", "start_date", "end_date", "current", "highlights"],
+        "properties": {
+          "company": { "type": "string" },
+          "role": { "type": "string" },
+          "location": { "type": "string" },
+          "start_date": { "type": "string" },
+          "end_date": { "type": "string" },
+          "current": { "type": "boolean" },
+          "highlights": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description", "technologies", "highlights"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "technologies": { "type": "array", "items": { "type": "string" } },
+          "link": { "type": "string" },
+          "highlights": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "education": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["institution", "degree", "field", "start_date", "end_date", "current"],
+        "properties": {
+          "institution": { "type": "string" },
+          "degree": { "type": "string" },
+          "field": { "type": "string" },
+          "start_date": { "type": "string" },
+          "end_date": { "type": "string" },
+          "gpa": { "type": "string" },
+          "current": { "type": "boolean" }
+        }
+      }
+    },
+    "certificates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "issuer", "issue_date"],
+        "properties": {
+          "name": { "type": "string" },
+          "issuer": { "type": "string" },
+          "issue_date": { "type": "string" },
+          "expiry_date": { "type": "string" },
+          "credential_id": { "type": "string" },
+          "url": { "type": "string" }
+        }
+      }
+    },
+    "logros_academicos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "organization", "date", "description"],
+        "properties": {
+          "title": { "type": "string" },
+          "organization": { "type": "string" },
+          "date": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}
