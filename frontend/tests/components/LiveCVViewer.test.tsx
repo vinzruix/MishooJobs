@@ -122,4 +122,21 @@ describe("LiveCVViewer Component Tests", () => {
     fireEvent.click(screen.getByTestId("print-pdf-btn"));
     expect(printSpy).toHaveBeenCalled();
   });
+
+  it("does not show overflow warning on Modern Executive default content under 1080px threshold", async () => {
+    render(<LiveCVViewer resumeId={mockResume.id} onBack={() => {}} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("technical-high-density-template")).toBeInTheDocument();
+    });
+
+    const modernBtn = screen.getByTestId("template-modern-btn");
+    fireEvent.click(modernBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("modern-executive-template")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId("overflow-warning-badge")).not.toBeInTheDocument();
+  });
 });

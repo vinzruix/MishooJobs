@@ -8,6 +8,7 @@ import {
   Calendar,
   Briefcase,
   Layers,
+  User,
 } from "lucide-react";
 import { useResumes } from "../hooks/useResumes";
 
@@ -15,12 +16,14 @@ interface ResumeLibraryViewProps {
   onSelectResume: (resumeId: string) => void;
   onExploreVacancies: () => void;
   onOpenRoleModal: () => void;
+  onOpenMasterProfile?: () => void;
 }
 
 export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
   onSelectResume,
   onExploreVacancies,
   onOpenRoleModal,
+  onOpenMasterProfile,
 }) => {
   const { resumes, isLoading, deleteResume, duplicateResume } = useResumes();
 
@@ -51,15 +54,28 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
           </p>
         </div>
 
-        <button
-          type="button"
-          data-testid="create-role-cv-btn"
-          onClick={onOpenRoleModal}
-          className="px-4 py-2 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 flex items-center gap-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Crear CV por Rol</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {onOpenMasterProfile && (
+            <button
+              type="button"
+              data-testid="edit-master-profile-header-btn"
+              onClick={onOpenMasterProfile}
+              className="px-3.5 py-2 text-xs font-semibold rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-emerald-400 border border-zinc-800 hover:border-zinc-700 flex items-center gap-1.5 transition-colors"
+            >
+              <User className="w-4 h-4 text-emerald-400" />
+              <span>Editar Perfil Maestro</span>
+            </button>
+          )}
+          <button
+            type="button"
+            data-testid="create-role-cv-btn"
+            onClick={onOpenRoleModal}
+            className="px-4 py-2 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 flex items-center gap-2 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Crear CV por Rol</span>
+          </button>
+        </div>
       </div>
 
       {/* Loading state */}
@@ -83,6 +99,17 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
             Genera un CV adaptado con 1 clic desde cualquier vacante de empleo o crea un CV base por rol para aplicar libremente.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
+            {onOpenMasterProfile && (
+              <button
+                type="button"
+                data-testid="edit-master-profile-empty-btn"
+                onClick={onOpenMasterProfile}
+                className="px-4 py-2 text-xs font-semibold rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-emerald-500/50 flex items-center gap-1.5 transition-colors"
+              >
+                <User className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Editar Perfil Maestro</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={onOpenRoleModal}

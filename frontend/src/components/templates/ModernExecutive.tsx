@@ -17,10 +17,10 @@ export const ModernExecutive: React.FC<TemplateProps> = ({
   return (
     <div
       data-testid="modern-executive-template"
-      className="bg-white text-zinc-900 font-sans p-8 text-xs leading-normal max-w-[8.5in] min-h-[11in] mx-auto shadow-md print:shadow-none print:p-0 select-text"
+      className="bg-white text-zinc-900 font-sans p-6 text-xs leading-snug max-w-[8.5in] mx-auto shadow-md print:shadow-none print:p-0 select-text"
     >
       {/* Executive Header Banner */}
-      <div className="bg-zinc-900 text-white p-6 rounded-lg mb-6 flex items-center justify-between gap-6 print:rounded-none">
+      <div className="bg-zinc-900 text-white p-4 rounded-lg mb-3 flex items-center justify-between gap-4 print:rounded-none">
         <div className="flex-1">
           <h1
             contentEditable={isEditable}
@@ -56,8 +56,8 @@ export const ModernExecutive: React.FC<TemplateProps> = ({
 
       {/* Summary */}
       {content.header.about_me && (
-        <div className="mb-5">
-          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-2">
+        <div className="mb-3">
+          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-1.5">
             Perfil Profesional
           </h3>
           <p
@@ -73,13 +73,13 @@ export const ModernExecutive: React.FC<TemplateProps> = ({
 
       {/* Experience */}
       {content.experience && content.experience.length > 0 && (
-        <div className="mb-5">
-          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-3">
+        <div className="mb-3">
+          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-2">
             Trayectoria Profesional
           </h3>
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-2">
             {content.experience.map((exp, expIdx) => (
-              <div key={expIdx} className="border-l-2 border-zinc-200 pl-3.5">
+              <div key={expIdx} className="border-l-2 border-zinc-200 pl-3">
                 <div className="flex justify-between items-baseline">
                   <span className="font-bold text-zinc-950 text-xs">{exp.role}</span>
                   <span className="text-[10.5px] text-zinc-500 font-medium">{exp.period}</span>
@@ -87,7 +87,7 @@ export const ModernExecutive: React.FC<TemplateProps> = ({
                 <div className="text-emerald-700 font-semibold text-[11px] mb-1">
                   {exp.company} {exp.location ? `| ${exp.location}` : ""}
                 </div>
-                <ul className="list-disc ml-4 space-y-1 text-zinc-700 text-[11px]">
+                <ul className="list-disc ml-4 space-y-0.5 text-zinc-700 text-[11px]">
                   {exp.highlights.map((hl, hlIdx) => (
                     <li
                       key={hlIdx}
@@ -107,13 +107,13 @@ export const ModernExecutive: React.FC<TemplateProps> = ({
 
       {/* Projects */}
       {content.projects && content.projects.length > 0 && (
-        <div className="mb-5">
-          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-3">
+        <div className="mb-3">
+          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-2">
             Proyectos & Soluciones Técnicas
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
             {content.projects.map((proj, projIdx) => (
-              <div key={projIdx} className="p-3 bg-zinc-50 rounded border border-zinc-200">
+              <div key={projIdx} className="p-2.5 bg-zinc-50 rounded border border-zinc-200">
                 <div className="font-bold text-zinc-900 text-xs">{proj.name}</div>
                 {proj.technologies && (
                   <div className="text-[10px] text-zinc-500 italic mt-0.5">
@@ -142,9 +142,9 @@ export const ModernExecutive: React.FC<TemplateProps> = ({
       )}
 
       {/* Skills & Education side-by-side */}
-      <div className="grid grid-cols-12 gap-5 mb-5">
+      <div className="grid grid-cols-12 gap-4 mb-3">
         <div className="col-span-7">
-          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-2">
+          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-1.5">
             Competencias Técnicas
           </h3>
           <div className="flex flex-col gap-1 text-[11px] text-zinc-700">
@@ -158,7 +158,7 @@ export const ModernExecutive: React.FC<TemplateProps> = ({
         </div>
 
         <div className="col-span-5">
-          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-2">
+          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest border-b-2 border-zinc-900 pb-1 mb-1.5">
             Educación
           </h3>
           <div className="flex flex-col gap-1.5 text-[11px] text-zinc-700">

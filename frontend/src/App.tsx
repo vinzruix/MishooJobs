@@ -331,13 +331,29 @@ export default function App() {
     isModalOpen: isAnyModalOpen,
     onInspect: (v) => setSelectedVacancy(v),
     onCloseModal: () => {
-      setSelectedVacancy(null);
-      setIsProfileModalOpen(false);
-      setIsMasterProfileOpen(false);
-      setTailoringVacancy(null);
-      setIsRoleModalOpen(false);
+      if (tailoringVacancy !== null) {
+        setTailoringVacancy(null);
+        return;
+      }
+      if (isRoleModalOpen) {
+        setIsRoleModalOpen(false);
+        return;
+      }
+      if (isMasterProfileOpen) {
+        setIsMasterProfileOpen(false);
+        return;
+      }
+      if (isProfileModalOpen) {
+        setIsProfileModalOpen(false);
+        return;
+      }
+      if (selectedVacancy !== null) {
+        setSelectedVacancy(null);
+        return;
+      }
       if (viewingResumeId) {
         setViewingResumeId(null);
+        return;
       }
     },
     onSave: (v) => setApplicationStatus(v, "saved"),
@@ -536,6 +552,7 @@ export default function App() {
                 onSelectResume={(id) => setViewingResumeId(id)}
                 onExploreVacancies={() => setActiveTab("search")}
                 onOpenRoleModal={() => setIsRoleModalOpen(true)}
+                onOpenMasterProfile={() => setIsMasterProfileOpen(true)}
               />
             )}
           </>

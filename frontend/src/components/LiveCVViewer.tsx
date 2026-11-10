@@ -52,8 +52,8 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
     const checkOverflow = () => {
       if (containerRef.current) {
         const height = containerRef.current.offsetHeight;
-        // ~1056px is standard Letter page height at 96 DPI
-        setIsOverflowing(height > 1060);
+        // ~1056px is standard Letter page height at 96 DPI, with 1080px threshold buffer
+        setIsOverflowing(height > 1080);
       }
     };
 

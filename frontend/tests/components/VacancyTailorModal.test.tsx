@@ -67,8 +67,8 @@ describe("VacancyTailorModal Component Tests", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders target vacancy details and defaults to Spanish language", () => {
-    render(
+  it("renders target vacancy details, enforces z-[60] stacking, and defaults to Spanish language", () => {
+    const { container } = render(
       <VacancyTailorModal
         isOpen={true}
         onClose={() => {}}
@@ -78,9 +78,30 @@ describe("VacancyTailorModal Component Tests", () => {
       />
     );
 
+    expect(container.firstChild).toHaveClass("z-[60]");
     expect(screen.getByText("Desarrollador Python Junior")).toBeInTheDocument();
     expect(screen.getByText("FinTech MX")).toBeInTheDocument();
     expect(screen.getByTestId("lang-es-btn")).toHaveClass("bg-emerald-600");
+  });
+
+  it("handles cancel and close buttons sequentially via onClose without triggering onSuccess", () => {
+    const onClose = vi.fn();
+    const onSuccess = vi.fn();
+
+    render(
+      <VacancyTailorModal
+        isOpen={true}
+        onClose={onClose}
+        vacancy={mockVacancy}
+        masterProfile={completeProfile}
+        onSuccess={onSuccess}
+      />
+    );
+
+    const cancelBtn = screen.getByText("Cancelar");
+    fireEvent.click(cancelBtn);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onSuccess).not.toHaveBeenCalled();
   });
 
   it("toggles language between Spanish and English", () => {

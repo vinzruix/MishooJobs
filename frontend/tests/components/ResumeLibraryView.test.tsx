@@ -60,15 +60,17 @@ describe("ResumeLibraryView Component Tests", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders empty state when no resumes exist and allows navigating to create role CV or explore vacancies", async () => {
+  it("renders empty state when no resumes exist and allows navigating to create role CV or explore vacancies or edit master profile", async () => {
     const onExplore = vi.fn();
     const onOpenRole = vi.fn();
+    const onOpenMasterProfile = vi.fn();
 
     render(
       <ResumeLibraryView
         onSelectResume={() => {}}
         onExploreVacancies={onExplore}
         onOpenRoleModal={onOpenRole}
+        onOpenMasterProfile={onOpenMasterProfile}
       />
     );
 
@@ -76,8 +78,37 @@ describe("ResumeLibraryView Component Tests", () => {
       expect(screen.getByTestId("empty-resume-library")).toBeInTheDocument();
     });
 
+    // Check direct master profile edit button in empty state
+    const editMasterProfileBtn = screen.getByTestId("edit-master-profile-empty-btn");
+    expect(editMasterProfileBtn).toBeInTheDocument();
+    fireEvent.click(editMasterProfileBtn);
+    expect(onOpenMasterProfile).toHaveBeenCalledTimes(1);
+
     fireEvent.click(screen.getByTestId("explore-vacancies-btn"));
     expect(onExplore).toHaveBeenCalled();
+  });
+
+  it("renders header action button for editing master profile when provided", async () => {
+    for (const r of mockResumes) {
+      await db.resumes.put(r);
+    }
+
+    const onOpenMasterProfile = vi.fn();
+    render(
+      <ResumeLibraryView
+        onSelectResume={() => {}}
+        onExploreVacancies={() => {}}
+        onOpenRoleModal={() => {}}
+        onOpenMasterProfile={onOpenMasterProfile}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("edit-master-profile-header-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("edit-master-profile-header-btn"));
+    expect(onOpenMasterProfile).toHaveBeenCalledTimes(1);
   });
 
   it("renders resume cards with correct badges, revisions and allows preview, duplicate, and delete", async () => {

@@ -189,6 +189,18 @@ description: "Task list for Master Career Knowledge Base & Dynamic AI CV Generat
 
 ---
 
+## Phase 10: Post-Validation Polish & UI Hardening (Issues 1-3)
+
+**Purpose**: Resolve UI stacking, generator navigation, and template Letter page overflow issues identified during user review.
+
+- [X] T054 [US3] Modal stacking and sequential closing: Extend `frontend/tailwind.config.js` with `zIndex: { '60': '60', '70': '70' }` and enforce `z-[60]` on `VacancyTailorModal.tsx`, `RoleArchetypeModal.tsx`, and `SyncImprovementsModal.tsx` so they render strictly above `VacancyDetailModal` (`z-50`); ensure sequential closing so closing the tailor modal leaves vacancy details open underneath, and successful generation closes both to open the CV viewer
+- [X] T055 [US6] Direct Master Profile button in Resume Library: In `frontend/src/components/ResumeLibraryView.tsx`, add an "Editar Perfil Maestro" button in the top header action bar alongside "Crear CV por Rol" and in the empty state actions, wire `onOpenMasterProfile` prop in `frontend/src/App.tsx` to open `MasterProfileEditor`
+- [X] T056 [US5] 1-Page Letter layout calibration for Modern Executive: Compact `ModernExecutive.tsx` layout and spacing (tighten header banner `p-4 mb-3`, container `p-6`, section `mb-3`, experience items `gap-2`, project cards `p-2.5`, `leading-snug`), remove artificial `min-h-[11in]` forces, and calibrate `LiveCVViewer.tsx` overflow threshold buffer (`height > 1080px`) with non-blocking informational warning banner
+- [X] T057 [P] [US3] [US5] [US6] Update frontend component tests in `frontend/tests/components/` (`ResumeLibraryView.test.tsx`, `VacancyTailorModal.test.tsx`, `LiveCVViewer.test.tsx`) to verify z-index stacking, Master Profile direct edit button rendering/interaction, and absence of overflow warning on Modern Executive default content
+- [X] T058 Update `GEMINI.md` Architectural Decisions log with conventions for modal stacking (`z-[60]` over `z-50`), direct master profile navigation from Resume Library, and template Letter page height calibration
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

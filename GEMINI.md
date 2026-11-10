@@ -174,3 +174,6 @@ When implementing tasks or modifying this codebase:
 - [005] Ephemeral agy CLI resume parsing and STAR-format single-page CV generation (<500 words) with anti-hallucination fact shield.
 - [005] Universal skills extraction synchronizing Master Profile skills across heuristic match scores, cards, and deep AI evaluation.
 - [005] High-density 2-column formal engineering CV template with instant template switching (<100ms), inline text click-to-edit, dual ATS plain text / markdown clipboard export, and print-calibrated single-page vector PDF.
+- [005] Enforce z-[60] stacking over z-50 detail modal and sequential Escape/cancel closing to retain underlying vacancy context.
+- [005] Direct master profile editing navigation from Resume Library action bar and empty state.
+- [005] Calibrate Modern Executive template and print canvas threshold buffer (1080px) to guarantee strict single-page Letter rendering.

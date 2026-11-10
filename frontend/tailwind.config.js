@@ -16,6 +16,10 @@ export default {
         mono: ["GeistMono", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
         pixel: ["GeistPixel", "Press Start 2P", "ui-monospace", "monospace"],
       },
+      zIndex: {
+        '60': '60',
+        '70': '70',
+      },
     },
   },
   plugins: [],
