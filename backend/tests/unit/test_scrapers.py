@@ -170,3 +170,24 @@ async def test_indeed_fetch_full_description_mocked():
         desc = await scraper.fetch_full_description("https://mx.indeed.com/viewjob?jk=jk_desc_456")
         assert desc == "Descripción completa de vacante con requerimientos y prestaciones"
         mock_session_cls.assert_called_with(impersonate="chrome")
+
+@pytest.mark.asyncio
+async def test_indeed_search_retry_on_initial_failure(indeed_html):
+    scraper = IndeedScraper()
+    mock_session_1 = AsyncMock()
+    mock_session_1.get.side_effect = Exception("Cold-start handshake timeout")
+
+    mock_session_2 = AsyncMock()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.text = indeed_html
+    mock_session_2.get.return_value = mock_resp
+
+    sessions = [mock_session_1, mock_session_2]
+    mock_session_cls = MagicMock()
+    mock_session_cls.return_value.__aenter__.side_effect = sessions
+
+    with patch("curl_cffi.requests.AsyncSession", mock_session_cls), patch("asyncio.sleep", AsyncMock()):
+        results = await scraper.search("python", limit=5)
+        assert len(results) > 0
+        assert mock_session_cls.call_count == 2

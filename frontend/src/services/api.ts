@@ -51,6 +51,8 @@ export async function auditVacancy(
   fingerprint: string,
   directUrl?: string,
   jobDescription?: string,
+  title?: string,
+  companyName?: string,
 ): Promise<SeniorityAuditResult> {
   const response = await fetch(`/api/v1/vacancies/${encodeURIComponent(fingerprint)}/audit`, {
     method: "POST",
@@ -61,6 +63,8 @@ export async function auditVacancy(
       vacancy_fingerprint: fingerprint,
       direct_url: directUrl,
       job_description: jobDescription,
+      title,
+      company_name: companyName,
     }),
   });
 

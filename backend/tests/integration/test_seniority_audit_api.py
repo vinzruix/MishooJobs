@@ -30,7 +30,7 @@ async def test_seniority_audit_api_workflow_and_caching(monkeypatch):
 
     # 1. Seed preliminary vacancy in database
     async with async_session_factory() as session:
-        await session.execute(delete(JobVacancy).where(JobVacancy.fingerprint == test_fp))
+        await session.execute(delete(JobVacancy).where(JobVacancy.fingerprint.in_([test_fp, "unpersisted-fingerprint-test-002"])))
         stmt = insert(JobVacancy).values(
             fingerprint=test_fp,
             title="Desarrollador Trainee Python",
@@ -75,6 +75,28 @@ async def test_seniority_audit_api_workflow_and_caching(monkeypatch):
         assert data2["is_cached"] is True
         assert audit_call_count == 1  # Unchanged!
 
-        # Check 404 for nonexistent fingerprint
+        # Check 404 for nonexistent fingerprint with no description provided
         res404 = await client.post("/api/v1/vacancies/nonexistent-fingerprint-404/audit", json={})
         assert res404.status_code == 404
+
+        # Check resilient audit for unpersisted vacancy when client provides job_description
+        unpersisted_fp = "unpersisted-fingerprint-test-002"
+        res_unpersisted = await client.post(
+            f"/api/v1/vacancies/{unpersisted_fp}/audit",
+            json={
+                "vacancy_fingerprint": unpersisted_fp,
+                "title": "Desarrollador Junior Python",
+                "company_name": "InnovaSoft",
+                "job_description": "Buscamos recién egresados para puesto de desarrollador junior python sin experiencia.",
+            },
+        )
+        assert res_unpersisted.status_code == 200
+        unpersisted_data = res_unpersisted.json()
+        assert unpersisted_data["vacancy_fingerprint"] == unpersisted_fp
+        assert unpersisted_data["audit_status"] == "verified"
+        assert unpersisted_data["is_cached"] is False
+
+        # Verify it was persisted to PostgreSQL and subsequent call returns cached
+        res_cached = await client.post(f"/api/v1/vacancies/{unpersisted_fp}/audit", json={})
+        assert res_cached.status_code == 200
+        assert res_cached.json()["is_cached"] is True

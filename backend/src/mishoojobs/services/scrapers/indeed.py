@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import json
 import re
@@ -275,53 +276,58 @@ class IndeedScraper(AbstractBaseScraper):
         url = f"{self.base_url}/jobs"
         params = {"q": query, "l": loc}
 
-        # First attempt with curl_cffi impersonating modern Chrome to bypass Cloudflare bot challenge
-        try:
-            from curl_cffi.requests import AsyncSession
-            async with AsyncSession(impersonate="chrome") as s:
-                r = await s.get(url, params=params, timeout=10)
-                if r.status_code == 200:
-                    vacancies = self.parse_html(r.text)
-                    if vacancies:
-                        vacancies = vacancies[:limit]
-                        # Enrich with full descriptions via rpc/jobdescs
-                        jks = []
-                        for v in vacancies:
-                            for link in v.external_links:
-                                if "jk=" in link.direct_url:
-                                    jk_val = link.direct_url.split("jk=")[-1].split("&")[0]
-                                    jks.append(jk_val)
-                                    break
-                        if jks:
-                            try:
-                                rpc_url = f"{self.base_url}/rpc/jobdescs?jks={','.join(jks)}"
-                                rpc_resp = await s.get(rpc_url, timeout=8)
-                                if rpc_resp.status_code == 200:
-                                    desc_map = rpc_resp.json()
-                                    for v in vacancies:
-                                        for link in v.external_links:
-                                            if "jk=" in link.direct_url:
-                                                jk_val = link.direct_url.split("jk=")[-1].split("&")[0]
-                                                if jk_val in desc_map and desc_map[jk_val]:
-                                                    full_desc = self.sanitize_text(
-                                                        BeautifulSoup(desc_map[jk_val], "html.parser").get_text("\n", strip=True)
-                                                    )
-                                                    if len(full_desc) > len(v.description):
-                                                        v.description = full_desc
-                                                        v.skills = self.extract_skills(f"{v.title} {full_desc}")
-                                                        up_sen = self.classify_seniority_fast(v.title, full_desc)
-                                                        v.seniority_level = up_sen["seniority_level"]
-                                                        v.years_required_min = up_sen["years_required_min"]
-                                                        v.is_real_first_job = up_sen["is_real_first_job"]
-                                                        v.audit_status = up_sen["audit_status"]
-                                                        v.reasoning = up_sen["reasoning"]
-                                                        v.has_discrepancy = up_sen["has_discrepancy"]
-                                                break
-                            except Exception:
-                                pass
-                        return vacancies
-        except Exception:
-            pass
+        # Attempt with curl_cffi impersonating modern Chrome to bypass Cloudflare bot challenge.
+        # Includes a retry with short backoff to absorb cold-start connection/handshake drops.
+        for attempt in range(2):
+            try:
+                from curl_cffi.requests import AsyncSession
+                async with AsyncSession(impersonate="chrome") as s:
+                    r = await s.get(url, params=params, timeout=10)
+                    if r.status_code == 200:
+                        vacancies = self.parse_html(r.text)
+                        if vacancies:
+                            vacancies = vacancies[:limit]
+                            # Enrich with full descriptions via rpc/jobdescs
+                            jks = []
+                            for v in vacancies:
+                                for link in v.external_links:
+                                    if "jk=" in link.direct_url:
+                                        jk_val = link.direct_url.split("jk=")[-1].split("&")[0]
+                                        jks.append(jk_val)
+                                        break
+                            if jks:
+                                try:
+                                    rpc_url = f"{self.base_url}/rpc/jobdescs?jks={','.join(jks)}"
+                                    rpc_resp = await s.get(rpc_url, timeout=8)
+                                    if rpc_resp.status_code == 200:
+                                        desc_map = rpc_resp.json()
+                                        for v in vacancies:
+                                            for link in v.external_links:
+                                                if "jk=" in link.direct_url:
+                                                    jk_val = link.direct_url.split("jk=")[-1].split("&")[0]
+                                                    if jk_val in desc_map and desc_map[jk_val]:
+                                                        full_desc = self.sanitize_text(
+                                                            BeautifulSoup(desc_map[jk_val], "html.parser").get_text("\n", strip=True)
+                                                        )
+                                                        if len(full_desc) > len(v.description):
+                                                            v.description = full_desc
+                                                            v.skills = self.extract_skills(f"{v.title} {full_desc}")
+                                                            up_sen = self.classify_seniority_fast(v.title, full_desc)
+                                                            v.seniority_level = up_sen["seniority_level"]
+                                                            v.years_required_min = up_sen["years_required_min"]
+                                                            v.is_real_first_job = up_sen["is_real_first_job"]
+                                                            v.audit_status = up_sen["audit_status"]
+                                                            v.reasoning = up_sen["reasoning"]
+                                                            v.has_discrepancy = up_sen["has_discrepancy"]
+                                                    break
+                                except Exception:
+                                    pass
+                            return vacancies
+                    if attempt == 0:
+                        await asyncio.sleep(0.5)
+            except Exception:
+                if attempt == 0:
+                    await asyncio.sleep(0.5)
 
         # Fallback to standard fetch_html
         try:

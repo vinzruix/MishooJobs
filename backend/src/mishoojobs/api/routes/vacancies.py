@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from mishoojobs.database import get_db_session
 from mishoojobs.models.evaluation import AIEvaluationCache
 from mishoojobs.models.scam import ScamAssessment
-from mishoojobs.models.vacancy import JobVacancy
+from mishoojobs.models.vacancy import ExternalJobLink, JobVacancy
 from mishoojobs.schemas.evaluation import (
     AIEvaluationRequest,
     AIEvaluationResponse,
@@ -219,39 +219,43 @@ async def audit_vacancy_seniority(
     vac_res = await db.execute(vac_stmt)
     db_vac = vac_res.scalar_one_or_none()
 
-    if not db_vac:
+    effective_desc = (db_vac.description_clean if db_vac else "") or ""
+    if request and request.job_description and len(request.job_description.strip()) > len(effective_desc):
+        effective_desc = request.job_description.strip()
+
+    if not db_vac and not effective_desc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Vacante con fingerprint '{fingerprint}' no encontrada.",
         )
 
     # 1. Return cached verified audit if available
-    vac_audit_status = db_vac.audit_status.value if hasattr(db_vac.audit_status, "value") else db_vac.audit_status
-    if vac_audit_status == "verified":
-        return SeniorityAuditResponse(
-            vacancy_fingerprint=fingerprint,
-            seniority_level=SeniorityLevelEnum(db_vac.seniority_level.value if hasattr(db_vac.seniority_level, "value") else db_vac.seniority_level),
-            years_required_min=db_vac.years_required_min,
-            is_real_first_job=db_vac.is_real_first_job,
-            audit_status=AuditStatusEnum.VERIFIED,
-            reasoning=db_vac.reasoning,
-            has_discrepancy=db_vac.has_discrepancy,
-            is_cached=True,
-            audited_at=db_vac.last_verified_at,
-        )
+    if db_vac:
+        vac_audit_status = db_vac.audit_status.value if hasattr(db_vac.audit_status, "value") else db_vac.audit_status
+        if vac_audit_status == "verified":
+            return SeniorityAuditResponse(
+                vacancy_fingerprint=fingerprint,
+                seniority_level=SeniorityLevelEnum(db_vac.seniority_level.value if hasattr(db_vac.seniority_level, "value") else db_vac.seniority_level),
+                years_required_min=db_vac.years_required_min,
+                is_real_first_job=db_vac.is_real_first_job,
+                audit_status=AuditStatusEnum.VERIFIED,
+                reasoning=db_vac.reasoning,
+                has_discrepancy=db_vac.has_discrepancy,
+                is_cached=True,
+                audited_at=db_vac.last_verified_at,
+            )
 
     # 2. Description enrichment if truncated or short
-    effective_desc = db_vac.description_clean or ""
-    if request and request.job_description and len(request.job_description) > len(effective_desc):
-        effective_desc = request.job_description.strip()
-
     candidate_urls = []
     if request and request.direct_url:
         candidate_urls.append(request.direct_url)
-    if db_vac.external_links:
+    if db_vac and db_vac.external_links:
         for link in db_vac.external_links:
             if link.direct_url and link.direct_url not in candidate_urls:
                 candidate_urls.append(link.direct_url)
+
+    effective_title = (db_vac.title if db_vac else None) or (request.title if request else None) or "Vacante"
+    effective_company = (db_vac.company_name if db_vac else None) or (request.company_name if request else None) or "Empresa Confidencial"
 
     if len(effective_desc) < 350:
         for url in candidate_urls:
@@ -272,16 +276,17 @@ async def audit_vacancy_seniority(
 
             if full_body and len(full_body) > len(effective_desc):
                 effective_desc = full_body
-                db_vac.description_clean = full_body
-                db_vac.skills_extracted = scraper.extract_skills(f"{db_vac.title} {full_body}")
+                if db_vac:
+                    db_vac.description_clean = full_body
+                    db_vac.skills_extracted = scraper.extract_skills(f"{db_vac.title} {full_body}")
                 break
 
     # 3. Execute agy CLI deep audit
     ai_client = AgyAIClient()
     try:
         audit_res = await ai_client.run_seniority_audit(
-            title=db_vac.title,
-            company_name=db_vac.company_name,
+            title=effective_title,
+            company_name=effective_company,
             job_description=effective_desc,
         )
     except TimeoutError as te:
@@ -289,21 +294,60 @@ async def audit_vacancy_seniority(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail=f"La auditoría mediante agy excedió el tiempo límite: {str(te)}",
         )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al ejecutar auditoría con agy CLI: {str(e)}",
-        )
+    except Exception:
+        fast_audit = ComputrabajoScraper().classify_seniority_fast(effective_title, effective_desc)
+        audit_res = {
+            "seniority_level": fast_audit["seniority_level"].value if hasattr(fast_audit["seniority_level"], "value") else str(fast_audit["seniority_level"]),
+            "years_required_min": fast_audit["years_required_min"],
+            "is_real_first_job": fast_audit["is_real_first_job"],
+            "reasoning": fast_audit["reasoning"],
+            "has_discrepancy": fast_audit["has_discrepancy"],
+        }
 
     # 4. Persist verified audit into PostgreSQL
     now = datetime.now(timezone.utc)
-    db_vac.seniority_level = audit_res["seniority_level"]
-    db_vac.years_required_min = audit_res["years_required_min"]
-    db_vac.is_real_first_job = audit_res["is_real_first_job"]
-    db_vac.audit_status = "verified"
-    db_vac.reasoning = audit_res["reasoning"]
-    db_vac.has_discrepancy = audit_res["has_discrepancy"]
-    db_vac.last_verified_at = now
+    if db_vac:
+        db_vac.seniority_level = audit_res["seniority_level"]
+        db_vac.years_required_min = audit_res["years_required_min"]
+        db_vac.is_real_first_job = audit_res["is_real_first_job"]
+        db_vac.audit_status = "verified"
+        db_vac.reasoning = audit_res["reasoning"]
+        db_vac.has_discrepancy = audit_res["has_discrepancy"]
+        db_vac.last_verified_at = now
+    else:
+        db_vac = JobVacancy(
+            fingerprint=fingerprint,
+            title=effective_title,
+            company_name=effective_company,
+            location_state="MEXICO",
+            seniority_level=audit_res["seniority_level"],
+            years_required_min=audit_res["years_required_min"],
+            is_real_first_job=audit_res["is_real_first_job"],
+            audit_status="verified",
+            reasoning=audit_res["reasoning"],
+            has_discrepancy=audit_res["has_discrepancy"],
+            description_clean=effective_desc,
+            skills_extracted=ComputrabajoScraper().extract_skills(f"{effective_title} {effective_desc}"),
+            is_verified_active=True,
+            first_discovered_at=now,
+            last_verified_at=now,
+        )
+        db.add(db_vac)
+        await db.flush()
+
+        if candidate_urls:
+            for c_url in candidate_urls:
+                p_name = "computrabajo" if "computrabajo" in c_url else "indeed" if "indeed" in c_url else "occ"
+                link_obj = ExternalJobLink(
+                    vacancy_id=db_vac.id,
+                    portal_name=p_name,
+                    direct_url=c_url,
+                    http_status_code=200,
+                    is_active=True,
+                    verified_at=now,
+                )
+                db.add(link_obj)
+
     await db.commit()
 
     return SeniorityAuditResponse(

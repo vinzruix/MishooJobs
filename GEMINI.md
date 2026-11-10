@@ -179,3 +179,4 @@ When implementing tasks or modifying this codebase:
 - [005] Calibrate Modern Executive template and print canvas threshold buffer (1080px) to guarantee strict single-page Letter rendering.
 - [005] Scale Technical High-Density photo container to 96x96px (w-24 h-24) to align proportionally with full header text span.
 - [005] Immediately close Master Profile Editor modal on successful IndexedDB save.
+- [vacancy-fingerprint-not-found] Progressive SSE stream batch persistence to PostgreSQL, resilient on-demand vacancy audit fallback without 404, and Indeed scraper connection retry with backoff.

@@ -34,6 +34,35 @@ export function VacancyDetailModal({
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditError, setAuditError] = useState<string | null>(null);
 
+  // Perform or retry seniority audit
+  const performAudit = () => {
+    if (!vacancy) return;
+    setIsAuditing(true);
+    setAuditError(null);
+    auditVacancy(
+      vacancy.fingerprint,
+      vacancy.external_links?.[0]?.direct_url,
+      vacancy.description,
+      vacancy.title,
+      vacancy.company_name
+    )
+      .then((res) => {
+        setAuditResult(res);
+        vacancy.seniority_level = res.seniority_level;
+        vacancy.years_required_min = res.years_required_min;
+        vacancy.is_real_first_job = res.is_real_first_job;
+        vacancy.audit_status = res.audit_status;
+        vacancy.reasoning = res.reasoning;
+        vacancy.has_discrepancy = res.has_discrepancy;
+      })
+      .catch((err) => {
+        setAuditError(err instanceof Error ? err.message : "Error al auditar experiencia.");
+      })
+      .finally(() => {
+        setIsAuditing(false);
+      });
+  };
+
   // Sync state whenever vacancy or cachedEvaluation changes
   useEffect(() => {
     setEvaluation(cachedEvaluation || null);
@@ -42,27 +71,7 @@ export function VacancyDetailModal({
     setAuditError(null);
 
     if (vacancy && vacancy.audit_status === "preliminary") {
-      setIsAuditing(true);
-      auditVacancy(
-        vacancy.fingerprint,
-        vacancy.external_links?.[0]?.direct_url,
-        vacancy.description
-      )
-        .then((res) => {
-          setAuditResult(res);
-          vacancy.seniority_level = res.seniority_level;
-          vacancy.years_required_min = res.years_required_min;
-          vacancy.is_real_first_job = res.is_real_first_job;
-          vacancy.audit_status = res.audit_status;
-          vacancy.reasoning = res.reasoning;
-          vacancy.has_discrepancy = res.has_discrepancy;
-        })
-        .catch((err) => {
-          setAuditError(err instanceof Error ? err.message : "Error al auditar experiencia.");
-        })
-        .finally(() => {
-          setIsAuditing(false);
-        });
+      performAudit();
     } else if (vacancy && vacancy.audit_status === "verified") {
       setAuditResult({
         vacancy_fingerprint: vacancy.fingerprint,
@@ -236,8 +245,15 @@ export function VacancyDetailModal({
           )}
 
           {auditError && (
-            <div className="p-2.5 rounded bg-rose-950/40 border border-rose-800 text-[11px] text-rose-300">
-              {auditError}
+            <div className="p-2.5 rounded bg-rose-950/40 border border-rose-800 text-[11px] text-rose-300 flex items-center justify-between gap-2">
+              <span className="truncate">{auditError}</span>
+              <button
+                type="button"
+                onClick={performAudit}
+                className="px-2 py-0.5 rounded bg-rose-900/50 hover:bg-rose-900 text-rose-200 border border-rose-700 font-mono text-[10px] transition-colors flex-shrink-0"
+              >
+                Reintentar
+              </button>
             </div>
           )}
 

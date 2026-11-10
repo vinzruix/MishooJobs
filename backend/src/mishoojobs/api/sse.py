@@ -1,9 +1,12 @@
 import asyncio
 import json
+import logging
 import time
 from typing import AsyncGenerator, List
-from sqlalchemy import case
+from sqlalchemy import case, select
 from sqlalchemy.dialects.postgresql import insert
+
+logger = logging.getLogger(__name__)
 
 from mishoojobs.database import async_session_factory
 from mishoojobs.models.scam import ScamAssessment
@@ -98,29 +101,39 @@ async def persist_vacancies_safe(vacancies: List[VacancyDTO]) -> None:
 
                 if vac_id:
                     if v.scam_report:
-                        scam_stmt = insert(ScamAssessment).values(
-                            vacancy_fingerprint=v.fingerprint,
-                            risk_level=v.scam_report.risk_level.value,
-                            risk_categories=v.scam_report.risk_categories,
-                            matched_indicators=v.scam_report.matched_indicators,
-                            badge_label=v.scam_report.badge_label,
-                            explanation=v.scam_report.explanation,
+                        existing_scam = await session.execute(
+                            select(ScamAssessment.id).where(ScamAssessment.vacancy_fingerprint == v.fingerprint)
                         )
-                        await session.execute(scam_stmt)
+                        if not existing_scam.scalar_one_or_none():
+                            scam_stmt = insert(ScamAssessment).values(
+                                vacancy_fingerprint=v.fingerprint,
+                                risk_level=v.scam_report.risk_level.value,
+                                risk_categories=v.scam_report.risk_categories,
+                                matched_indicators=v.scam_report.matched_indicators,
+                                badge_label=v.scam_report.badge_label,
+                                explanation=v.scam_report.explanation,
+                            )
+                            await session.execute(scam_stmt)
+
+                    existing_links_res = await session.execute(
+                        select(ExternalJobLink.direct_url).where(ExternalJobLink.vacancy_id == vac_id)
+                    )
+                    existing_urls = set(existing_links_res.scalars().all())
 
                     for link in v.external_links:
-                        link_stmt = insert(ExternalJobLink).values(
-                            vacancy_id=vac_id,
-                            portal_name=link.portal_name.value,
-                            direct_url=link.direct_url,
-                            http_status_code=link.http_status_code or 200,
-                            is_active=link.is_active,
-                        )
-                        await session.execute(link_stmt)
+                        if link.direct_url not in existing_urls:
+                            link_stmt = insert(ExternalJobLink).values(
+                                vacancy_id=vac_id,
+                                portal_name=link.portal_name.value,
+                                direct_url=link.direct_url,
+                                http_status_code=link.http_status_code or 200,
+                                is_active=link.is_active,
+                            )
+                            await session.execute(link_stmt)
+                            existing_urls.add(link.direct_url)
             await session.commit()
-    except Exception:
-        # DB persistence is non-blocking to live search delivery
-        pass
+    except Exception as e:
+        logger.warning(f"Error persisting vacancies safe: {e}")
 
 async def job_search_stream_generator(params: SearchParams) -> AsyncGenerator[str, None]:
     """Concurrent multi-portal streaming generator yielding SSE events in real-time."""
@@ -229,6 +242,7 @@ async def job_search_stream_generator(params: SearchParams) -> AsyncGenerator[st
         # Emit batch if vacancies found
         if deduped_portal_vacs:
             all_extracted_vacancies.extend(deduped_portal_vacs)
+            asyncio.create_task(persist_vacancies_safe(deduped_portal_vacs))
             yield format_sse(
                 "vacancy_batch",
                 {

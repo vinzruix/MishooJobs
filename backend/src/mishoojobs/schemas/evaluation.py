@@ -14,6 +14,8 @@ class SeniorityAuditRequest(BaseModel):
     vacancy_fingerprint: Optional[str] = Field(default=None, max_length=64, description="Fingerprint hash of the target vacancy")
     direct_url: Optional[str] = Field(default=None, description="Direct URL of the vacancy posting")
     job_description: Optional[str] = Field(default=None, description="Job description text if already loaded on client")
+    title: Optional[str] = Field(default=None, max_length=255, description="Vacancy job title")
+    company_name: Optional[str] = Field(default=None, max_length=255, description="Hiring company name")
 
 class SeniorityAuditResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
