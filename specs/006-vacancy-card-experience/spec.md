@@ -8,20 +8,26 @@
 
 **Input**: User description: "When a user is watching the vacancy cards, has to see the details to know the years of experiencie required, ADD IN EACH CARD THE SPECIFIC NUMBER OF EXPERIENCIE REQUIRED. DO NOT DO ANYTHING ELSE"
 
+## Clarifications
+
+### Session 2026-11-13
+- Q: Where on the vacancy card should the specific number of years of experience required be displayed? (FR-004) → A: Option A (Metadata Row): Display as a dedicated item in the card metadata row alongside Location, Salary, and Publication Date with an icon (e.g., briefcase) formatted as "X años de exp" (or "1 año de exp").
+- Q: Should the specific experience requirement be added strictly to search feed vacancy cards, or also to saved application cards in the Pipeline View? (FR-006) → A: Option A (Strictly Search Feed Cards): Add the experience requirement exclusively to the main search results vacancy cards (`VacancyCard.tsx`), leaving Pipeline View cards untouched in strict alignment with the "DO NOT DO ANYTHING ELSE" directive.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Instant Visibility of Required Experience on Every Vacancy Card (Priority: P1)
 
-As a candidate scanning through job search results, I want each vacancy card to explicitly show the exact minimum number of years of experience required (e.g., 0 años, 1 año, 2 años, 5 años) directly in the card preview, so that I can immediately determine whether I qualify for the role without having to open the details modal for every listing.
+As a candidate scanning through job search results, I want each search feed vacancy card to explicitly show the exact minimum number of years of experience required (e.g., 0 años, 1 año, 2 años, 5 años) directly in the card preview metadata row, so that I can immediately determine whether I qualify for the role without having to open the details modal for every listing.
 
 **Why this priority**: Core value proposition and the explicit goal requested by the user. Opening modals to check experience requirements creates significant friction and slows down candidate review. Displaying the exact number directly on each card provides immediate clarity and high-efficiency scanning.
 
-**Independent Test**: Conduct a search or browse the vacancy feed. Inspect the visible vacancy cards on screen without clicking on any of them. Verify that each card displays its specific numerical experience requirement (e.g., "0 años de exp", "1 año de exp", "3 años de exp") in its metadata row or badge area.
+**Independent Test**: Conduct a search or browse the vacancy feed. Inspect the visible vacancy cards on screen without clicking on any of them. Verify that each card displays its specific numerical experience requirement (e.g., "0 años de exp", "1 año de exp", "3 años de exp") in its metadata row beside location, salary, and date.
 
 **Acceptance Scenarios**:
 
-1. **Given** a feed of active vacancy cards with varying experience levels, **When** the candidate views the search results, **Then** every single vacancy card visibly displays the specific minimum years of experience required.
-2. **Given** a vacancy requiring zero years of commercial experience (such as first-job or internship listings), **When** rendered on the card, **Then** the card explicitly displays "0 años de exp" (or "0 años exp").
+1. **Given** a feed of active vacancy cards with varying experience levels, **When** the candidate views the search results, **Then** every single vacancy card visibly displays the specific minimum years of experience required in its metadata row.
+2. **Given** a vacancy requiring zero years of commercial experience (such as first-job or internship listings), **When** rendered on the card, **Then** the card explicitly displays "0 años de exp".
 3. **Given** a vacancy requiring exactly 1 year of commercial experience, **When** rendered on the card, **Then** the card displays "1 año de exp" (singular, grammatically correct).
 4. **Given** a vacancy requiring 2 or more years of commercial experience, **When** rendered on the card, **Then** the card displays the specific number followed by the plural label (e.g., "2 años de exp", "3 años de exp", "5+ años de exp").
 5. **Given** a candidate browsing results, **When** looking strictly at the closed card, **Then** the candidate can identify the experience requirement without opening the vacancy detail modal or performing hover interactions.
@@ -76,13 +82,13 @@ As a user browsing on mobile or desktop devices, I want the experience requireme
 - **FR-001**: Every vacancy card rendered in the search results and job feeds MUST visibly display the specific minimum number of years of commercial work experience required.
 - **FR-002**: The experience requirement MUST display the exact numeric figure (e.g., 0, 1, 2, 3, 5) directly in the card view, requiring zero click or hover interactions.
 - **FR-003**: The experience requirement indicator MUST be accompanied by an intuitive visual icon and concise, localized Spanish text adhering to correct grammatical agreement ("0 años de exp", "1 año de exp", "N años de exp").
-- **FR-004**: The experience requirement MUST be positioned consistently across all vacancy cards within the primary metadata section (alongside location, salary, and publication date).
+- **FR-004**: The experience requirement MUST be positioned consistently across all vacancy cards within the primary metadata section alongside location, salary, and publication date, paired with a dedicated icon (e.g., briefcase) to maintain clear visual scanning and avoid cluttering top status badges.
 - **FR-005**: When a vacancy's experience requirement is updated via inspection or background verification, the displayed card MUST reflect the audited value in real time.
-- **FR-006**: In strict compliance with the project instruction ("DO NOT DO ANYTHING ELSE"), this feature MUST NOT introduce new filter dropdowns, navigation sidebars, candidate profile modifications, or unrelated redesigns.
+- **FR-006**: In strict compliance with the project instruction ("DO NOT DO ANYTHING ELSE"), this feature MUST be applied exclusively to search feed vacancy cards (`VacancyCard.tsx`), leaving pipeline tracking cards, filter controls, navigation sidebars, and candidate profiles completely untouched.
 
 ### Key Entities
 
-- **Vacancy Card**: The primary visual preview unit displaying key role attributes (title, company, location, salary, publication time, modality, seniority, and required experience) in the job feed.
+- **Vacancy Card**: The primary visual preview unit displaying key role attributes (title, company, location, salary, publication time, modality, seniority, and required experience) in the search feed.
 - **Experience Requirement**: The specific integer value representing the minimum commercial years of experience demanded for a vacancy, rendered as a localized label.
 
 ## Success Criteria *(mandatory)*
@@ -100,4 +106,4 @@ As a user browsing on mobile or desktop devices, I want the experience requireme
 - Each vacancy record already contains an extracted non-negative integer representing the minimum years of required experience (`years_required_min >= 0`).
 - The experience requirement will be rendered in the vacancy card metadata row accompanied by a subtle icon, maintaining the established zinc-mono aesthetic.
 - No backend database schema changes or scraping contract changes are required, as the numerical field is already populated by existing classifiers.
-- The scope is strictly limited to adding the specific experience requirement to each vacancy card, without modifying unrelated components or user flows.
+- The scope is strictly limited to adding the specific experience requirement to search feed vacancy cards (`VacancyCard.tsx`), without modifying Pipeline View cards or unrelated components.
