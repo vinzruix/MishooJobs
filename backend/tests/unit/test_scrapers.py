@@ -191,3 +191,103 @@ async def test_indeed_search_retry_on_initial_failure(indeed_html):
         results = await scraper.search("python", limit=5)
         assert len(results) > 0
         assert mock_session_cls.call_count == 2
+
+def test_occ_parser_split_grid_without_anchor_uses_jobid():
+    scraper = OCCScraper()
+    split_grid_html = """
+    <html><body>
+      <ul>
+        <li class="vacancy-card mb-2" id="jobcard-21390143" data-id="21390143" data-vacancy-card="">
+          <div class="vacancy-card__body" role="button" tabindex="0">
+            <div class="vacancy-card__header">
+              <p class="vacancy-card__company-text">Grupo Salinas</p>
+            </div>
+            <div class="vacancy-card__info">
+              <h2 class="vacancy-card__title">Desarrollador Python Jr</h2>
+              <p class="vacancy-card__salary">$ 18,000 Mensual</p>
+              <p class="vacancy-card__location">
+                <span>Ciudad de México</span>
+                <span>Hace 2 días</span>
+              </p>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </body></html>
+    """
+    vacancies = scraper.parse_html(split_grid_html)
+    assert len(vacancies) == 1
+    v = vacancies[0]
+    assert v.title == "Desarrollador Python Jr"
+    assert v.company_name == "Grupo Salinas"
+    assert len(v.external_links) == 1
+    assert v.external_links[0].direct_url == "https://www.occ.com.mx/empleos/?jobid=21390143"
+    assert "/empleo/oferta/" not in v.external_links[0].direct_url
+    assert v.salary_min == 18000.0
+    assert v.published_at is not None
+
+@pytest.mark.asyncio
+async def test_occ_search_enriches_from_offer_json_endpoint(monkeypatch):
+    import httpx
+    scraper = OCCScraper()
+    split_grid_html = """
+    <html><body>
+      <ul>
+        <li class="vacancy-card" id="jobcard-21399716" data-id="21399716" data-vacancy-card="">
+          <div class="vacancy-card__body" role="button" tabindex="0">
+            <p class="vacancy-card__company-text">SER-ES</p>
+            <h2 class="vacancy-card__title">DESARROLLADOR JR</h2>
+            <p class="vacancy-card__salary">$ 15,000 Mensual</p>
+            <p class="vacancy-card__location"><span>Monterrey, Nuevo León</span><span>Hace 4 días</span></p>
+          </div>
+        </li>
+      </ul>
+    </body></html>
+    """
+
+    async def mock_fetch_html(self, url, params=None):
+        return split_grid_html
+
+    requested_urls = []
+
+    async def mock_get(client, url, **kwargs):
+        requested_urls.append(url)
+        req = httpx.Request("GET", url)
+        return httpx.Response(
+            200,
+            json={"o": {"ld": "<p>Desarrollo backend con <strong>Python</strong>, FastAPI, Docker y SQL.</p>"}},
+            request=req,
+        )
+
+    monkeypatch.setattr(OCCScraper, "fetch_html", mock_fetch_html)
+    monkeypatch.setattr(httpx.AsyncClient, "get", mock_get)
+
+    results = await scraper.search("desarrollador", limit=5)
+    assert len(results) == 1
+    v = results[0]
+    assert v.external_links[0].direct_url == "https://www.occ.com.mx/empleos/?jobid=21399716"
+    assert requested_urls == ["https://oferta.occ.com.mx/offer/21399716/d/j?ipo=41&iapo=1"]
+    assert "FastAPI" in v.description
+    assert "Python" in v.skills and "Docker" in v.skills
+
+@pytest.mark.asyncio
+async def test_occ_fetch_full_description_from_jobid_and_legacy_url(monkeypatch):
+    import httpx
+    scraper = OCCScraper()
+
+    async def mock_get(client, url, **kwargs):
+        req = httpx.Request("GET", url)
+        if "oferta.occ.com.mx/offer/21399716/" in url:
+            return httpx.Response(
+                200,
+                json={"o": {"ld": "<p>Vacante activa con <b>PostgreSQL</b> y <i>Git</i>.</p>"}},
+                request=req,
+            )
+        return httpx.Response(404, request=req)
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", mock_get)
+
+    desc_jobid = await scraper.fetch_full_description("https://www.occ.com.mx/empleos/?jobid=21399716")
+    desc_legacy = await scraper.fetch_full_description("https://www.occ.com.mx/empleo/oferta/21399716-desarrollador-jr")
+    assert desc_jobid == "Vacante activa con PostgreSQL y Git ."
+    assert desc_legacy == desc_jobid

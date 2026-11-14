@@ -197,4 +197,12 @@ describe("App Hide Applied localStorage and URL Isolation Tests", () => {
     expect(window.location.search).not.toContain("hide_applied");
     expect(window.location.search).not.toContain("mishoojobs_hide_applied");
   });
+
+  it("marks app footer as non-printable so it never leaks into downloaded CV PDFs", () => {
+    render(<App />);
+
+    const footer = screen.getByText(/MishooJobs • Desarrollado para juniors y estudiantes en México/);
+    expect(footer).toHaveClass("no-print");
+    expect(footer).toHaveClass("print:hidden");
+  });
 });

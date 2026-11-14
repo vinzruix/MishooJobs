@@ -342,3 +342,78 @@ def test_generate_role_cv_incomplete_profile_raises_422():
     }
     response = client.post("/cv/generate-role", json=payload)
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_agy_ai_client_hydrates_certificate_urls_on_generation(sample_master_profile_dict: dict):
+    """Test generate_tailored_cv and generate_role_cv hydrate certificate URLs from Master Profile and strip unsafe URLs."""
+    import json
+
+    ai_client = AgyAIClient()
+    mock_ai_payload = {
+        "ats_match_score": 91,
+        "curation_notes": "Curado",
+        "content": {
+            "header": {
+                "full_name": "Santiago Mendoza Ruiz",
+                "headline": "Backend Junior",
+                "email": "santiago@ejemplo.com",
+                "phone": "+52 55 1234 5678",
+                "location": "CDMX",
+                "links": [],
+                "about_me": "Bio",
+            },
+            "skills_categorized": {"Backend": ["Python"]},
+            "languages": [],
+            "experience": [],
+            "projects": [],
+            "education": [],
+            "certificates": [
+                {
+                    "name": "aws certified cloud practitioner",
+                    "issuer": "Amazon Web Services",
+                    "date": "Mar 2024",
+                },
+                {
+                    "name": "Malicious Cert",
+                    "issuer": "Evil",
+                    "date": "2025",
+                    "url": "javascript:alert(1)",
+                },
+                {
+                    "name": "WWW Cert",
+                    "issuer": "Udemy",
+                    "date": "2026",
+                    "url": "www.udemy.com/certificate/UC-123/",
+                },
+            ],
+            "logros_academicos": [],
+        },
+    }
+
+    with patch.object(ai_client, "_run_cli_subprocess", new_callable=AsyncMock) as mock_run:
+        mock_run.return_value = (json.dumps({"response": mock_ai_payload}), "")
+
+        tailored = await ai_client.generate_tailored_cv(
+            master_profile=sample_master_profile_dict,
+            vacancy_title="Backend Python",
+            vacancy_company="Empresa MX",
+            job_description="FastAPI y AWS",
+        )
+        sent_prompt = mock_run.call_args_list[0].args[0]
+        assert '"url": "..."' in sent_prompt
+
+        certs = tailored["content"]["certificates"]
+        assert certs[0]["url"] == "https://aws.amazon.com/verification"
+        assert "url" not in certs[1]
+        assert certs[2]["url"] == "https://www.udemy.com/certificate/UC-123/"
+
+        role_res = await ai_client.generate_role_cv(
+            master_profile=sample_master_profile_dict,
+            target_role_title="Cloud Backend",
+        )
+        role_prompt = mock_run.call_args_list[1].args[0]
+        assert '"url": "..."' in role_prompt
+        assert role_res["content"]["certificates"][0]["url"] == "https://aws.amazon.com/verification"
+        assert "url" not in role_res["content"]["certificates"][1]
+        assert role_res["content"]["certificates"][2]["url"] == "https://www.udemy.com/certificate/UC-123/"

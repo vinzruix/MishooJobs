@@ -104,7 +104,8 @@
         "properties": {
           "name": { "type": "string" },
           "issuer": { "type": "string" },
-          "date": { "type": "string" }
+          "date": { "type": "string" },
+          "url": { "type": "string" }
         }
       }
     },

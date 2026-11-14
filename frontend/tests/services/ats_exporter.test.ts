@@ -57,6 +57,7 @@ const sampleCV: GeneratedCVContent = {
       name: "AWS Certified Cloud Practitioner",
       issuer: "Amazon Web Services",
       date: "Mar 2024",
+      url: "https://aws.amazon.com/verification",
     },
   ],
   logros_academicos: [
@@ -83,6 +84,9 @@ describe("ats_exporter", () => {
 
     // Contact info
     expect(plainText).toContain("santiago@ejemplo.com | +52 55 1234 5678 | Ciudad de México, México");
+    expect(plainText).toContain(
+      "AWS Certified Cloud Practitioner - Amazon Web Services (Mar 2024) (https://aws.amazon.com/verification)",
+    );
 
     // Bullet points with dash
     expect(plainText).toContain("- Diseñé 6 endpoints REST reduciendo latencia en 25%.");
@@ -101,5 +105,8 @@ describe("ats_exporter", () => {
     expect(mdText).toContain("## Resumen Profesional");
     expect(mdText).toContain("## Experiencia Laboral");
     expect(mdText).toContain("[GitHub](https://github.com/smendoza)");
+    expect(mdText).toContain(
+      "- **[AWS Certified Cloud Practitioner](https://aws.amazon.com/verification)** - Amazon Web Services (Mar 2024)",
+    );
   });
 });

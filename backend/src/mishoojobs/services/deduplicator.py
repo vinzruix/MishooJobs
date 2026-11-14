@@ -5,7 +5,11 @@ from typing import Dict, List, NamedTuple, Tuple
 from pydantic import BaseModel, Field
 
 from mishoojobs.schemas.job import VacancyDTO
-from mishoojobs.services.scrapers.base import MEXICAN_STATE_MAP, is_generic_company
+from mishoojobs.services.scrapers.base import (
+    MEXICAN_STATE_MAP,
+    clean_disambiguator_url,
+    is_generic_company,
+)
 
 class DeduplicationSummary(BaseModel):
     total_extracted: int = Field(default=0, ge=0)
@@ -51,7 +55,7 @@ class CrossPortalDeduplicator:
         norm_state = self.normalize_state(location_state)
 
         if is_generic_company(norm_company) and disambiguator:
-            clean_disambiguator = self.normalize_string(disambiguator.split("#")[0].split("?")[0])
+            clean_disambiguator = self.normalize_string(clean_disambiguator_url(disambiguator))
             raw_key = f"{norm_company}:{norm_title}:{norm_state}:{clean_disambiguator}"
         else:
             raw_key = f"{norm_company}:{norm_title}:{norm_state}"
