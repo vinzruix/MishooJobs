@@ -47,6 +47,7 @@ describe("Frontend Component Tests", () => {
     expect(screen.getByText("Desarrollador Python Junior")).toBeInTheDocument();
     expect(screen.getByText("Tech Solutions MX")).toBeInTheDocument();
     expect(screen.getByText(/15,000/)).toBeInTheDocument();
+    expect(screen.getByText("1 año de exp")).toBeInTheDocument();
     expect(screen.getByText("85% Match")).toBeInTheDocument();
     expect(screen.getByText("[ JR ]")).toBeInTheDocument();
 
@@ -212,5 +213,77 @@ describe("Frontend Component Tests", () => {
     );
 
     expect(screen.getByText("[ 0 EXP ]")).toBeInTheDocument();
+  });
+
+  it("renders '0 años de exp' for vacancies with 0 years experience required", () => {
+    const zeroExpVacancy: JobVacancy = {
+      ...sampleVacancy,
+      years_required_min: 0,
+    };
+
+    render(
+      <VacancyCard
+        vacancy={zeroExpVacancy}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("0 años de exp")).toBeInTheDocument();
+  });
+
+  it("renders '3 años de exp' and '5 años de exp' for multiple years of experience required", () => {
+    const midVacancy: JobVacancy = {
+      ...sampleVacancy,
+      seniority_level: "mid",
+      years_required_min: 3,
+    };
+
+    const { rerender } = render(
+      <VacancyCard
+        vacancy={midVacancy}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("3 años de exp")).toBeInTheDocument();
+
+    const seniorVacancy: JobVacancy = {
+      ...sampleVacancy,
+      seniority_level: "senior",
+      years_required_min: 5,
+    };
+
+    rerender(
+      <VacancyCard
+        vacancy={seniorVacancy}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("5 años de exp")).toBeInTheDocument();
+  });
+
+  it("renders experience requirement with Briefcase icon and font-mono text styling", () => {
+    const expVacancy: JobVacancy = {
+      ...sampleVacancy,
+      years_required_min: 2,
+    };
+
+    const { container } = render(
+      <VacancyCard
+        vacancy={expVacancy}
+        onInspect={vi.fn()}
+      />
+    );
+
+    const expText = screen.getByText("2 años de exp");
+    expect(expText).toBeInTheDocument();
+
+    const expContainer = expText.parentElement;
+    expect(expContainer).toHaveClass("flex", "items-center", "gap-1", "text-zinc-300", "font-mono", "text-xs");
+
+    const briefcaseIcon = container.querySelector(".lucide-briefcase");
+    expect(briefcaseIcon).toBeInTheDocument();
+    expect(briefcaseIcon).toHaveClass("w-3.5", "h-3.5", "text-zinc-500");
   });
 });

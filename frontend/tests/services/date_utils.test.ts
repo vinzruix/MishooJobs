@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateTimeframeCount,
   filterVacanciesByTimeframes,
+  formatExperienceRequired,
   formatMexicanRelativeTime,
   isNewVacancy,
   parseTimeframesFromQuery,
@@ -238,6 +239,29 @@ describe("date_utils", () => {
     it("omits parameter (returns null) when 'all' is active or empty", () => {
       expect(serializeTimeframesToQuery(["all"])).toBeNull();
       expect(serializeTimeframesToQuery([])).toBeNull();
+    });
+  });
+
+  describe("formatExperienceRequired", () => {
+    it("formats 0 years as '0 años de exp'", () => {
+      expect(formatExperienceRequired(0)).toBe("0 años de exp");
+    });
+
+    it("formats 1 year with singular noun as '1 año de exp'", () => {
+      expect(formatExperienceRequired(1)).toBe("1 año de exp");
+    });
+
+    it("formats 2 or more years with plural noun as 'N años de exp'", () => {
+      expect(formatExperienceRequired(2)).toBe("2 años de exp");
+      expect(formatExperienceRequired(3)).toBe("3 años de exp");
+      expect(formatExperienceRequired(5)).toBe("5 años de exp");
+      expect(formatExperienceRequired(10)).toBe("10 años de exp");
+    });
+
+    it("gracefully normalizes negative, null, or undefined values to '0 años de exp'", () => {
+      expect(formatExperienceRequired(-1)).toBe("0 años de exp");
+      expect(formatExperienceRequired(null)).toBe("0 años de exp");
+      expect(formatExperienceRequired(undefined)).toBe("0 años de exp");
     });
   });
 });

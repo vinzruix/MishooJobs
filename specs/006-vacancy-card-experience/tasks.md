@@ -11,7 +11,7 @@
 
 **Purpose**: Verify frontend workspace environment and test baseline.
 
-- [ ] T001 Verify frontend test suite baseline passes offline via `npm test -- --run` from `frontend/`
+- [x] T001 Verify frontend test suite baseline passes offline via `npm test -- --run` from `frontend/`
 
 ---
 
@@ -21,8 +21,8 @@
 
 **⚠️ CRITICAL**: Must be completed before UI integration.
 
-- [ ] T002 Implement `formatExperienceRequired(years: number): string` utility in `frontend/src/services/date_utils.ts` adhering strictly to Mexican Spanish grammatical rules (`years <= 0` → `"0 años de exp"`, `years === 1` → `"1 año de exp"`, `years >= 2` → `${years} años de exp`)
-- [ ] T003 [P] Add unit test suite for `formatExperienceRequired` in `frontend/tests/services/date_utils.test.ts` testing 0 years, 1 year, and multiple years
+- [x] T002 Implement `formatExperienceRequired(years: number): string` utility in `frontend/src/services/date_utils.ts` adhering strictly to Mexican Spanish grammatical rules (`years <= 0` → `"0 años de exp"`, `years === 1` → `"1 año de exp"`, `years >= 2` → `${years} años de exp`)
+- [x] T003 [P] Add unit test suite for `formatExperienceRequired` in `frontend/tests/services/date_utils.test.ts` testing 0 years, 1 year, and multiple years
 
 **Checkpoint**: Foundation ready — UI integration and component testing can proceed.
 
@@ -36,12 +36,12 @@
 
 ### Tests for User Story 1
 
-- [ ] T004 [US1] Update `frontend/tests/components/VacancyCard.test.tsx` to assert that `VacancyCard` renders `"1 año de exp"` when `years_required_min: 1`
+- [x] T004 [US1] Update `frontend/tests/components/VacancyCard.test.tsx` to assert that `VacancyCard` renders `"1 año de exp"` when `years_required_min: 1`
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Import `Briefcase` from `lucide-react` and `formatExperienceRequired` from `../services/date_utils` in `frontend/src/components/VacancyCard.tsx`
-- [ ] T006 [US1] Render experience metadata item with `Briefcase` icon and formatted text in `frontend/src/components/VacancyCard.tsx` metadata row between Salary and Relative Time per `specs/006-vacancy-card-experience/contracts/ui-contracts.md`
+- [x] T005 [US1] Import `Briefcase` from `lucide-react` and `formatExperienceRequired` from `../services/date_utils` in `frontend/src/components/VacancyCard.tsx`
+- [x] T006 [US1] Render experience metadata item with `Briefcase` icon and formatted text in `frontend/src/components/VacancyCard.tsx` metadata row between Salary and Relative Time per `specs/006-vacancy-card-experience/contracts/ui-contracts.md`
 
 **Checkpoint**: User Story 1 is functional and testable independently as the MVP increment.
 
@@ -55,8 +55,8 @@
 
 ### Tests & Implementation for User Story 2
 
-- [ ] T007 [P] [US2] Add component test in `frontend/tests/components/VacancyCard.test.tsx` verifying that a vacancy with `years_required_min: 0` renders `"0 años de exp"`
-- [ ] T008 [P] [US2] Add component test in `frontend/tests/components/VacancyCard.test.tsx` verifying that a vacancy with `years_required_min: 3` renders `"3 años de exp"` and `years_required_min: 5` renders `"5 años de exp"`
+- [x] T007 [P] [US2] Add component test in `frontend/tests/components/VacancyCard.test.tsx` verifying that a vacancy with `years_required_min: 0` renders `"0 años de exp"`
+- [x] T008 [P] [US2] Add component test in `frontend/tests/components/VacancyCard.test.tsx` verifying that a vacancy with `years_required_min: 3` renders `"3 años de exp"` and `years_required_min: 5` renders `"5 años de exp"`
 
 **Checkpoint**: User Stories 1 and 2 are fully verified with 100% linguistic coverage.
 
@@ -70,8 +70,8 @@
 
 ### Implementation & Verification for User Story 3
 
-- [ ] T009 [US3] Verify that the metadata container classes (`flex flex-wrap items-center gap-y-1 gap-x-3 text-xs text-zinc-400 mb-3`) in `frontend/src/components/VacancyCard.tsx` allow graceful multi-line wrapping on mobile viewports without pushing action buttons outside card boundaries
-- [ ] T010 [US3] Add a component test in `frontend/tests/components/VacancyCard.test.tsx` validating that the experience metadata element includes `font-mono text-xs text-zinc-300` styling and contains the `lucide-briefcase` icon
+- [x] T009 [US3] Verify that the metadata container classes (`flex flex-wrap items-center gap-y-1 gap-x-3 text-xs text-zinc-400 mb-3`) in `frontend/src/components/VacancyCard.tsx` allow graceful multi-line wrapping on mobile viewports without pushing action buttons outside card boundaries
+- [x] T010 [US3] Add a component test in `frontend/tests/components/VacancyCard.test.tsx` validating that the experience metadata element includes `font-mono text-xs text-zinc-300` styling and contains the `lucide-briefcase` icon
 
 **Checkpoint**: All three user stories are functionally and visually complete.
 
@@ -81,9 +81,9 @@
 
 **Purpose**: End-to-end test verification and architectural conventions documentation.
 
-- [ ] T011 Run complete frontend test suite offline via `npm test -- --run` from `frontend/` to ensure zero regressions
-- [ ] T012 Validate end-to-end verification checklist defined in `specs/006-vacancy-card-experience/quickstart.md`
-- [ ] T013 Update [`GEMINI.md`](file:///Users/yairtejedahotmail.com/projects/mishooJobs/mishooJobs/GEMINI.md) Section 7 (Architectural Decisions & Conventions Log) with: `[006] Surface numerical years_required_min on VacancyCard metadata row with localized Mexican Spanish agreement (0 años, 1 año, N años) and Briefcase icon without modal inspection.`
+- [x] T011 Run complete frontend test suite offline via `npm test -- --run` from `frontend/` to ensure zero regressions
+- [x] T012 Validate end-to-end verification checklist defined in `specs/006-vacancy-card-experience/quickstart.md`
+- [x] T013 Update [`GEMINI.md`](file:///Users/yairtejedahotmail.com/projects/mishooJobs/mishooJobs/GEMINI.md) Section 7 (Architectural Decisions & Conventions Log) with: `[006] Surface numerical years_required_min on VacancyCard metadata row with localized Mexican Spanish agreement (0 años, 1 año, N años) and Briefcase icon without modal inspection.`
 
 ---
 
