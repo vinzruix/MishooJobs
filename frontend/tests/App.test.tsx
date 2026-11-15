@@ -295,4 +295,18 @@ describe("App Master-Detail Split Layout & Navigation Tests", () => {
 
     windowOpenSpy.mockRestore();
   });
+
+  it("does not open mobile drawer or lock body scroll when selecting vacancies on desktop", () => {
+    // Desktop viewport (1024px)
+    window.innerWidth = 1200;
+    render(<App />);
+
+    const secondJob = screen.getByRole("heading", { name: "Becario de Software" });
+    fireEvent.click(secondJob);
+
+    // Mobile drawer content must not be open in DOM
+    expect(screen.queryByTestId("mobile-detail-drawer")).not.toBeInTheDocument();
+    // Body scroll must not be locked
+    expect(document.body.style.overflow).not.toBe("hidden");
+  });
 });

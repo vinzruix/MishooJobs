@@ -198,7 +198,7 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
       className="bg-white border border-slate-200/80 rounded-2xl flex flex-col shadow-xs overflow-hidden max-h-[calc(100vh-6rem)]"
     >
       {/* Scrollable Content Container */}
-      <div className="p-6 overflow-y-auto space-y-5">
+      <div className="p-6 overflow-y-auto space-y-5 flex-1 min-h-0">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3.5">
@@ -544,7 +544,7 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
       </div>
 
       {/* Sticky Bottom Action Bar */}
-      <div className="p-4 border-t border-slate-200/80 bg-slate-50/90 backdrop-blur-xs flex flex-col sm:flex-row items-center gap-3 mt-auto">
+      <div className="p-4 border-t border-slate-200/80 bg-slate-50/90 backdrop-blur-xs flex flex-col sm:flex-row items-center gap-3 mt-auto flex-shrink-0">
         {/* Full-width primary CTA */}
         {primaryLink && (
           <a

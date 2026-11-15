@@ -217,4 +217,5 @@ When implementing tasks or modifying this codebase:
 - [007] Segmented 2-tab detail switch (Descripción vs Evaluación AI) with isolated evaluation caching by vacancy fingerprint and DOMPurified HTML descriptions.
 - [007] Zero marketing slop policy purging promotional boilerplate ('Filtros Mexicanos', 'Desarrollado para Jr', verbose banners) across all UI surfaces.
 - [light-theme-secondary-views] Full migration of secondary views (PipelineView, ResumeLibraryView), search bar, deduplication banner, and auxiliary modals to the Emil Kowalski #F8F9FA light design system with white cards and pastel badges.
+- [scroll-highlight] Enforce global light color-scheme with accessible text selection in index.html/CSS, gate Vaul drawer strictly to mobile viewports (<1024px) to prevent body scroll-lock on desktop, and constrain detail pane scroll container with flex-1 min-h-0.
 

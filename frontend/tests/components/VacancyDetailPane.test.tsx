@@ -213,4 +213,13 @@ describe("VacancyDetailPane Component Tests", () => {
     expect(screen.queryByText("Afinidad perfecta.")).not.toBeInTheDocument();
     expect(screen.getByTestId("run-ai-eval-btn")).toBeInTheDocument();
   });
+
+  it("renders a constrained scrollable container with flex-1 min-h-0 overflow-y-auto for desktop scrolling", () => {
+    const { container } = render(<VacancyDetailPane vacancy={mockVacancy} />);
+    const scrollContainer = container.querySelector(".overflow-y-auto");
+    expect(scrollContainer).toBeInTheDocument();
+    expect(scrollContainer).toHaveClass("flex-1");
+    expect(scrollContainer).toHaveClass("min-h-0");
+    expect(scrollContainer).toHaveClass("overflow-y-auto");
+  });
 });

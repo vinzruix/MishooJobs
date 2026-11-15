@@ -57,6 +57,24 @@ export default function App() {
   const [isMasterProfileOpen, setIsMasterProfileOpen] = useState(false);
   const [detailTab, setDetailTab] = useState<DetailTab>("description");
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 1024;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
+    const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      setIsMobileViewport(e.matches);
+      if (!e.matches) {
+        setIsMobileDrawerOpen(false);
+      }
+    };
+    setIsMobileViewport(mediaQuery.matches);
+    mediaQuery.addEventListener("change", handleMediaChange);
+    return () => mediaQuery.removeEventListener("change", handleMediaChange);
+  }, []);
   const [evalCache, setEvalCache] = useState<Record<string, AIEvaluation>>({});
   const [currentQuery, setCurrentQuery] = useState("Python Junior");
 
@@ -347,7 +365,9 @@ export default function App() {
     onSelect: (v) => setSelectedVacancy(v),
     onInspect: (v) => {
       setSelectedVacancy(v);
-      setIsMobileDrawerOpen(true);
+      if (isMobileViewport) {
+        setIsMobileDrawerOpen(true);
+      }
     },
     onCloseModal: () => {
       if (isMobileDrawerOpen) {
@@ -512,7 +532,9 @@ export default function App() {
                         onToggleHideApplied={handleToggleHideApplied}
                         onInspect={(v) => {
                           setSelectedVacancy(v);
-                          setIsMobileDrawerOpen(true);
+                          if (isMobileViewport) {
+                            setIsMobileDrawerOpen(true);
+                          }
                         }}
                         onSave={(v) => setApplicationStatus(v, "saved")}
                         onMarkApplied={(v) => setApplicationStatus(v, "applied")}
@@ -623,8 +645,14 @@ export default function App() {
 
       {/* Mobile Slide-Up Bottom Sheet Drawer (< 1024px) */}
       <Drawer.Root
-        open={isMobileDrawerOpen && !!selectedVacancy}
-        onOpenChange={setIsMobileDrawerOpen}
+        open={isMobileViewport && isMobileDrawerOpen && !!selectedVacancy}
+        onOpenChange={(open) => {
+          if (!isMobileViewport) {
+            setIsMobileDrawerOpen(false);
+            return;
+          }
+          setIsMobileDrawerOpen(open);
+        }}
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50 backdrop-blur-xs lg:hidden" />

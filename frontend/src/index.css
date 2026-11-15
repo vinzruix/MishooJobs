@@ -4,9 +4,15 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --color-canvas: #f8f9fa;
     --color-card: #ffffff;
     --color-border: #e2e8f0;
+  }
+
+  ::selection {
+    background-color: #e2e8f0;
+    color: #0f172a;
   }
 
   body {
