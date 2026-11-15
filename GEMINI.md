@@ -211,3 +211,9 @@ When implementing tasks or modifying this codebase:
 - [occ-vacancy-404] Generate canonical OCC split-grid `?jobid=<id>` URLs, verify and enrich OCC offers via the `oferta.occ.com.mx` JSON endpoint without blindly passing WAF-masked `/empleo/oferta/` 404s, and preserve `jobid`/`jk` query parameters during confidential-company fingerprint disambiguation.
 - [006] Surface numerical years_required_min on VacancyCard metadata row with localized Mexican Spanish agreement (0 años, 1 año, N años) and Briefcase icon without modal inspection.
 - [UX-V2] Deprecate legacy Midudev/zinc-950 visual style in project constitution (v1.2.0); mandate Emil Kowalski design engineering skills (emilkowalski/skills) across all UX/UI lifecycle phases (prototyping, interaction polish, animation, choreography, stress testing).
+- [007] Desktop master-detail split layout (40% master feed / 60% sticky detail pane, min-w 420px) with automatic first-vacancy selection and zero-modal inspection.
+- [007] Modern light visual design system with #F8F9FA canvas, white container cards, slate-900 accent pills, and 4 semantic pastel metric blocks (Salary, Modality, Experience, Seniority).
+- [007] Responsive mobile detail presentation via Vaul gesture-driven bottom sheet with 1:1 finger tracking, velocity dismissal, and drag handle.
+- [007] Segmented 2-tab detail switch (Descripción vs Evaluación AI) with isolated evaluation caching by vacancy fingerprint and DOMPurified HTML descriptions.
+- [007] Zero marketing slop policy purging promotional boilerplate ('Filtros Mexicanos', 'Desarrollado para Jr', verbose banners) across all UI surfaces.
+

@@ -136,7 +136,7 @@ describe("VacancyList Component Tests", () => {
       />
     );
 
-    const firstJobPill = screen.getByText("Primer Empleo Real (0 Exp)");
+    const firstJobPill = screen.getByText("Primer Empleo Real");
     expect(firstJobPill).toBeInTheDocument();
     fireEvent.click(firstJobPill);
     expect(handleSelectSeniority).toHaveBeenCalledWith("primer_empleo");
@@ -199,7 +199,7 @@ describe("VacancyList Component Tests", () => {
       />
     );
 
-    expect(screen.getByText(/Mostrando/i)).toBeInTheDocument();
+    expect(screen.getByText(/vacante encontrada/i)).toBeInTheDocument();
     expect(screen.getByText("(2 postuladas ocultas)")).toBeInTheDocument();
   });
 
@@ -214,7 +214,7 @@ describe("VacancyList Component Tests", () => {
       />
     );
 
-    expect(screen.getByText(/Mostrando/i)).toBeInTheDocument();
+    expect(screen.getByText(/vacante encontrada/i)).toBeInTheDocument();
     expect(screen.queryByText("(2 postuladas ocultas)")).not.toBeInTheDocument();
   });
 
@@ -264,5 +264,34 @@ describe("VacancyList Component Tests", () => {
     expect(
       screen.getByText(/Has completado la postulación de las 1 vacante coincidente/i)
     ).toBeInTheDocument();
+  });
+
+  it("renders shimmering skeleton cards during in-flight streaming search", () => {
+    render(
+      <VacancyList
+        vacancies={[]}
+        isSearching={true}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("Buscando vacantes...")).toBeInTheDocument();
+    expect(screen.getByTestId("vacancy-skeletons")).toBeInTheDocument();
+  });
+
+  it("binds selectedFingerprint to highlight active card", () => {
+    const vac2: JobVacancy = { ...baseVacancy, fingerprint: "v2", title: "Python Dev" };
+    render(
+      <VacancyList
+        vacancies={[baseVacancy, vac2]}
+        selectedFingerprint="v2"
+        isSearching={false}
+        onInspect={vi.fn()}
+      />
+    );
+
+    const cards = screen.getAllByTestId("vacancy-card");
+    expect(cards[0]).not.toHaveClass("border-slate-900");
+    expect(cards[1]).toHaveClass("border-slate-900", "ring-2", "ring-slate-900/10");
   });
 });

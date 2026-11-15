@@ -138,3 +138,31 @@ export interface VacancyDateMetadata {
   is_new: boolean;
   age_ms?: number | null;
 }
+
+export type PastelTheme = "emerald" | "sky" | "amber" | "purple";
+
+export interface PastelMetricItem {
+  id: "salary" | "modality" | "experience" | "seniority";
+  theme: PastelTheme;
+  label: string;
+  value: string;
+  subtext?: string;
+  icon: string;
+  badgeStyle: {
+    bgClass: string;
+    borderClass: string;
+    textClass: string;
+    labelClass: string;
+    iconClass: string;
+  };
+}
+
+export type DetailTab = "description" | "ai_eval";
+
+export interface MasterDetailSelectionState {
+  selectedFingerprint: string | null;
+  activeTab: DetailTab;
+  isMobileDrawerOpen: boolean;
+  scrollTargetFingerprint?: string;
+}
+

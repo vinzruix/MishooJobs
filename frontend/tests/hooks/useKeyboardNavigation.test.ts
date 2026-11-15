@@ -133,40 +133,63 @@ describe("useKeyboardNavigation Hook Tests", () => {
     expect(onToggleHideApplied).not.toHaveBeenCalled();
   });
 
-  it("suppresses 'h' shortcut when focus is inside an input, textarea, or editable element", () => {
-    const onToggleHideApplied = vi.fn();
+  it("triggers onCycleTab when pressing Space", () => {
+    const onCycleTab = vi.fn();
     renderHook(() =>
       useKeyboardNavigation({
-        vacancies: [vac1],
+        vacancies: [vac1, vac2],
         isModalOpen: false,
         onInspect: vi.fn(),
-        onCloseModal: vi.fn(),
-        onToggleHideApplied,
+        onCycleTab,
       })
     );
 
-    const input = document.createElement("input");
-    document.body.appendChild(input);
-    const textarea = document.createElement("textarea");
-    document.body.appendChild(textarea);
-    const select = document.createElement("select");
-    document.body.appendChild(select);
-    const contentEditable = document.createElement("div");
-    contentEditable.setAttribute("contenteditable", "true");
-    document.body.appendChild(contentEditable);
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+    });
+    expect(onCycleTab).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onOpenPrimaryLink when pressing Enter on selected vacancy", () => {
+    const onOpenPrimaryLink = vi.fn();
+    const { result } = renderHook(() =>
+      useKeyboardNavigation({
+        vacancies: [vac1, vac2],
+        isModalOpen: false,
+        onOpenPrimaryLink,
+      })
+    );
+
+    // Select first item
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "j" }));
+    });
+    expect(result.current.selectedIndex).toBe(0);
 
     act(() => {
-      input.dispatchEvent(new KeyboardEvent("keydown", { key: "h", bubbles: true }));
-      textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "h", bubbles: true }));
-      select.dispatchEvent(new KeyboardEvent("keydown", { key: "h", bubbles: true }));
-      contentEditable.dispatchEvent(new KeyboardEvent("keydown", { key: "h", bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
     });
+    expect(onOpenPrimaryLink).toHaveBeenCalledWith(vac1);
+  });
 
-    expect(onToggleHideApplied).not.toHaveBeenCalled();
+  it("calls onSelect when pressing j and k", () => {
+    const onSelect = vi.fn();
+    renderHook(() =>
+      useKeyboardNavigation({
+        vacancies: [vac1, vac2],
+        isModalOpen: false,
+        onSelect,
+      })
+    );
 
-    document.body.removeChild(input);
-    document.body.removeChild(textarea);
-    document.body.removeChild(select);
-    document.body.removeChild(contentEditable);
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "j" }));
+    });
+    expect(onSelect).toHaveBeenCalledWith(vac1);
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "j" }));
+    });
+    expect(onSelect).toHaveBeenCalledWith(vac2);
   });
 });

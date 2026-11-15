@@ -355,4 +355,18 @@ describe("FilterDrawer Component Tests", () => {
     const juniorBtn = screen.getByText("Junior").closest("button");
     expect(juniorBtn).toHaveTextContent("1");
   });
+
+  it("asserts 0 occurrences of 'Filtros Mexicanos' header slogan", () => {
+    render(
+      <FilterDrawer
+        filters={defaultFilters}
+        vacancies={sampleVacancies}
+        onChange={vi.fn()}
+        onReset={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByText(/Filtros Mexicanos/i)).not.toBeInTheDocument();
+    expect(screen.getByText("Filtros")).toBeInTheDocument();
+  });
 });

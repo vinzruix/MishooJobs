@@ -15,7 +15,7 @@ export function PortalStatusBar({ statuses, isSearching }: PortalStatusBarProps)
 
   return (
     <div className="flex flex-wrap items-center gap-2 py-1 text-xs">
-      <span className="text-zinc-500 font-semibold mr-1">Portales en Vivo:</span>
+      <span className="text-slate-400 font-semibold mr-1">Portales en Vivo:</span>
       {portals.map(({ key, label }) => {
         const status = statuses[key];
         const state = status?.status || "searching";
@@ -26,12 +26,12 @@ export function PortalStatusBar({ statuses, isSearching }: PortalStatusBarProps)
           return (
             <div
               key={key}
-              title={`${label}: ${count} vacantes verificadas en vivo (límite de hasta 15 por portal para respuesta rápida)`}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-800/60 bg-emerald-950/40 text-emerald-300 font-medium text-[11px]"
+              title={`${label}: ${count} vacantes verificadas en vivo`}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-800 font-medium text-[11px] shadow-xs"
             >
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               <span>{label}: {count} verificadas</span>
-              {duration && <span className="text-emerald-500/70 text-[10px]">({duration})</span>}
+              {duration && <span className="text-emerald-600/70 text-[10px]">({duration})</span>}
             </div>
           );
         }
@@ -40,9 +40,9 @@ export function PortalStatusBar({ statuses, isSearching }: PortalStatusBarProps)
           return (
             <div
               key={key}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-cyan-800/60 bg-cyan-950/40 text-cyan-300 font-medium text-[11px] animate-pulse"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-sky-200 bg-sky-50 text-sky-800 font-medium text-[11px] animate-pulse shadow-xs"
             >
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-400" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600" />
               <span>{label}: Consultando...</span>
             </div>
           );
@@ -52,9 +52,9 @@ export function PortalStatusBar({ statuses, isSearching }: PortalStatusBarProps)
           return (
             <div
               key={key}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-800/60 bg-amber-950/40 text-amber-300 font-medium text-[11px]"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-200 bg-amber-50 text-amber-800 font-medium text-[11px] shadow-xs"
             >
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
               <span>{label}: Timeout</span>
             </div>
           );
@@ -63,9 +63,9 @@ export function PortalStatusBar({ statuses, isSearching }: PortalStatusBarProps)
         return (
           <div
             key={key}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-zinc-800 bg-zinc-900/40 text-zinc-400 text-[11px]"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-200 bg-slate-100 text-slate-500 text-[11px]"
           >
-            <AlertTriangle className="w-3.5 h-3.5 text-zinc-500" />
+            <AlertTriangle className="w-3.5 h-3.5 text-slate-400" />
             <span>{label}: Inactivo</span>
           </div>
         );

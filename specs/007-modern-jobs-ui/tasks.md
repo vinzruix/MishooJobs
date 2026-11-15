@@ -16,9 +16,9 @@
 
 **Purpose**: Project initialization, third-party drawer library installation, and light design tokens.
 
-- [ ] T001 Install `vaul` package in `frontend/package.json` for gesture-driven mobile bottom sheets
-- [ ] T002 [P] Configure light-theme base styles (`#F8F9FA` canvas background, slate typography, smooth scrollbar) in `frontend/src/index.css`
-- [ ] T003 [P] Add PastelMetricItem, PastelTheme, and DetailTab interface definitions in `frontend/src/types/job.ts`
+- [X] T001 Install `vaul` package in `frontend/package.json` for gesture-driven mobile bottom sheets
+- [X] T002 [P] Configure light-theme base styles (`#F8F9FA` canvas background, slate typography, smooth scrollbar) in `frontend/src/index.css`
+- [X] T003 [P] Add PastelMetricItem, PastelTheme, and DetailTab interface definitions in `frontend/src/types/job.ts`
 
 ---
 
@@ -28,8 +28,8 @@
 
 **⚠️ CRITICAL**: Must be completed before User Story implementation begins.
 
-- [ ] T004 [P] Implement `PastelMetricGrid` component in `frontend/src/components/PastelMetricGrid.tsx` rendering 4 semantic pastel cards (Salary, Modality, Experience, Seniority) with WCAG AA compliant text contrast
-- [ ] T005 Implement foundational `VacancyDetailPane` container component in `frontend/src/components/VacancyDetailPane.tsx` housing header metadata, pastel metrics grid, tab skeleton, and sticky bottom action bar
+- [X] T004 [P] Implement `PastelMetricGrid` component in `frontend/src/components/PastelMetricGrid.tsx` rendering 4 semantic pastel cards (Salary, Modality, Experience, Seniority) with WCAG AA compliant text contrast
+- [X] T005 Implement foundational `VacancyDetailPane` container component in `frontend/src/components/VacancyDetailPane.tsx` housing header metadata, pastel metrics grid, tab skeleton, and sticky bottom action bar
 
 **Checkpoint**: Foundation ready — user story implementation can begin.
 
@@ -43,14 +43,14 @@
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T006 [P] [US1] Add unit tests in `frontend/tests/components/VacancyDetailPane.test.tsx` verifying inline desktop rendering, close callback, and mobile drawer trigger behavior
-- [ ] T007 [P] [US1] Update integration tests in `frontend/tests/App.test.tsx` verifying master-detail 40/60 split layout, auto-selection of first streaming vacancy, and keyboard navigation
+- [X] T006 [P] [US1] Add unit tests in `frontend/tests/components/VacancyDetailPane.test.tsx` verifying inline desktop rendering, close callback, and mobile drawer trigger behavior
+- [X] T007 [P] [US1] Update integration tests in `frontend/tests/App.test.tsx` verifying master-detail 40/60 split layout, auto-selection of first streaming vacancy, and keyboard navigation
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Implement responsive 12-column master-detail split grid in `frontend/src/App.tsx` (`lg:col-span-5` 40% master feed, `lg:col-span-7 sticky top-20` 60% detail pane, min-w 420px) with stream auto-selection of first vacancy
-- [ ] T009 [US1] Integrate `vaul`'s `Drawer.Root` in `frontend/src/App.tsx` to render `VacancyDetailPane` as an interactive slide-up bottom sheet with top drag handle bar on viewports < 1024px
-- [ ] T010 [US1] Update keyboard navigation in `frontend/src/hooks/useKeyboardNavigation.ts` and `frontend/src/App.tsx` (`j`/`k` to select and scroll active card into view, `Space` to cycle detail tabs, `Enter` to open verified application link) and update `frontend/tests/hooks/useKeyboardNavigation.test.ts`
+- [X] T008 [US1] Implement responsive 12-column master-detail split grid in `frontend/src/App.tsx` (`lg:col-span-5` 40% master feed, `lg:col-span-7 sticky top-20` 60% detail pane, min-w 420px) with stream auto-selection of first vacancy
+- [X] T009 [US1] Integrate `vaul`'s `Drawer.Root` in `frontend/src/App.tsx` to render `VacancyDetailPane` as an interactive slide-up bottom sheet with top drag handle bar on viewports < 1024px
+- [X] T010 [US1] Update keyboard navigation in `frontend/src/hooks/useKeyboardNavigation.ts` and `frontend/src/App.tsx` (`j`/`k` to select and scroll active card into view, `Space` to cycle detail tabs, `Enter` to open verified application link) and update `frontend/tests/hooks/useKeyboardNavigation.test.ts`
 
 **Checkpoint**: User Story 1 complete and independently testable (MVP delivery).
 
@@ -64,14 +64,14 @@
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T011 [P] [US2] Add unit tests in `frontend/tests/components/PastelMetricGrid.test.tsx` verifying all 4 pastel card themes (emerald, sky, amber, purple), values, icons, and fallback text formatting
-- [ ] T012 [P] [US2] Update unit tests in `frontend/tests/components/VacancyCard.test.tsx` and `frontend/tests/components/VacancyList.test.tsx` to verify modern light card layout, company squircle logo, bold title hierarchy, result count header, and selection binding
+- [X] T011 [P] [US2] Add unit tests in `frontend/tests/components/PastelMetricGrid.test.tsx` verifying all 4 pastel card themes (emerald, sky, amber, purple), values, icons, and fallback text formatting
+- [X] T012 [P] [US2] Update unit tests in `frontend/tests/components/VacancyCard.test.tsx` and `frontend/tests/components/VacancyList.test.tsx` to verify modern light card layout, company squircle logo, bold title hierarchy, result count header, and selection binding
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Redesign `frontend/src/components/VacancyCard.tsx` with modern light aesthetic (`bg-white border-slate-200/80 rounded-2xl shadow-xs`), active selection ring (`ring-2 ring-slate-900/10 border-slate-900`), company squircle placeholder, and localized metadata
-- [ ] T014 [US2] Update `frontend/src/components/VacancyList.tsx` to display search results count header ("29 vacantes encontradas"), active card highlight binding, and shimmering pastel skeleton cards during in-flight streaming
-- [ ] T015 [US2] Restyle `frontend/src/components/Header.tsx` to clean light theme (`bg-white/80 border-b border-slate-200/80 backdrop-blur text-slate-800`) with refined brand badge
+- [X] T013 [US2] Redesign `frontend/src/components/VacancyCard.tsx` with modern light aesthetic (`bg-white border-slate-200/80 rounded-2xl shadow-xs`), active selection ring (`ring-2 ring-slate-900/10 border-slate-900`), company squircle placeholder, and localized metadata
+- [X] T014 [US2] Update `frontend/src/components/VacancyList.tsx` to display search results count header ("29 vacantes encontradas"), active card highlight binding, and shimmering pastel skeleton cards during in-flight streaming
+- [X] T015 [US2] Restyle `frontend/src/components/Header.tsx` to clean light theme (`bg-white/80 border-b border-slate-200/80 backdrop-blur text-slate-800`) with refined brand badge
 
 **Checkpoint**: User Stories 1 AND 2 working cohesively.
 
@@ -85,14 +85,14 @@
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T016 [P] [US3] Add unit tests in `frontend/tests/components/VacancyDetailPane.test.tsx` for segmented tab state switching, cache isolation by fingerprint, and external application URL opening
+- [X] T016 [P] [US3] Add unit tests in `frontend/tests/components/VacancyDetailPane.test.tsx` for segmented tab state switching, cache isolation by fingerprint, and external application URL opening
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Implement 2-tab segmented switch in `frontend/src/components/VacancyDetailPane.tsx` with solid dark pill indicator (`bg-slate-900 text-white`) and strict fingerprint-keyed evaluation cache retention
-- [ ] T018 [US3] Implement Tab 1 ("Descripción") in `frontend/src/components/VacancyDetailPane.tsx` rendering scam shield warnings (`ScamBadge`), DOMPurified job description, responsibilities, requirements, and desired technical skills
-- [ ] T019 [US3] Implement Tab 2 ("Evaluación AI") in `frontend/src/components/VacancyDetailPane.tsx` rendering AI match score, matched skills pills, missing gaps, seniority audit reasoning, graceful error/retry state if evaluation fails, and "Adaptar mi CV" button triggering `onOpenTailorModal`
-- [ ] T020 [US3] Implement full-width sticky CTA button ("Postularme ahora") and secondary action pills (save to pipeline, mark applied) at the bottom of `frontend/src/components/VacancyDetailPane.tsx`
+- [X] T017 [US3] Implement 2-tab segmented switch in `frontend/src/components/VacancyDetailPane.tsx` with solid dark pill indicator (`bg-slate-900 text-white`) and strict fingerprint-keyed evaluation cache retention
+- [X] T018 [US3] Implement Tab 1 ("Descripción") in `frontend/src/components/VacancyDetailPane.tsx` rendering scam shield warnings (`ScamBadge`), DOMPurified job description, responsibilities, requirements, and desired technical skills
+- [X] T019 [US3] Implement Tab 2 ("Evaluación AI") in `frontend/src/components/VacancyDetailPane.tsx` rendering AI match score, matched skills pills, missing gaps, seniority audit reasoning, graceful error/retry state if evaluation fails, and "Adaptar mi CV" button triggering `onOpenTailorModal`
+- [X] T020 [US3] Implement full-width sticky CTA button ("Postularme ahora") and secondary action pills (save to pipeline, mark applied) at the bottom of `frontend/src/components/VacancyDetailPane.tsx`
 
 **Checkpoint**: User Stories 1, 2, and 3 fully functional and testable.
 
@@ -106,13 +106,13 @@
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T021 [P] [US4] Add regression tests in `frontend/tests/components/FilterDrawer.test.tsx` and `frontend/tests/App.test.tsx` asserting 0 occurrences of "Filtros Mexicanos", "Desarrollado para juniors", or verbose banners
+- [X] T021 [P] [US4] Add regression tests in `frontend/tests/components/FilterDrawer.test.tsx` and `frontend/tests/App.test.tsx` asserting 0 occurrences of "Filtros Mexicanos", "Desarrollado para juniors", or verbose banners
 
 ### Implementation for User Story 4
 
-- [ ] T022 [US4] Clean `frontend/src/components/FilterDrawer.tsx`: remove "Filtros Mexicanos (Nivel de Experiencia, Modalidad & Fecha)" header, restyle filter pills to modern light theme (`bg-slate-100 hover:bg-slate-200 text-slate-700` and `bg-slate-900 text-white` for active)
-- [ ] T023 [US4] Clean `frontend/src/App.tsx`: delete verbose green banner ("100% Búsqueda en Vivo: Concurrencia directa...") and remove footer slogan ("MishooJobs • Desarrollado para juniors y estudiantes en México • Moneda MXN ($)")
-- [ ] T024 [US4] Clean `frontend/src/components/VacancyList.tsx` and `frontend/src/components/PortalStatusBar.tsx`: simplify loading text to concise copy ("Buscando vacantes...") and clean empty state messaging
+- [X] T022 [US4] Clean `frontend/src/components/FilterDrawer.tsx`: remove "Filtros Mexicanos (Nivel de Experiencia, Modalidad & Fecha)" header, restyle filter pills to modern light theme (`bg-slate-100 hover:bg-slate-200 text-slate-700` and `bg-slate-900 text-white` for active)
+- [X] T023 [US4] Clean `frontend/src/App.tsx`: delete verbose green banner ("100% Búsqueda en Vivo: Concurrencia directa...") and remove footer slogan ("MishooJobs • Desarrollado para juniors y estudiantes en México • Moneda MXN ($)")
+- [X] T024 [US4] Clean `frontend/src/components/VacancyList.tsx` and `frontend/src/components/PortalStatusBar.tsx`: simplify loading text to concise copy ("Buscando vacantes...") and clean empty state messaging
 
 **Checkpoint**: All user stories complete with 0 marketing slop remaining.
 
@@ -122,10 +122,10 @@
 
 **Purpose**: Dead code removal, craft polish, full test suite execution, and Spec Kit documentation update.
 
-- [ ] T025 [P] Deprecate and remove redundant `frontend/src/components/VacancyDetailModal.tsx` and its test suite `frontend/tests/components/VacancyDetailModal.test.tsx` superseded by `VacancyDetailPane`
-- [ ] T026 Verify 60fps animation budgets, zero layout shift during streaming, and mobile touch ergonomics using Emil Kowalski craft guidelines
-- [ ] T027 Run complete validation per `quickstart.md`: execute Vitest suite (`npm test -- --run`) and backend Pytest suite (`.venv/bin/pytest backend/tests/ -v`)
-- [ ] T028 [MANDATORY Spec Kit Step] Update `GEMINI.md` Section 7 (Architectural Decisions & Conventions Log) with key decisions from feature `007-modern-jobs-ui`
+- [X] T025 [P] Deprecate and remove redundant `frontend/src/components/VacancyDetailModal.tsx` and its test suite `frontend/tests/components/VacancyDetailModal.test.tsx` superseded by `VacancyDetailPane`
+- [X] T026 Verify 60fps animation budgets, zero layout shift during streaming, and mobile touch ergonomics using Emil Kowalski craft guidelines
+- [X] T027 Run complete validation per `quickstart.md`: execute Vitest suite (`npm test -- --run`) and backend Pytest suite (`.venv/bin/pytest backend/tests/ -v`)
+- [X] T028 [MANDATORY Spec Kit Step] Update `GEMINI.md` Section 7 (Architectural Decisions & Conventions Log) with key decisions from feature `007-modern-jobs-ui`
 
 ---
 

@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Terminal, Shield, Zap } from "lucide-react";
+import { Terminal } from "lucide-react";
+import { Drawer } from "vaul";
 import { Header } from "./components/Header";
 import { SearchBar } from "./components/SearchBar";
 import { FilterDrawer, type FilterState } from "./components/FilterDrawer";
 import { PortalStatusBar } from "./components/PortalStatusBar";
 import { VacancyList } from "./components/VacancyList";
+import { VacancyDetailPane } from "./components/VacancyDetailPane";
 import { PipelineView } from "./components/PipelineView";
 import { ProfileManagerModal } from "./components/ProfileManagerModal";
-import { VacancyDetailModal } from "./components/VacancyDetailModal";
 import { MasterProfileEditor } from "./components/MasterProfileEditor";
 import { LiveCVViewer } from "./components/LiveCVViewer";
 import { ResumeLibraryView } from "./components/ResumeLibraryView";
@@ -27,7 +28,7 @@ import {
   sortVacancies,
 } from "./services/date_utils";
 import { calculateHeuristicScore } from "./services/heuristic_scorer";
-import type { JobVacancy, SeniorityCounts, SeniorityFilter, SortOrder, TimeframeId } from "./types/job";
+import type { JobVacancy, SeniorityCounts, SeniorityFilter, SortOrder, TimeframeId, DetailTab } from "./types/job";
 import type { AIEvaluation } from "./types/profile";
 
 const VALID_SENIORITIES: Set<SeniorityFilter> = new Set([
@@ -54,6 +55,8 @@ export default function App() {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState<boolean>(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isMasterProfileOpen, setIsMasterProfileOpen] = useState(false);
+  const [detailTab, setDetailTab] = useState<DetailTab>("description");
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [evalCache, setEvalCache] = useState<Record<string, AIEvaluation>>({});
   const [currentQuery, setCurrentQuery] = useState("Python Junior");
 
@@ -318,8 +321,19 @@ export default function App() {
     return sortVacancies(dateFilteredVacancies, sortOrder);
   }, [dateFilteredVacancies, filters.seniority, isSortUserOverridden, sortOrder]);
 
-  const isAnyModalOpen =
-    selectedVacancy !== null ||
+  // Stream auto-selection of first vacancy upon stream arrival
+  useEffect(() => {
+    if (displayedVacancies.length > 0) {
+      if (!selectedVacancy || !displayedVacancies.some((v) => v.fingerprint === selectedVacancy.fingerprint)) {
+        setSelectedVacancy(displayedVacancies[0]);
+      }
+    } else {
+      setSelectedVacancy(null);
+    }
+  }, [displayedVacancies]);
+
+  const isBlockingModalOpen =
+    isMobileDrawerOpen ||
     isProfileModalOpen ||
     isMasterProfileOpen ||
     tailoringVacancy !== null ||
@@ -328,9 +342,18 @@ export default function App() {
 
   useKeyboardNavigation({
     vacancies: displayedVacancies,
-    isModalOpen: isAnyModalOpen,
-    onInspect: (v) => setSelectedVacancy(v),
+    selectedFingerprint: selectedVacancy?.fingerprint,
+    isModalOpen: isBlockingModalOpen,
+    onSelect: (v) => setSelectedVacancy(v),
+    onInspect: (v) => {
+      setSelectedVacancy(v);
+      setIsMobileDrawerOpen(true);
+    },
     onCloseModal: () => {
+      if (isMobileDrawerOpen) {
+        setIsMobileDrawerOpen(false);
+        return;
+      }
       if (tailoringVacancy !== null) {
         setTailoringVacancy(null);
         return;
@@ -347,10 +370,6 @@ export default function App() {
         setIsProfileModalOpen(false);
         return;
       }
-      if (selectedVacancy !== null) {
-        setSelectedVacancy(null);
-        return;
-      }
       if (viewingResumeId) {
         setViewingResumeId(null);
         return;
@@ -359,6 +378,13 @@ export default function App() {
     onSave: (v) => setApplicationStatus(v, "saved"),
     onMarkApplied: (v) => setApplicationStatus(v, "applied"),
     onToggleHideApplied: handleToggleHideApplied,
+    onCycleTab: () => setDetailTab((prev) => (prev === "description" ? "ai_eval" : "description")),
+    onOpenPrimaryLink: (v) => {
+      const link = v.external_links?.[0]?.direct_url;
+      if (link && typeof window !== "undefined") {
+        window.open(link, "_blank", "noopener,noreferrer");
+      }
+    },
   });
 
   const effectiveCandidateSkills = useMemo(() => {
@@ -394,7 +420,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-mono flex flex-col selection:bg-zinc-800 selection:text-emerald-400 print:min-h-0 print:block print:bg-white">
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans flex flex-col selection:bg-slate-200 selection:text-slate-900 print:min-h-0 print:block print:bg-white">
       {/* Header */}
       <Header
         activeTab={activeTab}
@@ -416,20 +442,6 @@ export default function App() {
           />
         ) : (
           <>
-            {/* Banner with Constitution Guarantee */}
-            <div className="p-3 rounded-lg border border-zinc-800/80 bg-zinc-900/40 text-xs text-zinc-400 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span>
-                  <strong className="text-zinc-200">100% Búsqueda en Vivo:</strong> Concurrencia directa contra Computrabajo, Indeed y OCC. Sin base de datos estática ni registros previos.
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-zinc-500">
-                <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Sin cuenta • Privacidad en tu navegador</span>
-              </div>
-            </div>
-
             {/* Search View */}
             {activeTab === "search" && (
               <div className="flex flex-col gap-4">
@@ -466,7 +478,7 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Vacancy Results Feed */}
+                {/* Vacancy Results Feed - Master-Detail Split Grid */}
                 {displayedVacancies.length === 0 && !isSearching && unignoredVacancies.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-zinc-500 border border-dashed border-zinc-800 rounded-lg">
                     <Terminal className="w-10 h-10 text-zinc-700 mb-3" />
@@ -476,42 +488,75 @@ export default function App() {
                     </p>
                   </div>
                 ) : (
-                  <VacancyList
-                    vacancies={displayedVacancies}
-                    isSearching={isSearching}
-                    isDateFiltered={!filters.timeframes.includes("all") && filters.timeframes.length > 0}
-                    activeSeniority={filters.seniority}
-                    seniorityCounts={tierCounts}
-                    sortOrder={sortOrder}
-                    now={currentNow}
-                    scoresByFingerprint={scoresByFingerprint}
-                    candidateSkills={effectiveCandidateSkills}
-                    applicationStatuses={statusMap}
-                    hideApplied={hideApplied}
-                    hiddenCount={hiddenAppliedCount}
-                    totalUnignoredCount={matchingUnignoredVacancies.length}
-                    onToggleHideApplied={handleToggleHideApplied}
-                    onInspect={(v) => setSelectedVacancy(v)}
-                    onSave={(v) => setApplicationStatus(v, "saved")}
-                    onMarkApplied={(v) => setApplicationStatus(v, "applied")}
-                    onDiscard={(v) => setApplicationStatus(v, "ignored")}
-                    onSortChange={(order) => {
-                      setSortOrder(order);
-                      setIsSortUserOverridden(true);
-                    }}
-                    onClearDateFilter={() => {
-                      setFilters((prev) => ({ ...prev, timeframes: ["all"] }));
-                    }}
-                    onSelectTimeframe={(tf) => {
-                      setFilters((prev) => ({ ...prev, timeframes: [tf] }));
-                    }}
-                    onSelectSeniority={(s) => {
-                      setFilters((prev) => ({ ...prev, seniority: s }));
-                    }}
-                    onClearSeniorityFilter={() => {
-                      setFilters((prev) => ({ ...prev, seniority: "all" }));
-                    }}
-                  />
+                  <div
+                    data-testid="master-detail-container"
+                    className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
+                  >
+                    {/* Left Column: Master Feed (40% width on desktop: lg:col-span-5) */}
+                    <div className="lg:col-span-5 w-full">
+                      <VacancyList
+                        vacancies={displayedVacancies}
+                        selectedFingerprint={selectedVacancy?.fingerprint}
+                        isSearching={isSearching}
+                        isDateFiltered={!filters.timeframes.includes("all") && filters.timeframes.length > 0}
+                        activeSeniority={filters.seniority}
+                        seniorityCounts={tierCounts}
+                        sortOrder={sortOrder}
+                        now={currentNow}
+                        scoresByFingerprint={scoresByFingerprint}
+                        candidateSkills={effectiveCandidateSkills}
+                        applicationStatuses={statusMap}
+                        hideApplied={hideApplied}
+                        hiddenCount={hiddenAppliedCount}
+                        totalUnignoredCount={matchingUnignoredVacancies.length}
+                        onToggleHideApplied={handleToggleHideApplied}
+                        onInspect={(v) => {
+                          setSelectedVacancy(v);
+                          setIsMobileDrawerOpen(true);
+                        }}
+                        onSave={(v) => setApplicationStatus(v, "saved")}
+                        onMarkApplied={(v) => setApplicationStatus(v, "applied")}
+                        onDiscard={(v) => setApplicationStatus(v, "ignored")}
+                        onSortChange={(order) => {
+                          setSortOrder(order);
+                          setIsSortUserOverridden(true);
+                        }}
+                        onClearDateFilter={() => {
+                          setFilters((prev) => ({ ...prev, timeframes: ["all"] }));
+                        }}
+                        onSelectTimeframe={(tf) => {
+                          setFilters((prev) => ({ ...prev, timeframes: [tf] }));
+                        }}
+                        onSelectSeniority={(s) => {
+                          setFilters((prev) => ({ ...prev, seniority: s }));
+                        }}
+                        onClearSeniorityFilter={() => {
+                          setFilters((prev) => ({ ...prev, seniority: "all" }));
+                        }}
+                      />
+                    </div>
+
+                    {/* Right Column: Sticky Detail Pane (60% width on desktop: lg:col-span-7, min-w 420px) */}
+                    <div
+                      data-testid="desktop-detail-pane"
+                      className="hidden lg:block lg:col-span-7 sticky top-20 min-w-[420px]"
+                    >
+                      <VacancyDetailPane
+                        vacancy={selectedVacancy}
+                        activeProfile={activeProfile}
+                        masterProfile={masterProfile}
+                        universalSkills={universalSkills}
+                        cachedEvaluation={selectedVacancy ? evalCache[selectedVacancy.fingerprint] : undefined}
+                        onEvaluationComplete={handleEvaluationComplete}
+                        onOpenTailorModal={(v) => setTailoringVacancy(v)}
+                        onSave={(v) => setApplicationStatus(v, "saved")}
+                        onMarkApplied={(v) => setApplicationStatus(v, "applied")}
+                        isSaved={selectedVacancy ? statusMap[selectedVacancy.fingerprint] === "saved" : false}
+                        isApplied={selectedVacancy ? statusMap[selectedVacancy.fingerprint] === "applied" : false}
+                        initialTab={detailTab}
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -576,20 +621,45 @@ export default function App() {
         onRemoveProfile={removeProfile}
       />
 
-      {/* Detail Modal Preview with On-Demand AI Evaluation */}
-      {selectedVacancy && (
-        <VacancyDetailModal
-          key={selectedVacancy.fingerprint}
-          vacancy={selectedVacancy}
-          onClose={() => setSelectedVacancy(null)}
-          activeProfile={activeProfile}
-          masterProfile={masterProfile}
-          universalSkills={universalSkills}
-          cachedEvaluation={evalCache[selectedVacancy.fingerprint]}
-          onEvaluationComplete={handleEvaluationComplete}
-          onOpenTailorModal={(v) => setTailoringVacancy(v)}
-        />
-      )}
+      {/* Mobile Slide-Up Bottom Sheet Drawer (< 1024px) */}
+      <Drawer.Root
+        open={isMobileDrawerOpen && !!selectedVacancy}
+        onOpenChange={setIsMobileDrawerOpen}
+      >
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50 backdrop-blur-xs lg:hidden" />
+          <Drawer.Content
+            data-testid="mobile-detail-drawer"
+            className="bg-white flex flex-col rounded-t-[20px] fixed bottom-0 left-0 right-0 max-h-[90vh] z-50 focus:outline-none lg:hidden"
+          >
+            <div className="p-3 bg-white rounded-t-[20px] flex-1 overflow-y-auto">
+              <div
+                data-testid="drawer-drag-handle"
+                className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-300 mb-3 cursor-grab"
+              />
+              <VacancyDetailPane
+                vacancy={selectedVacancy}
+                isMobileSheet={true}
+                onClose={() => setIsMobileDrawerOpen(false)}
+                activeProfile={activeProfile}
+                masterProfile={masterProfile}
+                universalSkills={universalSkills}
+                cachedEvaluation={selectedVacancy ? evalCache[selectedVacancy.fingerprint] : undefined}
+                onEvaluationComplete={handleEvaluationComplete}
+                onOpenTailorModal={(v) => {
+                  setIsMobileDrawerOpen(false);
+                  setTailoringVacancy(v);
+                }}
+                onSave={(v) => setApplicationStatus(v, "saved")}
+                onMarkApplied={(v) => setApplicationStatus(v, "applied")}
+                isSaved={selectedVacancy ? statusMap[selectedVacancy.fingerprint] === "saved" : false}
+                isApplied={selectedVacancy ? statusMap[selectedVacancy.fingerprint] === "applied" : false}
+                initialTab={detailTab}
+              />
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
 
       {/* Vacancy Tailor Modal */}
       {tailoringVacancy && (
@@ -620,8 +690,8 @@ export default function App() {
       />
 
       {/* Footer */}
-      <footer className="no-print print:hidden border-t border-zinc-900 py-3 px-4 text-center text-xs text-zinc-600">
-        MishooJobs • Desarrollado para juniors y estudiantes en México • Moneda MXN ($)
+      <footer className="no-print print:hidden border-t border-slate-200/80 py-4 px-4 text-center text-xs text-slate-400">
+        MishooJobs © 2026
       </footer>
     </div>
   );
