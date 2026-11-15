@@ -18,6 +18,7 @@ export interface VacancyListProps {
   hideApplied?: boolean;
   hiddenCount?: number;
   totalUnignoredCount?: number;
+  duplicatesMergedCount?: number;
   onToggleHideApplied?: () => void;
   onSelect?: (vacancy: JobVacancy) => void;
   onInspect: (vacancy: JobVacancy) => void;
@@ -27,8 +28,6 @@ export interface VacancyListProps {
   onSortChange?: (order: SortOrder) => void;
   onClearDateFilter?: () => void;
   onSelectTimeframe?: (timeframe: TimeframeId) => void;
-  onSelectSeniority?: (seniority: SeniorityFilter) => void;
-  onClearSeniorityFilter?: () => void;
 }
 
 export function VacancyList({
@@ -37,7 +36,7 @@ export function VacancyList({
   isSearching,
   isDateFiltered = false,
   activeSeniority = "all",
-  seniorityCounts,
+  seniorityCounts: _seniorityCounts,
   sortOrder = "recent",
   now,
   scoresByFingerprint = {},
@@ -46,6 +45,7 @@ export function VacancyList({
   hideApplied = false,
   hiddenCount = 0,
   totalUnignoredCount,
+  duplicatesMergedCount,
   onToggleHideApplied,
   onSelect,
   onInspect,
@@ -55,8 +55,6 @@ export function VacancyList({
   onSortChange,
   onClearDateFilter,
   onSelectTimeframe,
-  onSelectSeniority,
-  onClearSeniorityFilter,
 }: VacancyListProps) {
   const isSeniorityFiltered = activeSeniority !== "all";
 
@@ -131,31 +129,8 @@ export function VacancyList({
             No se encontraron vacantes para el nivel seleccionado en esta búsqueda
           </p>
           <p className="text-xs text-slate-500 mt-1 max-w-md">
-            Prueba ampliando tu búsqueda a{" "}
-            <button
-              onClick={() => onSelectSeniority?.("pasantia")}
-              className="text-sky-600 underline hover:text-sky-700 font-medium"
-            >
-              Pasantía / Prácticas
-            </button>{" "}
-            o{" "}
-            <button
-              onClick={() => onSelectSeniority?.("junior")}
-              className="text-purple-600 underline hover:text-purple-700 font-medium"
-            >
-              Junior
-            </button>{" "}
-            para descubrir más opciones.
+            Prueba ajustando el nivel de experiencia o restableciendo los filtros en la barra superior.
           </p>
-          {onClearSeniorityFilter && (
-            <button
-              onClick={onClearSeniorityFilter}
-              className="mt-4 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 flex items-center gap-1.5 transition-colors shadow-xs"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-              <span>Limpiar filtro de experiencia</span>
-            </button>
-          )}
         </div>
       );
     }
@@ -199,58 +174,19 @@ export function VacancyList({
     );
   }
 
-  const quickSeniorityOptions: { id: SeniorityFilter; label: string; isHighlight?: boolean }[] = [
-    { id: "all", label: "Todos" },
-    { id: "primer_empleo", label: "Primer Empleo Real", isHighlight: true },
-    { id: "pasantia", label: "Pasantía / Prácticas" },
-    { id: "junior", label: "Junior" },
-    { id: "mid", label: "Mid" },
-    { id: "senior", label: "Senior" },
-  ];
-
   return (
     <div className="flex flex-col gap-3.5">
-      {/* Horizontal quick filter pills with real-time counters */}
-      {onSelectSeniority && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-none">
-          {quickSeniorityOptions.map((opt) => {
-            const active = activeSeniority === opt.id;
-            const count = seniorityCounts ? seniorityCounts[opt.id] ?? 0 : undefined;
-            return (
-              <button
-                key={opt.id}
-                onClick={() => onSelectSeniority(active && opt.id !== "all" ? "all" : opt.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center gap-1.5 whitespace-nowrap transition-all shadow-xs ${
-                  active
-                    ? "bg-slate-900 border-slate-900 text-white font-semibold"
-                    : "bg-white border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300"
-                }`}
-              >
-                {opt.isHighlight && <Sparkles className={`w-3.5 h-3.5 ${active ? "text-amber-400" : "text-emerald-600"}`} />}
-                <span>{opt.label}</span>
-                {count !== undefined && (
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                      active
-                        ? "bg-slate-800 text-slate-200"
-                        : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {/* Header toolbar with count & sorting dropdown */}
       <div className="flex flex-wrap items-center justify-between text-xs text-slate-500 px-1 gap-2">
         <div className="flex items-center gap-3 flex-wrap">
           <span className="font-medium">
             <strong className="text-slate-900 font-bold">{vacancies.length}</strong>{" "}
             {vacancies.length === 1 ? "vacante encontrada" : "vacantes encontradas"}
+            {duplicatesMergedCount !== undefined && duplicatesMergedCount > 0 && (
+              <span className="text-slate-400 font-normal ml-1">
+                • {duplicatesMergedCount} {duplicatesMergedCount === 1 ? "combinada" : "combinadas"}
+              </span>
+            )}
             {hideApplied && hiddenCount > 0 && (
               <span className="text-slate-400 text-[11px] ml-1.5">
                 ({hiddenCount} {hiddenCount === 1 ? "postulada oculta" : "postuladas ocultas"})

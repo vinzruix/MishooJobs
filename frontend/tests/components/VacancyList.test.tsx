@@ -37,9 +37,6 @@ describe("VacancyList Component Tests", () => {
   });
 
   it("renders dedicated empty state when activeSeniority is filtered and vacancies is empty", () => {
-    const handleClearSeniority = vi.fn();
-    const handleSelectSeniority = vi.fn();
-
     render(
       <VacancyList
         vacancies={[]}
@@ -47,22 +44,15 @@ describe("VacancyList Component Tests", () => {
         isDateFiltered={false}
         activeSeniority="primer_empleo"
         onInspect={vi.fn()}
-        onClearSeniorityFilter={handleClearSeniority}
-        onSelectSeniority={handleSelectSeniority}
       />
     );
 
     expect(
       screen.getByText("No se encontraron vacantes para el nivel seleccionado en esta búsqueda")
     ).toBeInTheDocument();
-
-    const pasantiaBtn = screen.getByText("Pasantía / Prácticas");
-    fireEvent.click(pasantiaBtn);
-    expect(handleSelectSeniority).toHaveBeenCalledWith("pasantia");
-
-    const clearBtn = screen.getByText("Limpiar filtro de experiencia");
-    fireEvent.click(clearBtn);
-    expect(handleClearSeniority).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(/Prueba ajustando el nivel de experiencia/i)
+    ).toBeInTheDocument();
   });
 
   it("renders date-filter empty state when isDateFiltered is true and vacancies is empty", () => {
@@ -115,31 +105,17 @@ describe("VacancyList Component Tests", () => {
     expect(handleSortChange).toHaveBeenCalledWith("compatibility");
   });
 
-  it("renders quick seniority filter pills and calls onSelectSeniority", () => {
-    const handleSelectSeniority = vi.fn();
-
+  it("renders cleanly without duplicate seniority quick pills", () => {
     render(
       <VacancyList
         vacancies={[baseVacancy]}
         isSearching={false}
         activeSeniority="all"
-        seniorityCounts={{
-          all: 10,
-          primer_empleo: 3,
-          pasantia: 2,
-          junior: 4,
-          mid: 1,
-          senior: 0,
-        }}
-        onSelectSeniority={handleSelectSeniority}
         onInspect={vi.fn()}
       />
     );
 
-    const firstJobPill = screen.getByText("Primer Empleo Real");
-    expect(firstJobPill).toBeInTheDocument();
-    fireEvent.click(firstJobPill);
-    expect(handleSelectSeniority).toHaveBeenCalledWith("primer_empleo");
+    expect(screen.queryByText("Primer Empleo Real")).not.toBeInTheDocument();
   });
 
   it("renders inactive toolbar toggle pill ('Ocultar postuladas') with hiddenCount badge and tooltip", () => {

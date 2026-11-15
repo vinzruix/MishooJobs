@@ -33,10 +33,7 @@ export function PipelineView({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-900">
-            Pipeline de Postulaciones ({applications.filter((a) => a.status !== "ignored").length})
-          </span>
-          <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 font-medium">
-            Almacenamiento Local (IndexedDB)
+            Postulaciones ({applications.filter((a) => a.status !== "ignored").length})
           </span>
         </div>
 

@@ -166,3 +166,72 @@ export interface MasterDetailSelectionState {
   scrollTargetFingerprint?: string;
 }
 
+export interface FilterState {
+  seniority: SeniorityFilter;
+  timeframes: TimeframeId[];
+  modality: string;
+  location: string;
+}
+
+export interface MexicanStateOption {
+  code: string;
+  label: string;
+  fullName: string;
+}
+
+export interface SeniorityOption {
+  id: SeniorityFilter;
+  label: string;
+  shortLabel?: string;
+  isHighlight?: boolean;
+}
+
+export interface FilterToolbarProps {
+  filters: FilterState;
+  seniorityCounts: Record<SeniorityFilter, number>;
+  timeframeCounts?: Record<TimeframeId, number>;
+  hideApplied: boolean;
+  hiddenAppliedCount: number;
+  totalResultsCount: number;
+  duplicatesMergedCount?: number;
+  onFilterChange: (filters: FilterState) => void;
+  onToggleHideApplied: () => void;
+  onResetFilters: () => void;
+}
+
+export type StructuredJobSectionId =
+  | "overview"
+  | "responsibilities"
+  | "requirements"
+  | "benefits"
+  | "conditions";
+
+export interface ParsedJobSection {
+  id: StructuredJobSectionId;
+  title: string;
+  iconName: "Briefcase" | "ListChecks" | "CheckCircle2" | "Gift" | "MapPin";
+  items: string[];
+}
+
+export interface StructuredJobDescription {
+  hasStructuredSections: boolean;
+  sections: ParsedJobSection[];
+  rawText: string;
+}
+
+export type NavigationTab = "search" | "pipeline" | "resumes";
+
+export interface NavigationTabItem {
+  id: NavigationTab;
+  label: string;
+  icon: string;
+  badgeCount?: number;
+}
+
+export interface ResumeBadgeInfo {
+  label: string;
+  type: "vacancy" | "role";
+  colorClass: string;
+}
+
+

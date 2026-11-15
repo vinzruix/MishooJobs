@@ -22,7 +22,7 @@ description: "Task list for Compact Filter Toolbar, Redundancy Elimination, Cont
 
 **Purpose**: Type definitions, data models, and shared contract interfaces.
 
-- [ ] T001 Define filter state, job description, and UI de-cluttering interfaces in `frontend/src/types/job.ts`: `FilterState` (`seniority: SeniorityFilter`, `timeframes: TimeframeId[]`, `modality: string`, `location: string`), `MexicanStateOption` (`code: string`, `label: string`, `fullName: string`), `SeniorityOption` (`id: SeniorityFilter`, `label: string`, `shortLabel?: string`, `isHighlight?: boolean`), `FilterToolbarProps` (`filters: FilterState`, `seniorityCounts: Record<SeniorityFilter, number>`, `timeframeCounts?: Record<TimeframeId, number>`, `hideApplied: boolean`, `hiddenAppliedCount: number`, `totalResultsCount: number`, `duplicatesMergedCount?: number`, `onFilterChange: (filters: FilterState) => void`, `onToggleHideApplied: () => void`, `onResetFilters: () => void`), `StructuredJobSectionId` (`"overview" | "responsibilities" | "requirements" | "benefits" | "conditions"`), `ParsedJobSection` (`id: StructuredJobSectionId`, `title: string`, `iconName: "Briefcase" | "ListChecks" | "CheckCircle2" | "Gift" | "MapPin"`, `items: string[]`), `StructuredJobDescription` (`hasStructuredSections: boolean`, `sections: ParsedJobSection[]`, `rawText: string`), `NavigationTab` (`"search" | "pipeline" | "resumes"`), `NavigationTabItem` (`id: NavigationTab`, `label: string`, `icon: string`, `badgeCount?: number`), and `ResumeBadgeInfo` (`label: string`, `type: "vacancy" | "role"`, `colorClass: string`)
+- [X] T001 Define filter state, job description, and UI de-cluttering interfaces in `frontend/src/types/job.ts`: `FilterState` (`seniority: SeniorityFilter`, `timeframes: TimeframeId[]`, `modality: string`, `location: string`), `MexicanStateOption` (`code: string`, `label: string`, `fullName: string`), `SeniorityOption` (`id: SeniorityFilter`, `label: string`, `shortLabel?: string`, `isHighlight?: boolean`), `FilterToolbarProps` (`filters: FilterState`, `seniorityCounts: Record<SeniorityFilter, number>`, `timeframeCounts?: Record<TimeframeId, number>`, `hideApplied: boolean`, `hiddenAppliedCount: number`, `totalResultsCount: number`, `duplicatesMergedCount?: number`, `onFilterChange: (filters: FilterState) => void`, `onToggleHideApplied: () => void`, `onResetFilters: () => void`), `StructuredJobSectionId` (`"overview" | "responsibilities" | "requirements" | "benefits" | "conditions"`), `ParsedJobSection` (`id: StructuredJobSectionId`, `title: string`, `iconName: "Briefcase" | "ListChecks" | "CheckCircle2" | "Gift" | "MapPin"`, `items: string[]`), `StructuredJobDescription` (`hasStructuredSections: boolean`, `sections: ParsedJobSection[]`, `rawText: string`), `NavigationTab` (`"search" | "pipeline" | "resumes"`), `NavigationTabItem` (`id: NavigationTab`, `label: string`, `icon: string`, `badgeCount?: number`), and `ResumeBadgeInfo` (`label: string`, `type: "vacancy" | "role"`, `colorClass: string`)
 
 ---
 
@@ -32,7 +32,7 @@ description: "Task list for Compact Filter Toolbar, Redundancy Elimination, Cont
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 [P] Implement Mexican regional states catalog and helper in `frontend/src/services/mexican_states.ts` providing `MEXICAN_STATES: MexicanStateOption[]` (`"México"`, `"CDMX"`, `"JAL"`, `"NL"`, `"QRO"`, `"PUE"`, `"GTO"`, `"YUC"`, `"BC"`, `"REMOTO"`) with `code`, `label`, and `fullName` properties
+- [X] T002 [P] Implement Mexican regional states catalog and helper in `frontend/src/services/mexican_states.ts` providing `MEXICAN_STATES: MexicanStateOption[]` (`"México"`, `"CDMX"`, `"JAL"`, `"NL"`, `"QRO"`, `"PUE"`, `"GTO"`, `"YUC"`, `"BC"`, `"REMOTO"`) with `code`, `label`, and `fullName` properties
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -46,12 +46,12 @@ description: "Task list for Compact Filter Toolbar, Redundancy Elimination, Cont
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T003 [P] [US1] Component tests for `FilterToolbar.tsx` in `frontend/tests/components/FilterToolbar.test.tsx` verifying contiguous seniority segmented control rendering, popover toggling (Date, Modality, State) on click/outside/Escape, active option badge updates, reset button appearance on non-default state, and mobile single-row scroll classes (`overflow-x-auto flex-nowrap`)
+- [X] T003 [P] [US1] Component tests for `FilterToolbar.tsx` in `frontend/tests/components/FilterToolbar.test.tsx` verifying contiguous seniority segmented control rendering, popover toggling (Date, Modality, State) on click/outside/Escape, active option badge updates, reset button appearance on non-default state, and mobile single-row scroll classes (`overflow-x-auto flex-nowrap`)
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Implement `FilterToolbar.tsx` in `frontend/src/components/FilterToolbar.tsx` conforming to `FilterToolbarProps`, containing: contiguous segmented seniority control with live counts and emerald highlight for `primer_empleo`; Date dropdown popover with timeframe counts (`Hoy`, `3 días`, `7 días`, `14 días`, `30 días`, `Todas`); Modality dropdown popover (`Todas`, `Remoto`, `Híbrido`, `Presencial`); Mexican States dropdown popover using `MEXICAN_STATES`; Hide Applied toggle button with active count; conditional "Restablecer" button (active when any filter is non-default); tactile press states (`active:scale-[0.98]`); and mobile single-row horizontal scroll container with edge fade masks
-- [ ] T005 [US1] Wire `FilterToolbar.tsx` in `frontend/src/App.tsx`, replacing `FilterDrawer` usage in the search view with `FilterToolbar`, binding `filters`, `seniorityCounts`, `timeframeCounts`, `hideApplied`, `hiddenAppliedCount`, `duplicatesMergedCount`, `onFilterChange`, `onToggleHideApplied`, and `onResetFilters` (restoring toolbar filters to defaults while preserving active search bar query)
+- [X] T004 [US1] Implement `FilterToolbar.tsx` in `frontend/src/components/FilterToolbar.tsx` conforming to `FilterToolbarProps`, containing: contiguous segmented seniority control with live counts and emerald highlight for `primer_empleo`; Date dropdown popover with timeframe counts (`Hoy`, `3 días`, `7 días`, `14 días`, `30 días`, `Todas`); Modality dropdown popover (`Todas`, `Remoto`, `Híbrido`, `Presencial`); Mexican States dropdown popover using `MEXICAN_STATES`; Hide Applied toggle button with active count; conditional "Restablecer" button (active when any filter is non-default); tactile press states (`active:scale-[0.98]`); and mobile single-row horizontal scroll container with edge fade masks
+- [X] T005 [US1] Wire `FilterToolbar.tsx` in `frontend/src/App.tsx`, replacing `FilterDrawer` usage in the search view with `FilterToolbar`, binding `filters`, `seniorityCounts`, `timeframeCounts`, `hideApplied`, `hiddenAppliedCount`, `duplicatesMergedCount`, `onFilterChange`, `onToggleHideApplied`, and `onResetFilters` (restoring toolbar filters to defaults while preserving active search bar query)
 
 **Checkpoint**: User Story 1 is functional and testable independently. The compact toolbar controls all vacancy filters.
 
@@ -65,14 +65,14 @@ description: "Task list for Compact Filter Toolbar, Redundancy Elimination, Cont
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T006 [P] [US2] Unit and component tests for streamlined `SearchBar.tsx` in `frontend/tests/components/SearchBar.test.tsx` verifying single keyword query input, keyboard shortcut `/` focus, submission without location input, and removal of `initialLocation` prop
-- [ ] T007 [P] [US2] Update component tests in `frontend/tests/components/VacancyList.test.tsx` verifying that vacancy list renders cleanly without duplicate seniority pills or redundant quick filters
+- [X] T006 [P] [US2] Unit and component tests for streamlined `SearchBar.tsx` in `frontend/tests/components/SearchBar.test.tsx` verifying single keyword query input, keyboard shortcut `/` focus, submission without location input, and removal of `initialLocation` prop
+- [X] T007 [P] [US2] Update component tests in `frontend/tests/components/VacancyList.test.tsx` verifying that vacancy list renders cleanly without duplicate seniority pills or redundant quick filters
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Refactor `SearchBar.tsx` in `frontend/src/components/SearchBar.tsx` to remove the free-text location input container and MapPin icon per `contracts/filter-toolbar-contract.md`, updating `SearchBarProps` to `onSearch: (query: string) => void`, `isSearching: boolean`, `initialQuery?: string`
-- [ ] T009 [US2] Refactor `VacancyList.tsx` in `frontend/src/components/VacancyList.tsx` to remove `quickSeniorityOptions` horizontal pill row, removing unused `onSelectSeniority` and `onClearSeniorityFilter` props so the toolbar is the sole seniority selector
-- [ ] T010 [US2] Update `frontend/src/App.tsx` search handlers and `VacancyList` props, eliminating `initialLocation` from `SearchBar` and removing secondary seniority callbacks from `VacancyList`
+- [X] T008 [US2] Refactor `SearchBar.tsx` in `frontend/src/components/SearchBar.tsx` to remove the free-text location input container and MapPin icon per `contracts/filter-toolbar-contract.md`, updating `SearchBarProps` to `onSearch: (query: string) => void`, `isSearching: boolean`, `initialQuery?: string`
+- [X] T009 [US2] Refactor `VacancyList.tsx` in `frontend/src/components/VacancyList.tsx` to remove `quickSeniorityOptions` horizontal pill row, removing unused `onSelectSeniority` and `onClearSeniorityFilter` props so the toolbar is the sole seniority selector
+- [X] T010 [US2] Update `frontend/src/App.tsx` search handlers and `VacancyList` props, eliminating `initialLocation` from `SearchBar` and removing secondary seniority callbacks from `VacancyList`
 
 **Checkpoint**: User Stories 1 AND 2 are functional together. Zero redundant filters or duplicate inputs remain on the search view.
 
@@ -86,14 +86,14 @@ description: "Task list for Compact Filter Toolbar, Redundancy Elimination, Cont
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T011 [P] [US3] Unit tests for `job_description_parser.ts` in `frontend/tests/services/job_description_parser.test.ts` covering Spanish section headers detection (`responsabilidades`, `requisitos`, `beneficios`, `condiciones`), bullet list tokenization (`-`, `*`, `•`, numbered lists), paragraph grouping, and graceful fallback to a single overview card when no section headers are present
-- [ ] T012 [P] [US3] Component tests for `JobDescriptionViewer.tsx` in `frontend/tests/components/JobDescriptionViewer.test.tsx` covering section cards rendering (`bg-white border border-slate-200/80 rounded-xl p-4`), semantic icon headers, bullet styling, DOMPurify XSS sanitization, and single-card fallback layout
+- [X] T011 [P] [US3] Unit tests for `job_description_parser.ts` in `frontend/tests/services/job_description_parser.test.ts` covering Spanish section headers detection (`responsabilidades`, `requisitos`, `beneficios`, `condiciones`), bullet list tokenization (`-`, `*`, `•`, numbered lists), paragraph grouping, and graceful fallback to a single overview card when no section headers are present
+- [X] T012 [P] [US3] Component tests for `JobDescriptionViewer.tsx` in `frontend/tests/components/JobDescriptionViewer.test.tsx` covering section cards rendering (`bg-white border border-slate-200/80 rounded-xl p-4`), semantic icon headers, bullet styling, DOMPurify XSS sanitization, and single-card fallback layout
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Implement client-side deterministic parser in `frontend/src/services/job_description_parser.ts` implementing `parseJobDescription(rawText: string): StructuredJobDescription` using regex dictionary for Spanish job headers (`responsibilities`, `requirements`, `benefits`, `conditions`), bullet list tokenization (`^(\s*[-*•▪▫–—]|\s*\d+[\.\)])\s*(.*)$`), paragraph grouping, and fallback to single `overview` card
-- [ ] T014 [US3] Implement `JobDescriptionViewer.tsx` in `frontend/src/components/JobDescriptionViewer.tsx` rendering `StructuredJobDescription` sections in white card containers (`bg-white border border-slate-200/80 rounded-xl p-4 shadow-xs`) with Lucide icons (`Briefcase`, `ListChecks`, `CheckCircle2`, `Gift`, `MapPin`), styled bullet items, and DOMPurify sanitization
-- [ ] T015 [US3] Integrate `JobDescriptionViewer.tsx` into `VacancyDetailPane.tsx` in `frontend/src/components/VacancyDetailPane.tsx` to replace raw pre-line HTML rendering on the description tab, keeping skills pills and scam/audit badges intact
+- [X] T013 [US3] Implement client-side deterministic parser in `frontend/src/services/job_description_parser.ts` implementing `parseJobDescription(rawText: string): StructuredJobDescription` using regex dictionary for Spanish job headers (`responsibilities`, `requirements`, `benefits`, `conditions`), bullet list tokenization (`^(\s*[-*•▪▫–—]|\s*\d+[\.\)])\s*(.*)$`), paragraph grouping, and fallback to single `overview` card
+- [X] T014 [US3] Implement `JobDescriptionViewer.tsx` in `frontend/src/components/JobDescriptionViewer.tsx` rendering `StructuredJobDescription` sections in white card containers (`bg-white border border-slate-200/80 rounded-xl p-4 shadow-xs`) with Lucide icons (`Briefcase`, `ListChecks`, `CheckCircle2`, `Gift`, `MapPin`), styled bullet items, and DOMPurify sanitization
+- [X] T015 [US3] Integrate `JobDescriptionViewer.tsx` into `VacancyDetailPane.tsx` in `frontend/src/components/VacancyDetailPane.tsx` to replace raw pre-line HTML rendering on the description tab, keeping skills pills and scam/audit badges intact
 
 **Checkpoint**: User Stories 1, 2, and 3 are functional. Job descriptions render with clean visual hierarchy.
 
@@ -107,15 +107,15 @@ description: "Task list for Compact Filter Toolbar, Redundancy Elimination, Cont
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T016 [P] [US4] Component tests in `frontend/tests/components/DeCluttering.test.tsx` asserting: Header navigation labels are concise ("Vacantes", "Postulaciones", "CVs", "Perfil") and version badge is removed; PipelineView header lacks "IndexedDB" badge; ResumeLibraryView cards render clean bracket-free badges; and MasterProfileEditor renders clean syntax status without bracket wrappers
+- [X] T016 [P] [US4] Component tests in `frontend/tests/components/DeCluttering.test.tsx` asserting: Header navigation labels are concise ("Vacantes", "Postulaciones", "CVs", "Perfil") and version badge is removed; PipelineView header lacks "IndexedDB" badge; ResumeLibraryView cards render clean bracket-free badges; and MasterProfileEditor renders clean syntax status without bracket wrappers
 
 ### Implementation for User Story 4
 
-- [ ] T017 [P] [US4] Update `Header.tsx` in `frontend/src/components/Header.tsx` to remove the `v0.1.0 • MX Jr Live` badge and shorten navigation tab labels to `"Vacantes"`, `"Postulaciones"`, `"CVs"`, and `"Perfil"`
-- [ ] T018 [P] [US4] Update `PipelineView.tsx` in `frontend/src/components/PipelineView.tsx` to remove the `"Almacenamiento Local (IndexedDB)"` badge and simplify header title to `Postulaciones ({count})`
-- [ ] T019 [P] [US4] Update `ResumeLibraryView.tsx` in `frontend/src/components/ResumeLibraryView.tsx` to remove promotional paragraph `"Currículums adaptados a vacantes..."` and replace bracketed badge strings (`[VACANTE: ...]` and `[ROL: ...]`) with clean styled badges
-- [ ] T020 [P] [US4] Update `MasterProfileEditor.tsx` in `frontend/src/components/MasterProfileEditor.tsx` to remove `(Master Career Knowledge Base)` subtitle and replace bracketed validation badges (`[ESTRUCTURA VÁLIDA]` → `Estructura válida`, `[ERROR EN LÍNEA ...]` → `Error en línea ...`) with clean text labels
-- [ ] T021 [US4] Update `frontend/src/App.tsx` and `frontend/src/components/VacancyList.tsx` to replace the prominent deduplication alert banner (`⚡ Se combinaron N vacantes duplicadas...`) with a subtle inline text counter next to the results count (`42 vacantes • 12 combinadas`), and safely delete legacy `frontend/src/components/FilterDrawer.tsx` and its test `frontend/tests/components/FilterDrawer.test.tsx`
+- [X] T017 [P] [US4] Update `Header.tsx` in `frontend/src/components/Header.tsx` to remove the `v0.1.0 • MX Jr Live` badge and shorten navigation tab labels to `"Vacantes"`, `"Postulaciones"`, `"CVs"`, and `"Perfil"`
+- [X] T018 [P] [US4] Update `PipelineView.tsx` in `frontend/src/components/PipelineView.tsx` to remove the `"Almacenamiento Local (IndexedDB)"` badge and simplify header title to `Postulaciones ({count})`
+- [X] T019 [P] [US4] Update `ResumeLibraryView.tsx` in `frontend/src/components/ResumeLibraryView.tsx` to remove promotional paragraph `"Currículums adaptados a vacantes..."` and replace bracketed badge strings (`[VACANTE: ...]` and `[ROL: ...]`) with clean styled badges
+- [X] T020 [P] [US4] Update `MasterProfileEditor.tsx` in `frontend/src/components/MasterProfileEditor.tsx` to remove `(Master Career Knowledge Base)` subtitle and replace bracketed validation badges (`[ESTRUCTURA VÁLIDA]` → `Estructura válida`, `[ERROR EN LÍNEA ...]` → `Error en línea ...`) with clean text labels
+- [X] T021 [US4] Update `frontend/src/App.tsx` and `frontend/src/components/VacancyList.tsx` to replace the prominent deduplication alert banner (`⚡ Se combinaron N vacantes duplicadas...`) with a subtle inline text counter next to the results count (`42 vacantes • 12 combinadas`), and safely delete legacy `frontend/src/components/FilterDrawer.tsx` and its test `frontend/tests/components/FilterDrawer.test.tsx`
 
 **Checkpoint**: All user stories are complete. UI is completely purged of technical boilerplate and promotional noise.
 
@@ -125,9 +125,9 @@ description: "Task list for Compact Filter Toolbar, Redundancy Elimination, Cont
 
 **Purpose**: Verification, responsiveness auditing, and documentation update.
 
-- [ ] T022 [P] Run full frontend test suite (`npm --prefix frontend test -- --run`) and backend test suite (`.venv/bin/pytest backend/tests/ -v`) to confirm 100% test passing and zero regressions
-- [ ] T023 [P] Validate responsive layout across mobile (<768px single-row horizontal scroll) and desktop viewports per `quickstart.md`
-- [ ] T024 Update `GEMINI.md` Architectural Decisions & Conventions Log with Feature 008 architectural standards (compact filter toolbar, redundancy elimination, structured job description cards, and UI de-cluttering)
+- [X] T022 [P] Run full frontend test suite (`npm --prefix frontend test -- --run`) and backend test suite (`.venv/bin/pytest backend/tests/ -v`) to confirm 100% test passing and zero regressions
+- [X] T023 [P] Validate responsive layout across mobile (<768px single-row horizontal scroll) and desktop viewports per `quickstart.md`
+- [X] T024 Update `GEMINI.md` Architectural Decisions & Conventions Log with Feature 008 architectural standards (compact filter toolbar, redundancy elimination, structured job description cards, and UI de-cluttering)
 
 ---
 

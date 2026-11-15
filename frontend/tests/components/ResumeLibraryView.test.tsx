@@ -136,8 +136,8 @@ describe("ResumeLibraryView Component Tests", () => {
     expect(card1).toHaveClass("bg-white");
     expect(card1).toHaveClass("border-slate-200/80");
 
-    expect(screen.getByText("[VACANTE: Mercado Libre]")).toBeInTheDocument();
-    expect(screen.getByText("[ROL: Frontend Developer]")).toBeInTheDocument();
+    expect(screen.getByText("Mercado Libre")).toBeInTheDocument();
+    expect(screen.getByText("Frontend Developer")).toBeInTheDocument();
 
     // Preview
     fireEvent.click(screen.getByTestId("preview-btn-res-1"));

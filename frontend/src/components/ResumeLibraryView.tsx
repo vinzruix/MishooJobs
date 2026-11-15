@@ -46,12 +46,9 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-slate-800" />
             <h1 className="text-base font-bold text-slate-900 tracking-tight uppercase">
-              Mis Currículums (Biblioteca Local)
+              Mis Currículums
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1 font-medium">
-            Currículums adaptados a vacantes y por roles técnicos generados en tu navegador con cero servidores.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -141,11 +138,11 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
                 <div className="flex items-center justify-between gap-2">
                   {rec.type === "vacancy" ? (
                     <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-800 truncate max-w-[200px]">
-                      [VACANTE: {rec.vacancy_company || "Empresa"}]
+                      {rec.vacancy_company || "Vacante"}
                     </span>
                   ) : (
                     <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-800">
-                      [ROL: {rec.target_role}]
+                      {rec.target_role}
                     </span>
                   )}
 

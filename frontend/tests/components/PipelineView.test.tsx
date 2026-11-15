@@ -39,7 +39,7 @@ describe("PipelineView Light Theme & Interaction Tests", () => {
     );
 
     // Title and container
-    expect(screen.getByText(/Pipeline de Postulaciones/i)).toHaveClass("text-slate-900");
+    expect(screen.getByText(/Postulaciones/i)).toHaveClass("text-slate-900");
 
     // Cards should have white background and light slate border
     const cards = container.querySelectorAll(".grid > div");

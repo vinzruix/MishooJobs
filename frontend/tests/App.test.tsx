@@ -109,7 +109,9 @@ describe("App Seniority Filtering Integration Tests", () => {
   it("calls search() when modality filter changes, keeping seniority as 'all'", () => {
     render(<App />);
 
-    // Click on "Híbrido" modality
+    // Open modality popover and click on "Híbrido"
+    const modalityTrigger = screen.getByRole("button", { name: /modalidad/i });
+    fireEvent.click(modalityTrigger);
     const hibridoButton = screen.getByRole("button", { name: "Híbrido" });
     fireEvent.click(hibridoButton);
 
@@ -126,15 +128,17 @@ describe("App Seniority Filtering Integration Tests", () => {
   it("contextually scopes quick filter pill counters to the active timeframe filter", () => {
     render(<App />);
 
-    // Click on "Últimas 24 horas" in FilterDrawer
-    const btn24h = screen.getByText(/Últimas 24 horas/);
+    // Open date popover and click on "Hoy (24h)" in FilterToolbar
+    const dateTrigger = screen.getByRole("button", { name: /fecha/i });
+    fireEvent.click(dateTrigger);
+    const btn24h = screen.getByText(/Hoy \(24h\)/);
     fireEvent.click(btn24h);
 
-    // Quick filter pills reflect the active timeframe without triggering search
+    // Filter pills reflect the active timeframe without triggering search
     expect(mockSearch).not.toHaveBeenCalled();
   });
 
-  it("displays deduplication metric badge with coherent duplicate count and total extracted", () => {
+  it("displays deduplication inline count with coherent duplicate count and total extracted", () => {
     mockSummary = {
       total_extracted: 2,
       unique_vacancies: 1,
@@ -142,8 +146,8 @@ describe("App Seniority Filtering Integration Tests", () => {
     };
 
     render(<App />);
-    expect(screen.getByText(/Se combinaron/)).toBeInTheDocument();
-    expect(screen.getByText(/Total extraídas: 2/)).toBeInTheDocument();
+    expect(screen.getByText(/1 combinada/)).toBeInTheDocument();
+    expect(screen.queryByText(/Se combinaron/)).not.toBeInTheDocument();
   });
 });
 
