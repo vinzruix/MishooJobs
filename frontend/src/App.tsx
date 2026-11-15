@@ -470,21 +470,21 @@ export default function App() {
 
                 {/* Deduplication Metric Badge */}
                 {summary && summary.duplicates_merged > 0 && (
-                  <div className="text-[11px] text-zinc-400 bg-zinc-900/60 border border-zinc-800 px-3 py-1.5 rounded flex items-center justify-between">
-                    <span>
-                      ⚡ Se combinaron <strong className="text-emerald-400">{summary.duplicates_merged}</strong> vacantes duplicadas entre bolsas de trabajo.
+                  <div className="text-[11px] text-indigo-900 bg-indigo-50 border border-indigo-100/90 px-3.5 py-2 rounded-xl flex items-center justify-between shadow-xs">
+                    <span className="font-medium">
+                      ⚡ Se combinaron <strong className="text-indigo-950 font-bold">{summary.duplicates_merged}</strong> vacantes duplicadas entre bolsas de trabajo.
                     </span>
-                    <span className="text-zinc-500 text-[10px]">Total extraídas: {summary.total_extracted}</span>
+                    <span className="text-indigo-600/80 text-[10px] font-medium">Total extraídas: {summary.total_extracted}</span>
                   </div>
                 )}
 
                 {/* Vacancy Results Feed - Master-Detail Split Grid */}
                 {displayedVacancies.length === 0 && !isSearching && unignoredVacancies.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-zinc-500 border border-dashed border-zinc-800 rounded-lg">
-                    <Terminal className="w-10 h-10 text-zinc-700 mb-3" />
-                    <p className="text-sm font-semibold text-zinc-300">Empieza tu búsqueda de empleo en México</p>
-                    <p className="text-xs text-zinc-500 mt-1 max-w-md">
-                      Ingresa un rol como <code className="text-emerald-400 bg-zinc-900 px-1 py-0.5 rounded">Python Junior</code> o <code className="text-emerald-400 bg-zinc-900 px-1 py-0.5 rounded">Becario Frontend</code> para consultar en tiempo real.
+                  <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-slate-500 border border-dashed border-slate-300 rounded-2xl bg-white/60">
+                    <Terminal className="w-10 h-10 text-slate-400 mb-3" />
+                    <p className="text-sm font-semibold text-slate-800">Empieza tu búsqueda de empleo en México</p>
+                    <p className="text-xs text-slate-500 mt-1 max-w-md">
+                      Ingresa un rol como <code className="text-slate-900 font-mono bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">Python Junior</code> o <code className="text-slate-900 font-mono bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">Becario Frontend</code> para consultar en tiempo real.
                     </p>
                   </div>
                 ) : (

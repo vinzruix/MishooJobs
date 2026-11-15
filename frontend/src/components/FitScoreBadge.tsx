@@ -9,9 +9,9 @@ export function FitScoreBadge({ score, tier, size = "sm" }: FitScoreBadgeProps) 
     tier || (score >= 80 ? "high" : score >= 50 ? "moderate" : "low");
 
   const tierStyles = {
-    high: "bg-emerald-950/80 border-emerald-600 text-emerald-300",
-    moderate: "bg-amber-950/80 border-amber-600 text-amber-300",
-    low: "bg-zinc-900 border-zinc-700 text-zinc-400",
+    high: "bg-emerald-50 border-emerald-200 text-emerald-800",
+    moderate: "bg-amber-50 border-amber-200 text-amber-800",
+    low: "bg-slate-100 border-slate-200 text-slate-600",
   }[effectiveTier];
 
   const sizeStyles = size === "md" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-[10px]";

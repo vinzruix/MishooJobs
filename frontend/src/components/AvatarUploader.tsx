@@ -173,31 +173,31 @@ export const AvatarUploader: React.FC<AvatarUploaderProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 p-3 bg-zinc-900 border border-zinc-800 rounded-lg font-mono">
+    <div className="flex flex-col gap-2 p-3.5 bg-white border border-slate-200/80 rounded-xl font-sans shadow-xs">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-400 font-semibold tracking-wide uppercase">
+        <span className="text-xs text-slate-700 font-semibold tracking-wide uppercase">
           Fotografía de Perfil (Avatar)
         </span>
         {photoEnabled && (
-          <span className="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded">
+          <span className="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">
             VISIBLE EN CV
           </span>
         )}
       </div>
 
       {storageWarning && (
-        <div className="flex items-center gap-1.5 text-xs text-amber-400 bg-amber-950/50 border border-amber-800 p-2 rounded">
-          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+        <div className="flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 p-2 rounded-xl">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 text-amber-600" />
           <span>{storageWarning}</span>
         </div>
       )}
 
       <div className="flex items-center gap-4">
-        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center flex-shrink-0">
+        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-200 flex items-center justify-center flex-shrink-0">
           {photoUrl ? (
             <img src={photoUrl} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
-            <Camera className="w-6 h-6 text-zinc-500" />
+            <Camera className="w-6 h-6 text-slate-400" />
           )}
         </div>
 
@@ -216,9 +216,9 @@ export const AvatarUploader: React.FC<AvatarUploaderProps> = ({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isProcessing}
-              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded border border-zinc-700 transition-colors flex items-center gap-1.5"
+              className="text-xs bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs transition-colors flex items-center gap-1.5 font-medium"
             >
-              <Camera className="w-3.5 h-3.5" />
+              <Camera className="w-3.5 h-3.5 text-slate-500" />
               <span>{photoUrl ? "Cambiar foto" : "Subir fotografía"}</span>
             </button>
 
@@ -226,14 +226,14 @@ export const AvatarUploader: React.FC<AvatarUploaderProps> = ({
               <button
                 type="button"
                 onClick={handleRemovePhoto}
-                className="text-xs text-rose-400 hover:text-rose-300 bg-rose-950/40 hover:bg-rose-950/60 px-2 py-1.5 rounded border border-rose-900/60 transition-colors flex items-center gap-1"
+                className="text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1.5 rounded-xl border border-rose-200 transition-colors flex items-center gap-1 font-medium"
                 title="Eliminar fotografía"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
-          <span className="text-[11px] text-zinc-500">
+          <span className="text-[11px] text-slate-500">
             Máx 512x512px. Se comprime y persiste estrictamente en tu navegador.
           </span>
         </div>

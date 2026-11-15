@@ -216,4 +216,5 @@ When implementing tasks or modifying this codebase:
 - [007] Responsive mobile detail presentation via Vaul gesture-driven bottom sheet with 1:1 finger tracking, velocity dismissal, and drag handle.
 - [007] Segmented 2-tab detail switch (Descripción vs Evaluación AI) with isolated evaluation caching by vacancy fingerprint and DOMPurified HTML descriptions.
 - [007] Zero marketing slop policy purging promotional boilerplate ('Filtros Mexicanos', 'Desarrollado para Jr', verbose banners) across all UI surfaces.
+- [light-theme-secondary-views] Full migration of secondary views (PipelineView, ResumeLibraryView), search bar, deduplication banner, and auxiliary modals to the Emil Kowalski #F8F9FA light design system with white cards and pastel badges.
 

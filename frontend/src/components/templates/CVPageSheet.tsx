@@ -24,11 +24,11 @@ export const CVPageSheet: React.FC<CVPageSheetProps> = ({
       {pageNumber === 2 && (
         <div
           data-testid="page-2-divider"
-          className="no-print flex items-center justify-center gap-3 my-4 text-[11px] text-zinc-500 font-mono"
+          className="no-print flex items-center justify-center gap-3 my-4 text-[11px] text-slate-500 font-sans font-medium"
         >
-          <span className="h-px flex-1 bg-zinc-800 max-w-[140px]" />
+          <span className="h-px flex-1 bg-slate-300 max-w-[140px]" />
           <span>Página 2 de {totalPages} • Encabezado repetido</span>
-          <span className="h-px flex-1 bg-zinc-800 max-w-[140px]" />
+          <span className="h-px flex-1 bg-slate-300 max-w-[140px]" />
         </div>
       )}
       <div

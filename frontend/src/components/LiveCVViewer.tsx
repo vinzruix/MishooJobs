@@ -88,7 +88,7 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
 
   if (!resume || !hydratedContent) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] font-mono text-zinc-500 text-xs">
+      <div className="flex items-center justify-center min-h-[60vh] font-sans text-slate-500 text-xs">
         Cargando currículum...
       </div>
     );
@@ -162,7 +162,7 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
   };
 
   return (
-    <div className="flex flex-col font-mono min-h-screen bg-zinc-950 text-zinc-100 print:min-h-0 print:block print:bg-white">
+    <div className="flex flex-col font-sans min-h-screen bg-[#F8F9FA] text-slate-900 print:min-h-0 print:block print:bg-white">
       {/* Screen WYSIWYG & Print-safe TrueType font / vector PDF CSS styling */}
       <style>{`
         .cv-page.font-sans,
@@ -233,25 +233,25 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
       `}</style>
 
       {/* Top Action Toolbar (Hidden when printing) */}
-      <div className="no-print sticky top-0 z-40 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="no-print sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">
           <button
             type="button"
             data-testid="live-viewer-back-btn"
             onClick={onBack}
-            className="p-1.5 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors flex items-center gap-1.5 text-xs font-semibold"
+            className="p-1.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex items-center gap-1.5 text-xs font-semibold"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Volver</span>
           </button>
 
-          <div className="h-4 w-px bg-zinc-800 hidden sm:block" />
+          <div className="h-4 w-px bg-slate-200 hidden sm:block" />
 
           <div className="flex flex-col">
-            <span className="text-xs font-bold text-zinc-100 truncate max-w-xs sm:max-w-md">
+            <span className="text-xs font-bold text-slate-900 truncate max-w-xs sm:max-w-md">
               {resume.title}
             </span>
-            <span className="text-[10px] text-zinc-500">
+            <span className="text-[10px] text-slate-500 font-mono">
               {resume.type === "vacancy" ? "[CV ADAPTADO]" : "[CV POR ROL]"} • Rev {resume.revision}
             </span>
           </div>
@@ -260,15 +260,15 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
         {/* Center / Right controls */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Template Switcher */}
-          <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded border border-zinc-800 text-xs">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
             <button
               type="button"
               data-testid="template-technical-btn"
               onClick={() => handleTemplateChange("technical_high_density")}
-              className={`px-2.5 py-1 rounded transition-colors ${
+              className={`px-2.5 py-1 rounded-lg transition-colors font-medium ${
                 resume.template_id === "technical_high_density"
-                  ? "bg-zinc-800 text-emerald-400 font-bold"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-slate-900 text-white font-semibold shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Alta Densidad (2 col)
@@ -277,10 +277,10 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
               type="button"
               data-testid="template-classic-btn"
               onClick={() => handleTemplateChange("classic_ats")}
-              className={`px-2.5 py-1 rounded transition-colors ${
+              className={`px-2.5 py-1 rounded-lg transition-colors font-medium ${
                 resume.template_id === "classic_ats"
-                  ? "bg-zinc-800 text-emerald-400 font-bold"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-slate-900 text-white font-semibold shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Clásico ATS
@@ -289,10 +289,10 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
               type="button"
               data-testid="template-modern-btn"
               onClick={() => handleTemplateChange("modern_executive")}
-              className={`px-2.5 py-1 rounded transition-colors ${
+              className={`px-2.5 py-1 rounded-lg transition-colors font-medium ${
                 resume.template_id === "modern_executive"
-                  ? "bg-zinc-800 text-emerald-400 font-bold"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-slate-900 text-white font-semibold shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Ejecutivo
@@ -304,10 +304,10 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
             type="button"
             data-testid="photo-toggle-btn"
             onClick={handlePhotoToggle}
-            className={`px-2.5 py-1.5 text-xs rounded border transition-colors flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 text-xs rounded-xl border transition-colors flex items-center gap-1.5 font-medium ${
               resume.photo_enabled
-                ? "bg-emerald-950/60 border-emerald-800 text-emerald-400"
-                : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-zinc-300"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
             }`}
             title="Alternar visibilidad de fotografía en el CV"
           >
@@ -320,48 +320,48 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
             type="button"
             data-testid="sync-improvements-btn"
             onClick={() => setShowSyncModal(true)}
-            className="px-2.5 py-1.5 text-xs rounded bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-emerald-400 hover:border-zinc-700 transition-colors flex items-center gap-1.5"
+            className="px-2.5 py-1.5 text-xs rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center gap-1.5 font-medium shadow-xs"
             title="Guardar mejoras y viñetas editadas en el Perfil Maestro"
           >
-            <GitPullRequest className="w-3.5 h-3.5 text-emerald-400" />
+            <GitPullRequest className="w-3.5 h-3.5 text-indigo-600" />
             <span className="hidden sm:inline">Guardar en Perfil Maestro</span>
           </button>
 
           {/* Split Action Copy Button */}
-          <div className="relative inline-flex rounded shadow-sm">
+          <div className="relative inline-flex rounded-xl shadow-xs">
             <button
               type="button"
               data-testid="copy-ats-primary-btn"
               onClick={() => copyToClipboard("plain")}
-              className="px-3 py-1.5 text-xs font-semibold rounded-l bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 text-xs font-semibold rounded-l-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 flex items-center gap-1.5 transition-colors"
             >
-              <Copy className="w-3.5 h-3.5 text-emerald-400" />
+              <Copy className="w-3.5 h-3.5 text-slate-600" />
               <span>{copyFeedback || "Copiar Texto ATS"}</span>
             </button>
             <button
               type="button"
               data-testid="copy-dropdown-trigger"
               onClick={() => setShowCopyDropdown(!showCopyDropdown)}
-              className="px-2 py-1.5 text-xs rounded-r bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border-t border-r border-b border-zinc-700 transition-colors"
+              className="px-2 py-1.5 text-xs rounded-r-xl bg-white hover:bg-slate-50 text-slate-600 border-t border-r border-b border-slate-200 transition-colors"
               title="Más formatos de copia"
             >
               <ChevronDown className="w-3.5 h-3.5" />
             </button>
 
             {showCopyDropdown && (
-              <div className="absolute right-0 top-full mt-1 w-48 bg-zinc-900 border border-zinc-800 rounded shadow-xl py-1 z-50">
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
                 <button
                   type="button"
                   data-testid="copy-markdown-btn"
                   onClick={() => copyToClipboard("markdown")}
-                  className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 flex items-center justify-between"
+                  className="w-full text-left px-3 py-2 text-xs text-slate-800 hover:bg-slate-50 flex items-center justify-between font-medium"
                 >
                   <span>Copiar Markdown (GFM)</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => copyToClipboard("plain")}
-                  className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 flex items-center justify-between"
+                  className="w-full text-left px-3 py-2 text-xs text-slate-800 hover:bg-slate-50 flex items-center justify-between font-medium"
                 >
                   <span>Copiar Plano ATS</span>
                 </button>
@@ -374,7 +374,7 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
             type="button"
             data-testid="print-pdf-btn"
             onClick={handlePrint}
-            className="px-3.5 py-1.5 text-xs font-bold rounded bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/50 flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs flex items-center gap-1.5 transition-colors active:scale-[0.98]"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Descargar PDF</span>
@@ -386,10 +386,10 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
       {paginationInfo.exceedsSinglePage && allowTwoPages && !paginationInfo.exceedsTwoPages && (
         <div
           data-testid="two-page-info-badge"
-          className="no-print bg-emerald-950/60 border-b border-emerald-800/70 px-4 py-2 text-center text-xs text-emerald-300 font-semibold flex flex-wrap items-center justify-center gap-3"
+          className="no-print bg-emerald-50 border-b border-emerald-200 px-4 py-2 text-center text-xs text-emerald-800 font-semibold flex flex-wrap items-center justify-center gap-3"
         >
           <span className="flex items-center gap-1.5">
-            <FileStack className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <FileStack className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             <span>
               [MODO 2 PÁGINAS: Encabezado incluido en ambas páginas para descargar sin cortes.]
             </span>
@@ -398,7 +398,7 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
             type="button"
             data-testid="toggle-single-page-btn"
             onClick={() => setAllowTwoPages(false)}
-            className="px-2 py-0.5 rounded bg-zinc-900 border border-emerald-800 text-[11px] text-emerald-300 hover:bg-zinc-800 transition-colors"
+            className="px-2.5 py-0.5 rounded-lg bg-white border border-emerald-200 text-[11px] text-emerald-800 hover:bg-emerald-100 transition-colors shadow-2xs font-medium"
           >
             Vista 1 página
           </button>
@@ -408,10 +408,10 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
       {(paginationInfo.exceedsTwoPages || (paginationInfo.exceedsSinglePage && !allowTwoPages)) && (
         <div
           data-testid="overflow-warning-badge"
-          className="no-print bg-amber-950/80 border-b border-amber-800/80 px-4 py-2 text-center text-xs text-amber-300 font-semibold flex flex-wrap items-center justify-center gap-3"
+          className="no-print bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs text-amber-900 font-semibold flex flex-wrap items-center justify-center gap-3"
         >
           <span className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
             <span>
               {paginationInfo.exceedsTwoPages
                 ? "[PÁGINAS EXCEDIDAS: El contenido supera las 2 páginas impresas. Edita o resume viñetas para ajustar.]"
@@ -423,7 +423,7 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
               type="button"
               data-testid="enable-two-pages-btn"
               onClick={() => setAllowTwoPages(true)}
-              className="px-2 py-0.5 rounded bg-zinc-900 border border-amber-700 text-[11px] text-amber-200 hover:bg-zinc-800 transition-colors"
+              className="px-2.5 py-0.5 rounded-lg bg-white border border-amber-200 text-[11px] text-amber-900 hover:bg-amber-100 transition-colors shadow-2xs font-medium"
             >
               Activar 2 páginas (encabezado en ambas)
             </button>
@@ -432,7 +432,7 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
       )}
 
       {/* Live Canvas Area */}
-      <div className="flex-1 p-4 sm:p-8 overflow-x-auto overflow-y-auto flex justify-center bg-zinc-950 print:bg-white print:p-0 print:block print:overflow-visible">
+      <div className="flex-1 p-4 sm:p-8 overflow-x-auto overflow-y-auto flex justify-center bg-slate-200/70 print:bg-white print:p-0 print:block print:overflow-visible">
         <div className="print-canvas">
           {(() => {
             const templateProps = {
