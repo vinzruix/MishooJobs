@@ -72,7 +72,7 @@ So that I can quickly assess whether I qualify without reading a dense, unformat
 1. **Given** a job vacancy with unstructured text, **When** the candidate views the description tab, **Then** each detected section is presented in a distinct white card (`bg-white border border-slate-200/80 rounded-xl p-4`) with semantic icon headers ("Resumen del Puesto", "Responsabilidades y Funciones", "Requisitos y Conocimientos", "Beneficios y Prestaciones") and styled bullet points.
 2. **Given** a job description containing list items (e.g., lines prefixed with dashes, asterisks, or numbers), **When** rendered, **Then** each item is displayed as a styled bullet point with comfortable spacing and readable line height.
 3. **Given** a job description with technical requirements or skill keywords, **When** rendered, **Then** these requirements are visually highlighted or tagged so candidates can immediately spot required tools and languages.
-4. **Given** a brief or minimally structured description that lacks explicit section headings, **When** rendered, **Then** the system gracefully presents the content as an elegant, formatted overview card without generating empty or misleading placeholder sections.
+4. **Given** a brief or minimally structured description that lacks explicit section headings, **When** rendered, **Then** the parser outputs `hasStructuredSections: false` and the system renders a single formatted "Resumen del Puesto" (`overview`) card containing all parsed paragraphs and bullets, emitting zero empty or misleading placeholder sections.
 
 ---
 
@@ -88,7 +88,7 @@ So that the interface feels professional, fast, focused, and respectfully quiet.
 
 **Acceptance Scenarios**:
 
-1. **Given** the top navigation bar, **When** viewed by a user, **Then** technical build labels (such as "v0.1.0 • MX Jr Live") are removed, and navigation items use concise terms: "Vacantes", "Postulaciones", "CVs", and "Perfil".
+1. **Given** the top navigation bar, **When** viewed by a user, **Then** technical build labels (such as "v0.1.0 • MX Jr Live") are removed, and navigation items use concise terms: "Vacantes", "Postulaciones", and "CVs", with the modal action button labeled "Perfil".
 2. **Given** the Postulaciones (Pipeline) view, **When** rendered, **Then** implementation badges such as "Almacenamiento Local (IndexedDB)" are removed, presenting a clean title and status tabs.
 3. **Given** the Mi CV (Resume Library) view, **When** rendered, **Then** long explanatory text ("Currículums adaptados a vacantes y por roles técnicos generados en tu navegador con cero servidores") is removed, and resume badges display clean labels without bracket wrappers (e.g. "Mercado Libre" instead of "[VACANTE: Mercado Libre]").
 4. **Given** the Master Profile Editor, **When** opened, **Then** internal database explanations regarding local browser persistence are removed, keeping only actionable form guidance.
@@ -126,17 +126,17 @@ So that the interface feels professional, fast, focused, and respectfully quiet.
 ### Key Entities
 
 - **FilterState**: Represents the active filter combination selected by the candidate:
-  - `timeframe`: Active timeframe selection (e.g., all, 24h, 3d, 7d, 14d, 30d).
-  - `seniority`: Active seniority tier (e.g., all, primer_empleo, pasantia, junior, mid, senior).
-  - `modality`: Active work modality (e.g., all, remoto, hibrido, presencial).
-  - `location`: Active Mexican state code or regional target (e.g., "México", "CDMX", "JAL").
-  - `hide_applied`: Boolean indicating whether applied vacancies are filtered out.
+  - `timeframes`: Array of active publication date timeframes (`TimeframeId[]`, e.g., `["all"]`, `["7d"]`).
+  - `seniority`: Active seniority tier (`SeniorityFilter`: `all`, `primer_empleo`, `pasantia`, `junior`, `mid`, `senior`).
+  - `modality`: Active work modality (`all`, `remoto`, `hibrido`, `presencial`).
+  - `location`: Active Mexican state code or regional target (e.g., `"México"`, `"CDMX"`, `"JAL"`, `"REMOTO"`).
+  *(Note: `hideApplied` is tracked separately as a client-persisted boolean state in `localStorage` under `mishoojobs_hide_applied` per architectural convention `[004]` and passed directly to the toolbar).*
 - **StructuredJobDescription**: Represents the visually organized representation of a job vacancy:
   - `overview`: Introductory summary or company context.
   - `responsibilities`: List of primary duties and daily tasks.
   - `requirements`: List of mandatory qualifications, skills, and experience prerequisites.
   - `benefits`: List of perks, legal benefits (*prestaciones de ley/superiores*), and compensation elements.
-  - `logistics`: Additional working conditions (work schedule, contract type, on-site location).
+  - `conditions`: Additional working conditions (work schedule, contract type, on-site location).
 
 ## Success Criteria *(mandatory)*
 

@@ -115,6 +115,7 @@ Refactored concise tab IDs and labels:
 
 ```typescript
 export type NavigationTab = "search" | "pipeline" | "resumes";
+// Note: "Perfil" is an action modal trigger (onOpenMasterProfile) rendered alongside the tabs, not a routable view tab.
 
 export interface NavigationTabItem {
   id: NavigationTab;
