@@ -56,8 +56,26 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
   onResetFilters,
 }) => {
   const [openPopover, setOpenPopover] = useState<"date" | "modality" | "location" | null>(null);
+  const [popoverCoords, setPopoverCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  const togglePopover = (
+    type: "date" | "modality" | "location",
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    if (openPopover === type) {
+      setOpenPopover(null);
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const maxLeft = typeof window !== "undefined" ? window.innerWidth - 270 : 300;
+      setPopoverCoords({
+        top: rect.bottom + 6,
+        left: Math.max(8, Math.min(rect.left, maxLeft)),
+      });
+      setOpenPopover(type);
+    }
+  };
 
   // Close popovers on click outside or Escape
   useEffect(() => {
@@ -127,7 +145,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
       ref={popoverRef}
       className="relative w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md z-20 py-2 px-4 shadow-2xs"
     >
-      <div className="flex items-center gap-2.5 overflow-x-auto flex-nowrap no-scrollbar py-0.5 text-xs">
+      <div className="flex items-center gap-2.5 overflow-x-auto lg:overflow-visible flex-nowrap no-scrollbar py-0.5 text-xs">
         {/* Contiguous Seniority Segmented Control */}
         <div className="flex items-center bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/70 shrink-0">
           {SENIORITY_OPTIONS.map((opt) => {
@@ -172,7 +190,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
         <div className="relative shrink-0">
           <button
             type="button"
-            onClick={() => setOpenPopover(openPopover === "date" ? null : "date")}
+            onClick={(e) => togglePopover("date", e)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all active:scale-[0.98] ${
               !filters.timeframes.includes("all")
                 ? "bg-slate-900 text-white border-slate-900 shadow-xs"
@@ -185,7 +203,10 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
           </button>
 
           {openPopover === "date" && (
-            <div className="absolute left-0 top-full mt-1.5 w-52 bg-white border border-slate-200/90 rounded-xl shadow-xl p-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+            <div
+              style={{ top: popoverCoords.top, left: popoverCoords.left }}
+              className="fixed w-52 bg-white border border-slate-200/90 rounded-xl shadow-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+            >
               <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 py-1">
                 Fecha de publicación
               </div>
@@ -222,7 +243,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
         <div className="relative shrink-0">
           <button
             type="button"
-            onClick={() => setOpenPopover(openPopover === "modality" ? null : "modality")}
+            onClick={(e) => togglePopover("modality", e)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all active:scale-[0.98] ${
               filters.modality !== "all"
                 ? "bg-slate-900 text-white border-slate-900 shadow-xs"
@@ -235,7 +256,10 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
           </button>
 
           {openPopover === "modality" && (
-            <div className="absolute left-0 top-full mt-1.5 w-44 bg-white border border-slate-200/90 rounded-xl shadow-xl p-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+            <div
+              style={{ top: popoverCoords.top, left: popoverCoords.left }}
+              className="fixed w-44 bg-white border border-slate-200/90 rounded-xl shadow-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+            >
               <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 py-1">
                 Modalidad
               </div>
@@ -266,7 +290,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
         <div className="relative shrink-0">
           <button
             type="button"
-            onClick={() => setOpenPopover(openPopover === "location" ? null : "location")}
+            onClick={(e) => togglePopover("location", e)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all active:scale-[0.98] ${
               filters.location !== "México"
                 ? "bg-slate-900 text-white border-slate-900 shadow-xs"
@@ -279,7 +303,10 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
           </button>
 
           {openPopover === "location" && (
-            <div className="absolute left-0 top-full mt-1.5 w-64 bg-white border border-slate-200/90 rounded-xl shadow-xl p-1.5 z-30 max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+            <div
+              style={{ top: popoverCoords.top, left: popoverCoords.left }}
+              className="fixed w-64 bg-white border border-slate-200/90 rounded-xl shadow-xl p-1.5 z-50 max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-100"
+            >
               <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 py-1 sticky top-0 bg-white">
                 Ubicación / Estado
               </div>
