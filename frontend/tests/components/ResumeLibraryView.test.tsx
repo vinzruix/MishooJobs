@@ -75,7 +75,10 @@ describe("ResumeLibraryView Component Tests", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId("empty-resume-library")).toBeInTheDocument();
+      const emptyEl = screen.getByTestId("empty-resume-library");
+      expect(emptyEl).toBeInTheDocument();
+      expect(emptyEl).toHaveClass("bg-white/60");
+      expect(emptyEl).toHaveClass("border-slate-300");
     });
 
     // Check direct master profile edit button in empty state
@@ -128,6 +131,10 @@ describe("ResumeLibraryView Component Tests", () => {
     await waitFor(() => {
       expect(screen.getByText("Mercado Libre - Backend Jr")).toBeInTheDocument();
     });
+
+    const card1 = screen.getByTestId("resume-card-res-1");
+    expect(card1).toHaveClass("bg-white");
+    expect(card1).toHaveClass("border-slate-200/80");
 
     expect(screen.getByText("[VACANTE: Mercado Libre]")).toBeInTheDocument();
     expect(screen.getByText("[ROL: Frontend Developer]")).toBeInTheDocument();

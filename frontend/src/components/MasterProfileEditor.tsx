@@ -137,15 +137,15 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
   const lineNumbers = Array.from({ length: Math.max(lineCount, 1) }, (_, i) => i + 1);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 font-mono">
-      <div className="bg-zinc-950 border border-zinc-800 rounded-xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-sans">
+      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/80">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-zinc-100 tracking-wider">
+            <span className="text-sm font-bold text-slate-900 tracking-wider font-mono">
               PERFIL MAESTRO
             </span>
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-slate-500">
               (Master Career Knowledge Base)
             </span>
           </div>
@@ -155,25 +155,25 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
             {validation.valid ? (
               <span
                 data-testid="syntax-valid-badge"
-                className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2.5 py-1 rounded"
+                className="flex items-center gap-1.5 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-mono font-medium"
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 [ESTRUCTURA VÁLIDA]
               </span>
             ) : (
               <span
                 data-testid="syntax-error-badge"
-                className="flex items-center gap-1.5 text-xs text-rose-400 bg-rose-950/60 border border-rose-800 px-2.5 py-1 rounded"
+                className="flex items-center gap-1.5 text-xs text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full font-mono font-medium"
                 title={validation.error?.message}
               >
-                <AlertCircle className="w-3.5 h-3.5" />
+                <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
                 [ERROR EN LÍNEA {validation.error?.line}: {validation.error?.message?.slice(0, 45)}...]
               </span>
             )}
 
             <button
               onClick={onClose}
-              className="text-zinc-400 hover:text-zinc-200 p-1.5 rounded hover:bg-zinc-800 transition-colors"
+              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               title="Cerrar (Esc)"
             >
               <X className="w-5 h-5" />
@@ -183,9 +183,9 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
 
         {/* Upload Error Alert */}
         {uploadError && (
-          <div className="px-6 py-2 bg-rose-950/80 border-b border-rose-800/80 text-rose-300 text-xs flex items-center justify-between">
+          <div className="px-6 py-2 bg-rose-50 border-b border-rose-200 text-rose-800 text-xs flex items-center justify-between">
             <span>{uploadError}</span>
-            <button onClick={() => setUploadError(null)} className="text-rose-400 hover:text-rose-200">
+            <button onClick={() => setUploadError(null)} className="text-rose-600 hover:text-rose-900">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -194,19 +194,19 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
         {/* Content Body */}
         <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
           {/* Main YAML Editor */}
-          <div className="flex-1 flex flex-col min-h-0 border-r border-zinc-800">
-            <div className="flex-1 flex min-h-0 relative bg-zinc-950">
+          <div className="flex-1 flex flex-col min-h-0 border-r border-slate-200">
+            <div className="flex-1 flex min-h-0 relative bg-white">
               {/* Line number gutter */}
               <div
                 aria-hidden="true"
-                className="w-12 select-none py-3 pr-2 text-right text-xs text-zinc-600 bg-zinc-900/30 border-r border-zinc-800/80 font-mono overflow-hidden"
+                className="w-12 select-none py-3 pr-2 text-right text-xs text-slate-400 bg-slate-50 border-r border-slate-200 font-mono overflow-hidden"
               >
                 {lineNumbers.map((num) => (
                   <div
                     key={num}
                     className={`leading-relaxed ${
                       validation.error && validation.error.line === num
-                        ? "text-rose-400 font-bold bg-rose-950/40"
+                        ? "text-rose-600 font-bold bg-rose-100"
                         : ""
                     }`}
                   >
@@ -223,20 +223,20 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
                 spellCheck={false}
                 data-testid="master-profile-textarea"
                 aria-label="Editor de Perfil Maestro en YAML"
-                className="flex-1 p-3 bg-transparent text-xs text-zinc-200 leading-relaxed font-mono resize-none focus:outline-none overflow-y-auto selection:bg-zinc-800"
+                className="flex-1 p-3 bg-white text-xs text-slate-900 leading-relaxed font-mono resize-none focus:outline-none overflow-y-auto selection:bg-slate-200"
               />
             </div>
           </div>
 
           {/* Side Drawer: Photo & Actions */}
-          <div className="w-full md:w-80 flex flex-col gap-4 p-4 bg-zinc-900/30 overflow-y-auto">
+          <div className="w-full md:w-80 flex flex-col gap-4 p-4 bg-slate-50/50 border-l border-slate-200 overflow-y-auto">
             <AvatarUploader />
 
-            <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-lg flex flex-col gap-2">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">
+            <div className="p-3.5 bg-white border border-slate-200/80 rounded-xl flex flex-col gap-2 shadow-xs">
+              <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
                 Ingesta de Currículum
               </span>
-              <p className="text-[11px] text-zinc-500 leading-normal">
+              <p className="text-[11px] text-slate-500 leading-normal">
                 Sube tu CV en YAML, PDF o Markdown. Se estructurará automáticamente en formato canónico.
               </p>
 
@@ -254,7 +254,7 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
                 data-testid="upload-resume-btn"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="w-full text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded border border-zinc-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full text-xs bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-xl border border-slate-200 shadow-xs transition-colors flex items-center justify-center gap-2 font-medium"
               >
                 {isUploading ? (
                   <>
@@ -270,11 +270,11 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
               </button>
             </div>
 
-            <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-lg flex flex-col gap-2">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">
+            <div className="p-3.5 bg-white border border-slate-200/80 rounded-xl flex flex-col gap-2 shadow-xs">
+              <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
                 Exportar Respaldo
               </span>
-              <p className="text-[11px] text-zinc-500 leading-normal">
+              <p className="text-[11px] text-slate-500 leading-normal">
                 Descarga tu Perfil Maestro en formato YAML limpio para resguardar o editar localmente.
               </p>
 
@@ -282,7 +282,7 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
                 type="button"
                 data-testid="export-yaml-btn"
                 onClick={() => exportMasterProfileYAML(yamlContent)}
-                className="w-full text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded border border-zinc-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full text-xs bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-xl border border-slate-200 shadow-xs transition-colors flex items-center justify-center gap-2 font-medium"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Descargar YAML</span>
@@ -292,10 +292,10 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
         </div>
 
         {/* Footer Bar */}
-        <div className="flex items-center justify-between px-6 py-3 border-t border-zinc-800 bg-zinc-900/80">
-          <div className="text-[11px] text-zinc-500">
+        <div className="flex items-center justify-between px-6 py-3 border-t border-slate-200 bg-slate-50/80">
+          <div className="text-[11px] text-slate-500">
             {saveSuccess ? (
-              <span className="text-emerald-400 flex items-center gap-1 font-semibold">
+              <span className="text-emerald-700 flex items-center gap-1 font-semibold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Guardado en almacenamiento local (IndexedDB)
               </span>
@@ -308,7 +308,7 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="text-xs text-zinc-400 hover:text-zinc-200 px-4 py-2 rounded hover:bg-zinc-800 transition-colors"
+              className="text-xs text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl hover:bg-slate-200/60 transition-colors font-medium"
             >
               Cancelar
             </button>
@@ -318,10 +318,10 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
               data-testid="save-master-profile-btn"
               onClick={handleSave}
               disabled={!validation.valid || isSaving}
-              className={`text-xs px-5 py-2 rounded flex items-center gap-2 font-semibold transition-colors ${
+              className={`text-xs px-5 py-2 rounded-xl flex items-center gap-2 font-semibold transition-colors ${
                 validation.valid
-                  ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/50"
-                  : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                  ? "bg-slate-900 hover:bg-slate-800 text-white shadow-xs"
+                  : "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
               }`}
             >
               <Save className="w-3.5 h-3.5" />
@@ -335,18 +335,18 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
       {showOverwriteConfirm && (
         <div
           data-testid="overwrite-confirm-modal"
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 font-mono"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 font-sans"
         >
-          <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-lg max-w-md w-full flex flex-col gap-4 shadow-2xl">
-            <div className="flex items-center gap-3 text-amber-400">
+          <div className="bg-white border border-slate-200 p-6 rounded-2xl max-w-md w-full flex flex-col gap-4 shadow-2xl">
+            <div className="flex items-center gap-3 text-amber-600">
               <AlertCircle className="w-6 h-6 flex-shrink-0" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-100">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">
                 ¿Sobreescribir Perfil Maestro?
               </h3>
             </div>
-            <p className="text-xs text-zinc-300 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               El archivo seleccionado (
-              <span className="text-zinc-100 font-semibold">{pendingUploadFile?.name}</span>
+              <span className="text-slate-900 font-semibold">{pendingUploadFile?.name}</span>
               ) reemplazará el contenido actual en el editor.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
@@ -356,7 +356,7 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
                   setShowOverwriteConfirm(false);
                   setPendingUploadFile(null);
                 }}
-                className="text-xs text-zinc-400 hover:text-zinc-200 px-4 py-2 rounded hover:bg-zinc-800"
+                className="text-xs text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl hover:bg-slate-100 font-medium"
               >
                 Cancelar
               </button>
@@ -364,7 +364,7 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
                 type="button"
                 data-testid="confirm-overwrite-btn"
                 onClick={confirmUpload}
-                className="text-xs bg-rose-600 hover:bg-rose-500 text-white font-semibold px-4 py-2 rounded transition-colors"
+                className="text-xs bg-rose-600 hover:bg-rose-500 text-white font-semibold px-4 py-2 rounded-xl transition-colors shadow-xs"
               >
                 Sí, sobreescribir
               </button>

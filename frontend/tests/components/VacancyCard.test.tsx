@@ -280,10 +280,42 @@ describe("Frontend Component Tests", () => {
     expect(expText).toBeInTheDocument();
 
     const expContainer = expText.parentElement;
-    expect(expContainer).toHaveClass("flex", "items-center", "gap-1", "text-zinc-300", "font-mono", "text-xs");
+    expect(expContainer).toHaveClass("flex", "items-center", "gap-1", "text-slate-600", "font-medium", "text-xs");
 
     const briefcaseIcon = container.querySelector(".lucide-briefcase");
     expect(briefcaseIcon).toBeInTheDocument();
-    expect(briefcaseIcon).toHaveClass("w-3.5", "h-3.5", "text-zinc-500");
+  });
+
+  it("renders modern light card styling, squircle logo, and active selection ring", () => {
+    const handleSelect = vi.fn();
+    const { rerender } = render(
+      <VacancyCard
+        vacancy={sampleVacancy}
+        isSelected={false}
+        onSelect={handleSelect}
+        onInspect={vi.fn()}
+      />
+    );
+
+    const card = screen.getByTestId("vacancy-card");
+    expect(card).toHaveClass("bg-white", "rounded-2xl");
+    expect(card).not.toHaveClass("border-slate-900");
+
+    // Company squircle
+    const squircle = screen.getByTestId("company-squircle");
+    expect(squircle).toBeInTheDocument();
+    expect(squircle).toHaveTextContent("T");
+
+    // Rerender with isSelected={true}
+    rerender(
+      <VacancyCard
+        vacancy={sampleVacancy}
+        isSelected={true}
+        onSelect={handleSelect}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(card).toHaveClass("border-slate-900", "ring-2", "ring-slate-900/10");
   });
 });

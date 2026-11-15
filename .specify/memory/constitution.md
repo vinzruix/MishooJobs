@@ -1,17 +1,17 @@
 <!--
 Sync Impact Report:
-- Version change: 1.0.0 → 1.1.0
+- Version change: 1.1.0 → 1.2.0
 - List of modified principles:
   - Principle I: Clarified candidate zero-account rule vs. PostgreSQL backend cache.
   - Principle II: Explicitly designated Computrabajo, Indeed Mexico, and OCC Mundial as primary target portals.
-  - Principle IV: Architectural Simplicity → Midudev-Inspired Aesthetic & Technical Whitelist (FastAPI, Pydantic v2, PostgreSQL, React+Vite+Tailwind, Geist Mono/Pixel).
+  - Principle IV: Removed Midudev-Inspired visual style guidelines, dark monochrome zinc tokens, and Geist Mono / Geist Pixel typography requirements in preparation for a new UX design. Retained strict Technical Whitelist (FastAPI, Pydantic v2, PostgreSQL, React 19, TypeScript, Tailwind CSS).
   - Principle V: Zero Forced Cost for the Job-Seeker → Cost-Optimized AI & Scraping (AGY CLI).
 - Added sections:
   - Security & Defensive Coding Standards (XSS sanitization, credential isolation, strict typing)
   - Testing & Quality Gates (Deterministic offline fixtures, verification checklist)
   - Compound Learning & Anti-Patterns Log
-- Removed sections: None
-- Follow-up TODOs: None
+- Removed sections: Visual & UI Design (Midudev-Inspired) under Principle IV.
+- Follow-up TODOs: Implement new UX/UI design across all interfaces.
 -->
 
 # MishooJobs Constitution
@@ -47,22 +47,18 @@ Contributors and AI agents MUST NOT introduce premature features. The following 
 - Any unprompted feature MUST be documented in a future backlog—it MUST NOT be built in the active sprint.
 - **Rationale**: Delivering a fast, robust, and reliable core tool requires relentless discipline against operational baggage and feature creep.
 
-### IV. Midudev-Inspired Aesthetic & Technical Whitelist
-MishooJobs adopts a clean, developer-centric, minimalist design paired with a strictly enforced, modern tech stack:
+### IV. Technical Whitelist
+MishooJobs enforces a strictly typed, modern, and decoupled tech stack across backend, frontend, and database layers:
 
-1. **Visual & UI Design (Midudev-Inspired)**:
-   - **Theme**: Dark mode by default with stark, high-contrast monochrome tones (`zinc-950` backgrounds, `zinc-900` cards, `zinc-800` borders).
-   - **Typography**: Strictly **Geist Mono** for body/code/data tables and **Geist Pixel** (or pixel/monospace display fonts) for branding, metric counters, and status badge accents.
-   - **Layout**: High data density, clean borders, subtle hover transitions, badge-driven statuses, and keyboard-first navigational shortcuts.
-2. **Backend**:
+1. **Backend**:
    - **FastAPI** with **Python 3.12+**.
    - **Pydantic v2**: 100% of request/response payloads and internal DTOs MUST be strictly typed with Pydantic v2 schemas. Untyped `dict` payloads are strictly prohibited.
-3. **Frontend**:
+2. **Frontend**:
    - **React 19 + Vite + TypeScript (Strict Mode)**.
-   - **Tailwind CSS**: Utility-first styling adhering to the zinc/mono design tokens.
-4. **Database**:
+   - **Tailwind CSS**: Utility-first styling.
+3. **Database**:
    - **PostgreSQL** with asynchronous access (SQLAlchemy 2.0 Async / SQLModel) and Alembic migrations.
-- **Rationale**: High performance, strict type safety, decoupled frontend-backend architecture, and a focused aesthetic inspired by modern developer tooling.
+- **Rationale**: High performance, strict type safety, decoupled frontend-backend architecture, and modular scalability.
 
 ### V. Cost-Optimized AI & Scraping (AGY CLI + Apify MCP)
 Operating costs MUST remain at zero or near-zero marginal cost:
@@ -102,7 +98,6 @@ The UI/UX MUST proactively safeguard young candidates against labor exploitation
      - [ ] Zero mandatory account wall for job-seekers.
      - [ ] Strict adherence to FastAPI + Pydantic v2 + PostgreSQL + React/Vite.
      - [ ] Proper use of `agy` CLI for AI operations and Apify MCP for scraping.
-     - [ ] Geist Mono / Geist Pixel visual styling.
      - [ ] Computrabajo, Indeed, and OCC compatibility.
 
 ---
@@ -128,4 +123,4 @@ The UI/UX MUST proactively safeguard young candidates against labor exploitation
   - **PATCH**: Clarifications, wording refinements, and non-semantic typo corrections.
 - **Compliance Review**: All project specifications, roadmaps, and PRs must reference and strictly conform to this document.
 
-**Version**: 1.1.0 | **Ratified**: 2026-11-04 | **Last Amended**: 2026-11-05
+**Version**: 1.2.0 | **Ratified**: 2026-11-04 | **Last Amended**: 2026-11-15

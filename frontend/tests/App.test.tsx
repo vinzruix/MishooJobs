@@ -90,7 +90,7 @@ describe("App Seniority Filtering Integration Tests", () => {
     render(<App />);
 
     // Both vacancies should initially be visible
-    expect(screen.getByText("Desarrollador Java Junior")).toBeInTheDocument();
+    expect(screen.getAllByText("Desarrollador Java Junior").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Becario de Software")).toBeInTheDocument();
 
     // Click on "Primer Empleo Real" in the filter drawer or quick filter pill
@@ -102,7 +102,7 @@ describe("App Seniority Filtering Integration Tests", () => {
     expect(mockSearch).not.toHaveBeenCalled();
 
     // Only the primer_empleo vacancy should remain visible
-    expect(screen.getByText("Becario de Software")).toBeInTheDocument();
+    expect(screen.getAllByText("Becario de Software").length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText("Desarrollador Java Junior")).not.toBeInTheDocument();
   });
 
@@ -201,8 +201,112 @@ describe("App Hide Applied localStorage and URL Isolation Tests", () => {
   it("marks app footer as non-printable so it never leaks into downloaded CV PDFs", () => {
     render(<App />);
 
-    const footer = screen.getByText(/MishooJobs • Desarrollado para juniors y estudiantes en México/);
+    const footer = screen.getByText(/MishooJobs © 2026/);
     expect(footer).toHaveClass("no-print");
     expect(footer).toHaveClass("print:hidden");
+  });
+
+  it("asserts 0 occurrences of marketing slogans and verbose banners", () => {
+    render(<App />);
+
+    expect(screen.queryByText(/Filtros Mexicanos/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Desarrollado para juniors y estudiantes en México/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/100% Búsqueda en Vivo: Concurrencia directa/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("App Master-Detail Split Layout & Navigation Tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSummary = null;
+    window.history.replaceState({}, "", "/");
+    window.localStorage.clear();
+  });
+
+  it("renders 12-column master-detail split layout on desktop with sticky detail pane", () => {
+    render(<App />);
+
+    const container = screen.getByTestId("master-detail-container");
+    expect(container).toHaveClass("grid-cols-1", "lg:grid-cols-12");
+
+    const desktopPane = screen.getByTestId("desktop-detail-pane");
+    expect(desktopPane).toHaveClass("lg:col-span-7", "sticky");
+  });
+
+  it("automatically selects first streaming vacancy in the detail pane without opening any modal", () => {
+    render(<App />);
+
+    // First vacancy is "Desarrollador Java Junior"
+    const desktopPane = screen.getByTestId("desktop-detail-pane");
+    expect(desktopPane).toHaveTextContent("Desarrollador Java Junior");
+    expect(desktopPane).toHaveTextContent("Tech Solutions");
+
+    // Modal overlay is not rendered for desktop view
+    expect(screen.queryByTestId("detail-pane-close-btn")).not.toBeInTheDocument();
+  });
+
+  it("updates selected vacancy in detail pane when clicking a different vacancy card", () => {
+    render(<App />);
+
+    const desktopPane = screen.getByTestId("desktop-detail-pane");
+    expect(desktopPane).toHaveTextContent("Desarrollador Java Junior");
+
+    // Click second card ("Becario de Software")
+    const secondJob = screen.getByRole("heading", { name: "Becario de Software" });
+    fireEvent.click(secondJob);
+
+    expect(desktopPane).toHaveTextContent("Becario de Software");
+    expect(desktopPane).toHaveTextContent("Startup MX");
+  });
+
+  it("navigates vacancies with 'j' and 'k' updating the detail pane", () => {
+    render(<App />);
+
+    const desktopPane = screen.getByTestId("desktop-detail-pane");
+    expect(desktopPane).toHaveTextContent("Desarrollador Java Junior");
+
+    // Press 'j' to select next vacancy
+    fireEvent.keyDown(window, { key: "j" });
+    expect(desktopPane).toHaveTextContent("Becario de Software");
+
+    // Press 'k' to select previous vacancy
+    fireEvent.keyDown(window, { key: "k" });
+    expect(desktopPane).toHaveTextContent("Desarrollador Java Junior");
+  });
+
+  it("cycles detail tabs with Space and opens application link with Enter", () => {
+    const windowOpenSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    render(<App />);
+
+    const desktopPane = screen.getByTestId("desktop-detail-pane");
+    expect(desktopPane).toHaveTextContent("Descripción del Puesto");
+
+    // Press 'Space' to cycle to AI Evaluation tab
+    fireEvent.keyDown(window, { key: " " });
+    expect(desktopPane).toHaveTextContent("Análisis de Brechas & Afinidad Técnica");
+
+    // Press 'Enter' to open primary application link
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      "https://example.com/1",
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+    windowOpenSpy.mockRestore();
+  });
+
+  it("does not open mobile drawer or lock body scroll when selecting vacancies on desktop", () => {
+    // Desktop viewport (1024px)
+    window.innerWidth = 1200;
+    render(<App />);
+
+    const secondJob = screen.getByRole("heading", { name: "Becario de Software" });
+    fireEvent.click(secondJob);
+
+    // Mobile drawer content must not be open in DOM
+    expect(screen.queryByTestId("mobile-detail-drawer")).not.toBeInTheDocument();
+    // Body scroll must not be locked
+    expect(document.body.style.overflow).not.toBe("hidden");
   });
 });

@@ -39,17 +39,17 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6 font-mono max-w-7xl w-full mx-auto p-4 sm:p-6">
+    <div className="flex flex-col gap-6 font-sans max-w-7xl w-full mx-auto p-4 sm:p-6">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-emerald-400" />
-            <h1 className="text-base font-bold text-zinc-100 tracking-wider uppercase">
+            <FileText className="w-5 h-5 text-slate-800" />
+            <h1 className="text-base font-bold text-slate-900 tracking-tight uppercase">
               Mis Currículums (Biblioteca Local)
             </h1>
           </div>
-          <p className="text-xs text-zinc-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1 font-medium">
             Currículums adaptados a vacantes y por roles técnicos generados en tu navegador con cero servidores.
           </p>
         </div>
@@ -60,9 +60,9 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
               type="button"
               data-testid="edit-master-profile-header-btn"
               onClick={onOpenMasterProfile}
-              className="px-3.5 py-2 text-xs font-semibold rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-emerald-400 border border-zinc-800 hover:border-zinc-700 flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 shadow-xs flex items-center gap-1.5 transition-colors"
             >
-              <User className="w-4 h-4 text-emerald-400" />
+              <User className="w-4 h-4 text-slate-600" />
               <span>Editar Perfil Maestro</span>
             </button>
           )}
@@ -70,7 +70,7 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
             type="button"
             data-testid="create-role-cv-btn"
             onClick={onOpenRoleModal}
-            className="px-4 py-2 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 flex items-center gap-2 transition-colors"
+            className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs flex items-center gap-2 transition-colors active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             <span>Crear CV por Rol</span>
@@ -80,22 +80,22 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
 
       {/* Loading state */}
       {isLoading ? (
-        <div className="py-20 text-center text-xs text-zinc-500">
+        <div className="py-20 text-center text-xs text-slate-500">
           Cargando biblioteca de CVs...
         </div>
       ) : resumes.length === 0 ? (
         /* Empty State */
         <div
           data-testid="empty-resume-library"
-          className="py-16 px-6 text-center flex flex-col items-center justify-center border border-dashed border-zinc-800 rounded-xl bg-zinc-950/40 max-w-lg mx-auto"
+          className="py-16 px-6 text-center flex flex-col items-center justify-center border border-dashed border-slate-300 rounded-2xl bg-white/60 max-w-lg mx-auto shadow-xs"
         >
-          <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4 text-emerald-400">
+          <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center mb-4 text-slate-700">
             <Layers className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold text-zinc-200 mb-1">
+          <h3 className="text-sm font-bold text-slate-900 mb-1">
             Aún no has generado ningún currículum
           </h3>
-          <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
+          <p className="text-xs text-slate-500 mb-6 leading-relaxed">
             Genera un CV adaptado con 1 clic desde cualquier vacante de empleo o crea un CV base por rol para aplicar libremente.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -104,16 +104,16 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
                 type="button"
                 data-testid="edit-master-profile-empty-btn"
                 onClick={onOpenMasterProfile}
-                className="px-4 py-2 text-xs font-semibold rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-emerald-500/50 flex items-center gap-1.5 transition-colors"
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-xs flex items-center gap-1.5 transition-colors"
               >
-                <User className="w-3.5 h-3.5 text-emerald-400" />
+                <User className="w-3.5 h-3.5 text-slate-600" />
                 <span>Editar Perfil Maestro</span>
               </button>
             )}
             <button
               type="button"
               onClick={onOpenRoleModal}
-              className="px-4 py-2 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors"
             >
               Crear CV por Rol
             </button>
@@ -121,7 +121,7 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
               type="button"
               data-testid="explore-vacancies-btn"
               onClick={onExploreVacancies}
-              className="px-4 py-2 text-xs font-semibold rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition-colors"
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors"
             >
               Explorar Vacantes en Vivo
             </button>
@@ -134,22 +134,22 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
             <div
               key={rec.id}
               data-testid={`resume-card-${rec.id}`}
-              className="bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700 rounded-lg p-5 flex flex-col justify-between transition-all shadow-sm hover:shadow-md"
+              className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-2xl p-5 flex flex-col justify-between transition-all shadow-xs hover:shadow-sm"
             >
               <div className="flex flex-col gap-2.5">
                 {/* Badges */}
                 <div className="flex items-center justify-between gap-2">
                   {rec.type === "vacancy" ? (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-800 text-cyan-300 truncate max-w-[200px]">
+                    <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-800 truncate max-w-[200px]">
                       [VACANTE: {rec.vacancy_company || "Empresa"}]
                     </span>
                   ) : (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-purple-950/60 border border-purple-800 text-purple-300">
+                    <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-800">
                       [ROL: {rec.target_role}]
                     </span>
                   )}
 
-                  <span className="text-[10px] text-zinc-500 bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-700/60 font-mono">
+                  <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 font-mono">
                     Rev {rec.revision}
                   </span>
                 </div>
@@ -157,40 +157,40 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
                 {/* Title */}
                 <h3
                   onClick={() => onSelectResume(rec.id)}
-                  className="text-sm font-semibold text-zinc-100 hover:text-emerald-400 cursor-pointer line-clamp-2 transition-colors"
+                  className="text-sm font-semibold text-slate-900 hover:text-slate-700 cursor-pointer line-clamp-2 transition-colors"
                 >
                   {rec.title}
                 </h3>
 
                 {/* Metadata */}
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-400 pt-1">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-1">
                   <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-zinc-500" />
+                    <Calendar className="w-3 h-3 text-slate-400" />
                     <span>{new Date(rec.created_at).toLocaleDateString("es-MX")}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Briefcase className="w-3 h-3 text-zinc-500" />
+                    <Briefcase className="w-3 h-3 text-slate-400" />
                     <span>{getTemplateLabel(rec.template_id)}</span>
                   </div>
                 </div>
 
                 {rec.ats_match_score !== undefined && (
                   <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-                    <span className="text-zinc-500">Score ATS:</span>
-                    <span className="text-emerald-400 font-bold">{rec.ats_match_score}%</span>
+                    <span className="text-slate-500">Score ATS:</span>
+                    <span className="text-emerald-700 font-bold">{rec.ats_match_score}%</span>
                   </div>
                 )}
               </div>
 
               {/* Actions Footer */}
-              <div className="flex items-center justify-between pt-4 mt-4 border-t border-zinc-800/80 text-xs">
+              <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-100 text-xs">
                 <button
                   type="button"
                   data-testid={`preview-btn-${rec.id}`}
                   onClick={() => onSelectResume(rec.id)}
-                  className="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-semibold flex items-center gap-1.5 transition-colors"
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
                 >
-                  <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                  <Eye className="w-3.5 h-3.5 text-slate-300" />
                   <span>Previsualizar</span>
                 </button>
 
@@ -199,7 +199,7 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
                     type="button"
                     data-testid={`duplicate-btn-${rec.id}`}
                     onClick={() => duplicateResume(rec.id)}
-                    className="p-1.5 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                     title="Duplicar currículum"
                   >
                     <Copy className="w-3.5 h-3.5" />
@@ -213,7 +213,7 @@ export const ResumeLibraryView: React.FC<ResumeLibraryViewProps> = ({
                         deleteResume(rec.id);
                       }
                     }}
-                    className="p-1.5 rounded text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 transition-colors"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                     title="Eliminar currículum"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

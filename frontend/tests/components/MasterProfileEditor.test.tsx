@@ -10,12 +10,17 @@ describe("MasterProfileEditor Component Tests", () => {
     await db.master_profile_photo.clear();
   });
 
-  it("renders editor with valid starter template and emerald badge", async () => {
-    render(<MasterProfileEditor isOpen={true} onClose={() => {}} />);
+  it("renders editor with valid starter template and light design tokens", async () => {
+    const { container } = render(<MasterProfileEditor isOpen={true} onClose={() => {}} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("syntax-valid-badge")).toBeInTheDocument();
     });
+
+    expect(container.firstChild).toHaveClass("bg-slate-900/40");
+    const modalBox = container.querySelector(".max-w-5xl");
+    expect(modalBox).toHaveClass("bg-white");
+    expect(modalBox).toHaveClass("border-slate-200");
 
     expect(screen.getByText("[ESTRUCTURA VÁLIDA]")).toBeInTheDocument();
     const saveBtn = screen.getByTestId("save-master-profile-btn");

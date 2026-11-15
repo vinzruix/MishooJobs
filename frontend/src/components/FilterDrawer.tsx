@@ -32,7 +32,7 @@ export function FilterDrawer({
   onReset,
 }: FilterDrawerProps) {
   const modalities = [
-    { id: "all", label: "Todas las modalidades" },
+    { id: "all", label: "Todas" },
     { id: "remoto", label: "Remoto" },
     { id: "hibrido", label: "Híbrido" },
     { id: "presencial", label: "Presencial" },
@@ -117,16 +117,16 @@ export function FilterDrawer({
   };
 
   return (
-    <div className="bg-zinc-900/70 border border-zinc-800 rounded-lg p-3 text-xs space-y-3">
+    <div className="bg-white border border-slate-200/80 rounded-2xl p-4 text-xs space-y-3.5 shadow-xs">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-zinc-300 font-semibold uppercase tracking-wider text-[11px]">
-          <Filter className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Filtros Mexicanos (Nivel de Experiencia, Modalidad & Fecha)</span>
+        <div className="flex items-center gap-1.5 text-slate-800 font-bold text-xs">
+          <Filter className="w-3.5 h-3.5 text-slate-600" />
+          <span>Filtros</span>
         </div>
         {hasActiveFilters && (
           <button
             onClick={onReset}
-            className="text-[10px] text-zinc-400 hover:text-zinc-200 flex items-center gap-1 py-0.5 px-2 rounded bg-zinc-800"
+            className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 py-1 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors shadow-xs"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Restablecer</span>
@@ -134,10 +134,10 @@ export function FilterDrawer({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* Modality Filter */}
         <div>
-          <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1.5">
+          <label className="block text-[11px] uppercase font-bold text-slate-700 tracking-wider mb-1.5">
             Modalidad de Trabajo
           </label>
           <div className="flex flex-wrap gap-1">
@@ -147,10 +147,10 @@ export function FilterDrawer({
                 <button
                   key={m.id}
                   onClick={() => onChange({ ...filters, modality: m.id })}
-                  className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors ${
+                  className={`px-2.5 py-1 rounded-xl text-xs font-medium border transition-all ${
                     active
-                      ? "bg-emerald-950 border-emerald-600 text-emerald-300"
-                      : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                      ? "bg-slate-900 border-slate-900 text-white shadow-xs font-semibold"
+                      : "bg-slate-100 hover:bg-slate-200 border-transparent text-slate-700"
                   }`}
                 >
                   {m.label}
@@ -162,8 +162,8 @@ export function FilterDrawer({
 
         {/* 5-Tier Seniority Level Filter with Live Counters */}
         <div>
-          <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1.5 flex items-center gap-1">
-            <Briefcase className="w-3 h-3 text-emerald-400" />
+          <label className="block text-[11px] uppercase font-bold text-slate-700 tracking-wider mb-1.5 flex items-center gap-1">
+            <Briefcase className="w-3 h-3 text-slate-500" />
             <span>Nivel de Experiencia</span>
           </label>
           <div className="flex flex-wrap gap-1">
@@ -175,23 +175,23 @@ export function FilterDrawer({
                 <button
                   key={t.id}
                   onClick={() => handleSeniorityToggle(t.id)}
-                  className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-xl text-xs font-medium border transition-all flex items-center gap-1 ${
                     active
                       ? isFirstJobTier
-                        ? "bg-emerald-950 border-emerald-500 text-emerald-300 font-bold shadow-xs shadow-emerald-500/20"
-                        : "bg-emerald-950 border-emerald-600 text-emerald-300 font-semibold"
+                        ? "bg-emerald-700 border-emerald-700 text-white font-bold shadow-xs"
+                        : "bg-slate-900 border-slate-900 text-white font-semibold shadow-xs"
                       : isFirstJobTier
-                      ? "bg-zinc-950 border-emerald-900/60 text-emerald-400 hover:border-emerald-600/70"
-                      : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                      ? "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-800"
+                      : "bg-slate-100 hover:bg-slate-200 border-transparent text-slate-700"
                   }`}
                 >
                   <span>{t.label}</span>
                   {t.sublabel && <span className="opacity-70 text-[9px]">({t.sublabel})</span>}
                   <span
-                    className={`px-1 py-0.2 rounded text-[10px] font-mono ${
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                       active
-                        ? "bg-emerald-900/80 text-emerald-200"
-                        : "bg-zinc-800 text-zinc-300"
+                        ? "bg-slate-800 text-slate-200"
+                        : "bg-slate-200/80 text-slate-600"
                     }`}
                   >
                     {count}
@@ -204,8 +204,8 @@ export function FilterDrawer({
 
         {/* Publication Date Filter */}
         <div>
-          <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1.5 flex items-center gap-1">
-            <Clock className="w-3 h-3 text-emerald-400" />
+          <label className="block text-[11px] uppercase font-bold text-slate-700 tracking-wider mb-1.5 flex items-center gap-1">
+            <Clock className="w-3 h-3 text-slate-500" />
             <span>Publicación</span>
           </label>
           <div className="flex flex-wrap gap-1">
@@ -217,19 +217,19 @@ export function FilterDrawer({
                   key={tf.id}
                   onClick={() => handleTimeframeToggle(tf.id)}
                   title={tf.description}
-                  className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-xl text-xs font-medium border transition-all flex items-center gap-1 ${
                     active
-                      ? "bg-emerald-950 border-emerald-600 text-emerald-300 font-semibold"
-                      : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                      ? "bg-slate-900 border-slate-900 text-white font-semibold shadow-xs"
+                      : "bg-slate-100 hover:bg-slate-200 border-transparent text-slate-700"
                   }`}
                 >
                   <span>{tf.label}</span>
                   {count !== null && (
                     <span
-                      className={`px-1 py-0.2 rounded text-[10px] font-mono ${
+                      className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                         active
-                          ? "bg-emerald-900/80 text-emerald-200"
-                          : "bg-zinc-800 text-zinc-300"
+                          ? "bg-slate-800 text-slate-200"
+                          : "bg-slate-200/80 text-slate-600"
                       }`}
                     >
                       {count}
@@ -243,13 +243,13 @@ export function FilterDrawer({
 
         {/* Location Dropdown */}
         <div>
-          <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1.5">
+          <label className="block text-[11px] uppercase font-bold text-slate-700 tracking-wider mb-1.5">
             Estado / Ubicación
           </label>
           <select
             value={filters.location}
             onChange={(e) => onChange({ ...filters, location: e.target.value })}
-            className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs rounded p-2 focus:outline-none focus:border-emerald-500"
+            className="w-full bg-slate-50 border border-slate-200/80 text-slate-800 text-xs rounded-xl p-2.5 focus:outline-none focus:border-slate-900 shadow-xs font-medium"
           >
             {mexicanStates.map((st) => (
               <option key={st.code} value={st.code}>
@@ -262,16 +262,16 @@ export function FilterDrawer({
         {/* Hide Applied Switch */}
         {onToggleHideApplied && (
           <div>
-            <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1.5 flex items-center gap-1">
-              <EyeOff className="w-3 h-3 text-emerald-400" />
+            <label className="block text-[11px] uppercase font-bold text-slate-700 tracking-wider mb-1.5 flex items-center gap-1">
+              <EyeOff className="w-3 h-3 text-slate-500" />
               <span>Postuladas</span>
             </label>
-            <div className="flex items-center justify-between p-2 rounded bg-zinc-950 border border-zinc-800/80">
+            <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80">
               <div className="flex items-center gap-2">
-                <EyeOff className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-xs font-medium text-zinc-300">Ocultar postuladas</span>
+                <EyeOff className="w-3.5 h-3.5 text-slate-500" />
+                <span className="text-xs font-medium text-slate-700">Ocultar postuladas</span>
                 {hiddenCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-400">
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 text-slate-600 font-bold">
                     {hiddenCount}
                   </span>
                 )}
@@ -283,7 +283,7 @@ export function FilterDrawer({
                 aria-checked={hideApplied}
                 onClick={onToggleHideApplied}
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  hideApplied ? "bg-emerald-600" : "bg-zinc-800"
+                  hideApplied ? "bg-emerald-600" : "bg-slate-300"
                 }`}
               >
                 <span

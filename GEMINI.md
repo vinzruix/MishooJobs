@@ -1,6 +1,6 @@
 # MishooJobs – Agent Guidelines & Workspace Rules (GEMINI.md)
 
-> **Authority Notice**: This document governs all autonomous and interactive coding agents (Antigravity / Gemini CLI) operating within the MishooJobs repository. It synthesizes the project constitution (v1.1.0), architectural standards, security rules, and testing mandates. All agent modifications must strictly conform to these rules.
+> **Authority Notice**: This document governs all autonomous and interactive coding agents (Antigravity / Gemini CLI) operating within the MishooJobs repository. It synthesizes the project constitution (v1.2.0), architectural standards, security rules, and testing mandates. All agent modifications must strictly conform to these rules.
 
 ---
 
@@ -35,7 +35,7 @@ mishooJobs/
 │   └── pyproject.toml          # Python package & dependency spec
 ├── frontend/
 │   ├── src/
-│   │   ├── components/         # React 19 UI components (zinc/mono aesthetic)
+│   │   ├── components/         # React 19 UI components
 │   │   ├── db/                 # Dexie.js IndexedDB schema (mishoojobs_local_db)
 │   │   ├── hooks/              # Custom React hooks (keyboard shortcuts, SSE)
 │   │   ├── services/           # Client API & evaluation services
@@ -67,9 +67,36 @@ mishooJobs/
 - **NEVER** suppress exceptions with `except Exception: pass`. Handle specific error types explicitly.
 - **NEVER** introduce scope creep (no payment gateways, no auto-apply bots, no internal chats/social feeds).
 
-### 🎨 Visual & UI Design Guidelines (Midudev-Inspired)
-- **Palette**: Dark mode by default using Tailwind zinc shades (`zinc-950` root, `zinc-900` cards, `zinc-800` borders, `zinc-400` muted text).
-- **Typography**: Strictly **Geist Mono** for body/code/tables and **Geist Pixel** (or pixel/monospace display styling) for logos, metric counters, and status badges.
+### 🎨 UX/UI Design Engineering & Animation Mandate (Emil Kowalski Skills)
+
+> **Note**: Legacy visual guidelines (Midudev dark monochrome / zinc tokens / Geist typography) have been formally removed from the project constitution (v1.2.0) in preparation for a new UX design.
+
+All UX/UI design, prototyping, component implementation, motion design, and code reviews MUST strictly leverage the installed Emil Kowalski skills located in `.agents/skills/`:
+
+#### Mandatory Skill Application by UX/UI Phase:
+1. **Phase 1: Architecture, Library Selection & Prototyping**
+   - `pick-ui-library`: Select optimal UI primitives, drawers, dialogs, toasts, or virtualization libraries.
+   - `prototype`: Build and compare multiple genuinely distinct UI variations with live visual pickers before converging on a solution.
+2. **Phase 2: Interaction Design & Component Polish**
+   - `emil-design-eng`: Core craft philosophy for UI polish, press/hover states, tooltip timing, popover origins, and transitions vs keyframes.
+   - `apple-design`: Physical spring dynamics, fluid gesture interactions, spatial depth, hierarchy, and optical typography.
+   - `gestures`: 1:1 finger tracking, interruptible drag/swipe sheets, rubber-banding, and physics-based dismissals.
+   - `mobile-native`: Mobile-first touch ergonomics, notch/viewport fixes, sticky hover prevention, and native mobile feel.
+   - `ask-sonner`: Polished toast feedback and status notifications.
+3. **Phase 3: Motion & Choreography**
+   - `animate`: Build intent-driven animations with proper purpose, curves, and exit transitions.
+   - `choreograph`: Coordinate staggered entrances, layout swaps, and multi-element state transitions so groups feel intentional.
+   - `find-animation-opportunities`: Discover high-value subtle animations on static surfaces.
+   - `animation-vocabulary`: Standardized terminology for communicating motion mechanics.
+4. **Phase 4: Stress-Testing, Performance & Animation Auditing**
+   - `break-ui`: Stress-test components with worst-case data (overflow strings, empty states, huge numbers, missing fields) via a demo toggle.
+   - `animation-performance`: Guarantee 60fps composite-only budgets (transform/opacity) and eliminate frame drops.
+   - `review-animations` & `improve-animations`: Strict critique against Emil Kowalski craft standards; eliminate sluggish or mechanical transitions.
+   - `remove-animations`: Purge unneeded motion on high-frequency actions and functional data surfaces.
+5. **Phase 5: Taste Learning & Continuous Rule Refinement**
+   - `learn-taste`: Capture user design corrections and persist confirmed rules into project design documentation.
+
+#### Core Ergonomic & Safety Constants:
 - **Navigation**: Keyboard-first UX:
   - `/`: Focus search bar
   - `j` / `↓`: Select next card
@@ -131,6 +158,7 @@ When implementing tasks or modifying this codebase:
 3. **Verify Links & Sanitization**: Ensure external job feeds validate URL liveness via asynchronous HTTP HEAD checks and sanitize text against XSS before rendering.
 4. **Preserve Offline Test Guarantee**: If adding new scrapers or endpoints, always provide deterministic offline fixtures and mock network dependencies.
 5. **Keep It Lean**: Prefer modular, single-responsibility services without redundant dependencies or architectural bloat.
+6. **Mandatory Emil Kowalski Skills for UX/UI**: Every task touching frontend components, interactions, animations, layout transitions, or styling MUST invoke and apply the appropriate design engineering skills (`emil-design-eng`, `animate`, `choreograph`, `break-ui`, `review-animations`, etc.).
 
 
 ## 6. Spec Kit Integration Rules
@@ -182,3 +210,12 @@ When implementing tasks or modifying this codebase:
 - [vacancy-fingerprint-not-found] Progressive SSE stream batch persistence to PostgreSQL, resilient on-demand vacancy audit fallback without 404, and Indeed scraper connection retry with backoff.
 - [occ-vacancy-404] Generate canonical OCC split-grid `?jobid=<id>` URLs, verify and enrich OCC offers via the `oferta.occ.com.mx` JSON endpoint without blindly passing WAF-masked `/empleo/oferta/` 404s, and preserve `jobid`/`jk` query parameters during confidential-company fingerprint disambiguation.
 - [006] Surface numerical years_required_min on VacancyCard metadata row with localized Mexican Spanish agreement (0 años, 1 año, N años) and Briefcase icon without modal inspection.
+- [UX-V2] Deprecate legacy Midudev/zinc-950 visual style in project constitution (v1.2.0); mandate Emil Kowalski design engineering skills (emilkowalski/skills) across all UX/UI lifecycle phases (prototyping, interaction polish, animation, choreography, stress testing).
+- [007] Desktop master-detail split layout (40% master feed / 60% sticky detail pane, min-w 420px) with automatic first-vacancy selection and zero-modal inspection.
+- [007] Modern light visual design system with #F8F9FA canvas, white container cards, slate-900 accent pills, and 4 semantic pastel metric blocks (Salary, Modality, Experience, Seniority).
+- [007] Responsive mobile detail presentation via Vaul gesture-driven bottom sheet with 1:1 finger tracking, velocity dismissal, and drag handle.
+- [007] Segmented 2-tab detail switch (Descripción vs Evaluación AI) with isolated evaluation caching by vacancy fingerprint and DOMPurified HTML descriptions.
+- [007] Zero marketing slop policy purging promotional boilerplate ('Filtros Mexicanos', 'Desarrollado para Jr', verbose banners) across all UI surfaces.
+- [light-theme-secondary-views] Full migration of secondary views (PipelineView, ResumeLibraryView), search bar, deduplication banner, and auxiliary modals to the Emil Kowalski #F8F9FA light design system with white cards and pastel badges.
+- [scroll-highlight] Enforce global light color-scheme with accessible text selection in index.html/CSS, gate Vaul drawer strictly to mobile viewports (<1024px) to prevent body scroll-lock on desktop, and constrain detail pane scroll container with flex-1 min-h-0.
+

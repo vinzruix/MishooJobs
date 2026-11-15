@@ -159,21 +159,21 @@ export const SyncImprovementsModal: React.FC<SyncImprovementsModalProps> = ({
   const selectedCount = diffs.filter((d) => d.selected).length;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 font-mono">
-      <div className="bg-zinc-950 border border-zinc-800 rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-sans">
+      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/80">
           <div>
-            <h2 className="text-sm font-bold tracking-wider text-zinc-100 uppercase">
+            <h2 className="text-sm font-bold tracking-wider text-slate-900 uppercase">
               Guardar Mejoras en Perfil Maestro
             </h2>
-            <p className="text-[11px] text-zinc-400 mt-0.5">
+            <p className="text-[11px] text-slate-500 mt-0.5">
               Selecciona qué viñetas y textos editados deseas incorporar a tu Perfil Maestro canónico.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-200 p-1 rounded hover:bg-zinc-800"
+            className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -182,7 +182,7 @@ export const SyncImprovementsModal: React.FC<SyncImprovementsModalProps> = ({
         {/* Content list */}
         <div className="p-6 flex-1 overflow-y-auto flex flex-col gap-4">
           {diffs.length === 0 ? (
-            <div className="text-center py-10 text-zinc-500 text-xs">
+            <div className="text-center py-10 text-slate-500 text-xs font-medium">
               No se detectaron diferencias entre el CV actual y el Perfil Maestro.
             </div>
           ) : (
@@ -190,10 +190,10 @@ export const SyncImprovementsModal: React.FC<SyncImprovementsModalProps> = ({
               <div
                 key={diff.id}
                 onClick={() => toggleDiff(diff.id)}
-                className={`p-3.5 rounded-lg border text-xs cursor-pointer transition-colors flex flex-col gap-2 ${
+                className={`p-3.5 rounded-xl border text-xs cursor-pointer transition-all flex flex-col gap-2 ${
                   diff.selected
-                    ? "bg-zinc-900 border-emerald-800/80"
-                    : "bg-zinc-950/60 border-zinc-800/80 opacity-60"
+                    ? "bg-slate-50/80 border-slate-400 shadow-xs"
+                    : "bg-white border-slate-200 opacity-60"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -202,23 +202,23 @@ export const SyncImprovementsModal: React.FC<SyncImprovementsModalProps> = ({
                       type="checkbox"
                       checked={diff.selected}
                       onChange={() => {}} // handled by parent onClick
-                      className="rounded accent-emerald-500"
+                      className="rounded accent-slate-900"
                     />
-                    <span className="font-semibold text-zinc-300">
+                    <span className="font-semibold text-slate-800">
                       {diff.section} • {diff.label}
                     </span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-1 text-[11px]">
-                  <div className="p-2 bg-zinc-950 rounded border border-zinc-800 text-zinc-400 line-through decoration-rose-500/80">
-                    <span className="text-[9px] uppercase tracking-wider text-zinc-500 block mb-0.5">
+                  <div className="p-2.5 bg-rose-50/50 rounded-lg border border-rose-200 text-rose-900 line-through decoration-rose-500">
+                    <span className="text-[9px] uppercase tracking-wider text-rose-500 font-bold block mb-0.5">
                       Original en Perfil Maestro
                     </span>
                     {diff.originalText}
                   </div>
-                  <div className="p-2 bg-emerald-950/30 rounded border border-emerald-800/60 text-emerald-300">
-                    <span className="text-[9px] uppercase tracking-wider text-emerald-400 block mb-0.5">
+                  <div className="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-900">
+                    <span className="text-[9px] uppercase tracking-wider text-emerald-700 font-bold block mb-0.5">
                       Nueva redacción mejorada
                     </span>
                     {diff.improvedText}
@@ -230,11 +230,11 @@ export const SyncImprovementsModal: React.FC<SyncImprovementsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800 bg-zinc-900/60">
-          <div className="text-xs text-zinc-400">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50/80">
+          <div className="text-xs text-slate-600 font-medium">
             {syncSuccess ? (
-              <span className="text-emerald-400 flex items-center gap-1 font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
+              <span className="text-emerald-700 flex items-center gap-1 font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 ¡Mejoras guardadas en tu Perfil Maestro!
               </span>
             ) : (
@@ -246,7 +246,7 @@ export const SyncImprovementsModal: React.FC<SyncImprovementsModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="text-xs text-zinc-400 hover:text-zinc-200 px-4 py-2 rounded hover:bg-zinc-800"
+              className="text-xs text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl hover:bg-slate-100 font-medium transition-colors"
             >
               Cancelar
             </button>
@@ -254,10 +254,10 @@ export const SyncImprovementsModal: React.FC<SyncImprovementsModalProps> = ({
               type="button"
               disabled={selectedCount === 0 || isSyncing}
               onClick={handleApplySync}
-              className={`text-xs px-5 py-2.5 rounded font-semibold flex items-center gap-2 transition-colors ${
+              className={`text-xs px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all ${
                 selectedCount > 0 && !isSyncing
-                  ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/50"
-                  : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                  ? "bg-slate-900 hover:bg-slate-800 text-white shadow-xs active:scale-[0.98]"
+                  : "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
               }`}
             >
               <Save className="w-3.5 h-3.5" />
