@@ -4,15 +4,23 @@
 
 **Created**: 2026-11-15
 
-**Status**: Draft
+**Status**: Clarified
 
 **Input**: User description: "I do really like this design and structure for the jobs, copy it but include the things that we have done, BUT WITH THAT STYLE AND COLORS. ALSO PLEASE DELETE THE TEXT UNECESSARY THAT DOES NOT PROVIDE ANY VALUE TO THE APP TEXT LIKE: 'FILTROS MEXICANOS' 'MISHOOJOBS DESARROLLADO PARA JR' ALL THAT SLOP TEXT THAT IS NOT USEFUL"
+
+## Clarifications
+
+### Session 2026-11-15
+- Q: How should the content in the right-hand job detail pane be organized across the segmented pill tabs? → A: Two segmented tabs: `Descripción` (job overview, responsibilities, requirements, and scam alerts) and `Evaluación AI` (compatibility match score, matched skills, missing skill gaps, seniority audit reasoning, and CV tailoring action).
+- Q: What desktop split-view column proportion should be used for the master-detail layout? → A: 40% width for the left vacancy list and 60% width for the sticky right detail pane, maintaining a minimum width of 420px for the detail pane on viewports ≥ 1024px to ensure the 4-column pastel metric grid renders comfortably without wrapping.
+- Q: How should the detail view adapt on mobile and small viewports (< 1024px)? → A: Slide-up bottom sheet with gesture drag-to-dismiss and an explicit close button, keeping the fixed "Postularme ahora" action accessible at the bottom.
+- Q: What is the initial selection behavior when searching or streaming results? → A: Automatically select the first vacancy as soon as the first stream batch arrives; while streaming initial results before first arrival, render a clean skeleton state in both list and detail pane with pastel placeholders.
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Desktop Master-Detail Split-View Exploration (Priority: P1)
 
-A job seeker on desktop searches for software opportunities and browses listings in a side-by-side master-detail layout. The left column presents a scrollable list of clean, elevated job cards accompanied by a header indicating the total search results count (e.g., "29 vacantes encontradas"). Clicking or keyboard-navigating to any job card immediately updates the dedicated right-hand detail pane with full job specifications, requirements, and actions without opening a separate modal dialog.
+A job seeker on desktop searches for software opportunities and browses listings in a side-by-side 40/60 master-detail layout. The left column (40% width) presents a scrollable list of clean, elevated job cards accompanied by a header indicating the total search results count (e.g., "29 vacantes encontradas"). Clicking or keyboard-navigating to any job card immediately updates the dedicated right-hand detail pane (60% width, min-w 420px) with full job specifications, requirements, and actions without opening a separate modal dialog.
 
 **Why this priority**: The master-detail layout is the core structural paradigm from the reference design. Eliminating modal dialogs on desktop allows rapid scanning and reading of vacancies with zero modal opening/closing overhead.
 
@@ -20,10 +28,10 @@ A job seeker on desktop searches for software opportunities and browses listings
 
 **Acceptance Scenarios**:
 
-1. **Given** a populated search results list on a desktop viewport (≥ 1024px), **When** the page loads, **Then** the first vacancy is selected by default and its full details render in the right pane.
+1. **Given** a populated search results list on a desktop viewport (≥ 1024px), **When** the page loads and the first stream batch arrives, **Then** the first vacancy is selected by default and its full details render in the right pane.
 2. **Given** the master-detail view on desktop, **When** the candidate clicks any card in the left list or presses `j`/`k` / arrow keys, **Then** the selected card receives active visual styling and the right panel immediately reflects that vacancy's details.
 3. **Given** a long list of vacancies in the left column, **When** the user scrolls through the list, **Then** the right detail panel remains pinned and visible within the viewport.
-4. **Given** a mobile or small viewport (< 1024px), **When** the user selects a job card, **Then** the application gracefully presents the full detail view as a focused sheet or overlay with clear back/close navigation, preserving all detail functionality.
+4. **Given** a mobile or small viewport (< 1024px), **When** the user selects a job card, **Then** the application gracefully presents the full detail view as a focused slide-up bottom sheet with swipe-to-dismiss gesture and an explicit close button, preserving all detail functionality.
 
 ---
 
@@ -43,7 +51,7 @@ Job cards in the left feed mirror this visual polish with company brand squircle
 
 **Acceptance Scenarios**:
 
-1. **Given** an open vacancy in the detail view, **When** rendered, **Then** four horizontal pastel cards (Green for Salary, Blue for Modality, Orange for Experience/Match, Purple for Seniority) display with appropriate background tints, dark legible text, and distinct parameter labels.
+1. **Given** an open vacancy in the detail view, **When** rendered, **Then** four horizontal pastel cards (Green for Salary, Blue for Modality, Orange for Experience/Match, Purple for Seniority) display with appropriate background tints, dark legible text, and distinct parameter labels without layout collision.
 2. **Given** job cards in the left column, **When** rendered, **Then** each card features a rounded company brand squircle, clear title hierarchy, clean pill badges, a requirements snippet, verification status, and relative publication time (e.g., "hace 1 hora").
 3. **Given** the overall layout, **When** viewed on screen, **Then** styling uses a light canvas with dark charcoal/black accent pills for active headers, active tabs, and primary action buttons.
 
@@ -52,18 +60,18 @@ Job cards in the left feed mirror this visual polish with company brand squircle
 ### User Story 3 - Segmented Detail View Tabs & Streamlined Application Flow (Priority: P3)
 
 In the right detail pane, a candidate seamlessly toggles between vacancy content using a pill-shaped segmented switch:
-- **"Descripción"**: Displays the full job summary, detailed responsibilities, and formatted requirements with XSS-sanitized content.
-- **"Evaluación AI / Empresa"**: Displays AI compatibility scores, skill matches and missing gaps, seniority audit reasoning, scam shield evaluation, and quick links to tailor a targeted CV.
+- **"Descripción"**: Displays the full job summary, detailed responsibilities, formatted requirements with XSS-sanitized content, and scam shield alerts.
+- **"Evaluación AI"**: Displays deep AI compatibility scores, skill matches and missing gaps, seniority audit reasoning, and one-click quick actions to tailor a targeted CV.
 
 At the bottom of the detail pane, a high-contrast full-width black pill button ("Postularme ahora" / Apply Now) allows the candidate to open the verified direct application link on the host job portal, accompanied by secondary actions to bookmark/save the job or mark it as applied.
 
 **Why this priority**: Clean tab switching keeps extensive job descriptions and deep AI evaluation data structured and readable without vertical bloat, while the prominent sticky application button provides immediate utility.
 
-**Independent Test**: Navigate between the "Descripción" and "Evaluación AI / Empresa" tabs in the detail panel, verify tab state transitions, and click "Postularme ahora" to confirm it triggers the verified portal link in a new window.
+**Independent Test**: Navigate between the "Descripción" and "Evaluación AI" tabs in the detail panel, verify tab state transitions, and click "Postularme ahora" to confirm it triggers the verified portal link in a new window.
 
 **Acceptance Scenarios**:
 
-1. **Given** a vacancy with both description and AI evaluation capabilities, **When** the candidate switches between "Descripción" and "Evaluación AI / Empresa", **Then** the active tab displays as a solid dark pill and the panel content swaps smoothly without reloading.
+1. **Given** a vacancy with both description and AI evaluation capabilities, **When** the candidate switches between "Descripción" and "Evaluación AI", **Then** the active tab displays as a solid dark pill and the panel content swaps smoothly without reloading.
 2. **Given** an active vacancy with verified application links, **When** the candidate clicks "Postularme ahora", **Then** the verified direct URL opens in a new secure window and an option to record the application in the local pipeline is made available.
 3. **Given** an active vacancy, **When** the candidate clicks the bookmark icon in either the card or detail header, **Then** the vacancy is instantly saved to local storage with visual confirmation.
 
@@ -89,6 +97,7 @@ A job seeker interacts with a streamlined, professional UI entirely free of mark
 
 - **Zero search results**: When no jobs match the query or active filters, the left column presents a clean minimalist empty state with suggestions to broaden filters; the right detail panel displays an inviting placeholder guiding the user to adjust criteria.
 - **Single job result**: If exactly one vacancy is returned, it is automatically selected and rendered in the detail panel without requiring an extra click.
+- **In-flight live streaming**: While results are actively streaming from portals and before the first vacancy arrives, clean pastel skeleton cards render in both list and detail panes to prevent layout shift.
 - **Missing or undisclosed salary**: The green pastel card displays "A convenir" or "Sueldo no publicado" cleanly without collapsing or breaking the 4-column layout.
 - **Missing experience requirements**: The orange pastel card displays "No especificado" or falls back to the preliminary seniority tier without layout disruption.
 - **Extremely long company names or job titles**: Titles truncate gracefully with ellipsis after 2 lines on cards, and wrap naturally with balanced leading in the detail view.
@@ -100,8 +109,8 @@ A job seeker interacts with a streamlined, professional UI entirely free of mark
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST render a master-detail split layout on desktop viewports (≥ 1024px), displaying the job listings feed in the left column and the selected vacancy's full details in the right column.
-- **FR-002**: The system MUST automatically select the first job in the results list upon initial search completion and display its contents in the right detail panel.
+- **FR-001**: The system MUST render a master-detail split layout on desktop viewports (≥ 1024px) utilizing a 40% width column for the job feed and a 60% width sticky column (minimum 420px width) for the full detail pane.
+- **FR-002**: The system MUST automatically select the first job in the results list as soon as the initial stream batch arrives and display its contents in the right detail panel, displaying clean pastel skeleton loaders while initial results stream.
 - **FR-003**: The system MUST implement a modern light visual theme with an off-white/light-neutral canvas, crisp white container cards with generous rounded corners (`rounded-2xl` to `rounded-3xl`), and high-contrast charcoal/black accent pills.
 - **FR-004**: The system MUST display four distinct horizontal pastel metric cards in the detail view:
   - Green pastel card for Salary (amount, frequency, currency, or "A convenir").
@@ -109,7 +118,7 @@ A job seeker interacts with a streamlined, professional UI entirely free of mark
   - Orange/Peach pastel card for Experience / Match Score (years required or profile fit percentage).
   - Purple/Violet pastel card for Seniority Level (Primer Empleo Real, Pasantía, Junior, Mid, Senior).
 - **FR-005**: Job cards in the left feed MUST include: rounded squircle company logo badge, company name, bold job title, location and modality, compact attribute pills, requirements preview excerpt, verification status badge, relative publication timestamp, and save/bookmark toggle.
-- **FR-006**: The right detail pane MUST provide a segmented tab switch between "Descripción" and "Evaluación AI / Empresa", where the active tab is highlighted with a solid dark pill.
+- **FR-006**: The right detail pane MUST provide a segmented 2-tab switch between "Descripción" (overview, responsibilities, requirements, scam shields) and "Evaluación AI" (deep match score, matched skills, skill gaps, audit reasoning, CV tailoring), where the active tab is highlighted with a solid dark pill.
 - **FR-007**: The detail view MUST feature a full-width, high-contrast dark action button ("Postularme ahora") anchored at the bottom of the pane, opening the verified direct application link in a new tab.
 - **FR-008**: The system MUST purge all non-value-adding marketing text, slogans, and promotional boilerplate, specifically eliminating "FILTROS MEXICANOS", "MishooJobs desarrollado para Jr", and verbose footer disclaimers.
 - **FR-009**: The system MUST preserve all existing core platform capabilities:
@@ -120,7 +129,7 @@ A job seeker interacts with a streamlined, professional UI entirely free of mark
   - Client-side IndexedDB local persistence (Master Profile, targeted CVs, saved pipeline, hide-applied state).
   - On-demand AI evaluation and CV tailoring workflows.
   - Full keyboard navigation (`/`, `j`/`k`, `Enter`/`Space`, `s`, `a`, `Esc`).
-- **FR-010**: On mobile and narrow viewports (< 1024px), the system MUST adapt the master-detail layout into a responsive single-column list with a dedicated overlay sheet for the detail view upon selecting a card.
+- **FR-010**: On mobile and narrow viewports (< 1024px), the system MUST adapt the master-detail layout into a responsive single-column list with a dedicated slide-up bottom sheet with gesture drag-to-dismiss and explicit close button for the detail view upon selecting a card.
 
 ### Key Entities
 
@@ -138,7 +147,8 @@ A job seeker interacts with a streamlined, professional UI entirely free of mark
 - **SC-003**: 0 occurrences of deprecated promotional or slop text ("Filtros Mexicanos", "MishooJobs desarrollado para Jr", etc.) remain across any user-facing screen or component.
 - **SC-004**: 100% of existing functional features (live streaming, seniority pills, scam shield badges, verified links, hide applied, CV tailoring, keyboard shortcuts) remain fully operable and accessible in the redesigned layout.
 - **SC-005**: All text elements on cards and pastel blocks meet or exceed WCAG AA contrast ratios (minimum 4.5:1 for normal text, 3:1 for large text).
-- **SC-006**: On mobile viewports (< 1024px), transitioning between list and detail views takes less than 200 milliseconds with an obvious, single-tap dismiss action.
+- **SC-006**: On mobile viewports (< 1024px), transitioning between list and detail views via the slide-up sheet takes less than 200 milliseconds with an intuitive drag-to-dismiss gesture.
+- **SC-007**: The 4-column horizontal pastel metric block renders without text clipping or squishing across all standard desktop viewports (1024px to 1920px).
 
 ## Assumptions
 
@@ -146,4 +156,4 @@ A job seeker interacts with a streamlined, professional UI entirely free of mark
 - **Zero Candidate PII Backend**: All profile data, targeted resumes, and application tracking continue to reside exclusively in client-side IndexedDB with zero candidate personal data sent to backend databases.
 - **Local AI Execution**: Deep job evaluations and CV tailoring workflows continue to execute via the local `agy` CLI integration without requiring external paid API keys.
 - **Localization**: UI text remains in Mexican Spanish with Mexican labor context and default MXN currency, but with concise, modern, and professional phrasing.
-- **Responsive Breakpoint**: Desktop split-view layout activates at 1024px width (standard Tailwind `lg:` breakpoint). Viewports below 1024px use a mobile-optimized stack with modal/sheet overlay.
+- **Responsive Breakpoint**: Desktop split-view layout activates at 1024px width (standard Tailwind `lg:` breakpoint). Viewports below 1024px use a mobile-optimized stack with slide-up sheet.
