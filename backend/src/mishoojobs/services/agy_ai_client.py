@@ -2,10 +2,76 @@ import asyncio
 import json
 import re
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 import yaml
 
 from mishoojobs.config import settings
 from mishoojobs.schemas.master_profile import MasterProfileSchema
+
+
+def _sanitize_http_url(raw_url: Any) -> Optional[str]:
+    """Return a trimmed http(s) URL if valid and safe, else None."""
+    if not isinstance(raw_url, str):
+        return None
+    candidate = raw_url.strip()
+    if not candidate:
+        return None
+    if candidate.lower().startswith("www."):
+        candidate = f"https://{candidate}"
+    parsed = urlparse(candidate)
+    if (
+        parsed.scheme.lower() in ("http", "https")
+        and parsed.netloc
+        and not any(ch.isspace() for ch in parsed.netloc)
+    ):
+        return candidate
+    return None
+
+
+def _normalize_cert_key(value: Any) -> str:
+    """Normalize certificate name or issuer for case-insensitive matching."""
+    return " ".join(str(value or "").lower().split())
+
+
+def _hydrate_certificate_urls(content: Dict[str, Any], master_profile: Dict[str, Any]) -> None:
+    """Ensure generated CV certificates retain valid http(s) URLs from the Master Profile."""
+    gen_certs = content.get("certificates")
+    if not isinstance(gen_certs, list):
+        return
+
+    master_certs = master_profile.get("certificates") or []
+    by_name_issuer: Dict[Tuple[str, str], str] = {}
+    by_name: Dict[str, str] = {}
+
+    if isinstance(master_certs, list):
+        for mc in master_certs:
+            if not isinstance(mc, dict):
+                continue
+            safe_url = _sanitize_http_url(mc.get("url"))
+            if not safe_url:
+                continue
+            name_key = _normalize_cert_key(mc.get("name"))
+            issuer_key = _normalize_cert_key(mc.get("issuer"))
+            if name_key:
+                by_name.setdefault(name_key, safe_url)
+                if issuer_key:
+                    by_name_issuer.setdefault((name_key, issuer_key), safe_url)
+
+    for cert in gen_certs:
+        if not isinstance(cert, dict):
+            continue
+        name_key = _normalize_cert_key(cert.get("name"))
+        issuer_key = _normalize_cert_key(cert.get("issuer"))
+        matched_url = by_name_issuer.get((name_key, issuer_key)) or by_name.get(name_key)
+        if matched_url:
+            cert["url"] = matched_url
+            continue
+
+        safe_existing = _sanitize_http_url(cert.get("url"))
+        if safe_existing:
+            cert["url"] = safe_existing
+        else:
+            cert.pop("url", None)
 
 
 def count_cv_words(content: Dict[str, Any]) -> int:
@@ -125,7 +191,7 @@ class AgyAIClient:
         '  "experience": [ {"company": "...", "role": "...", "location": "...", "start_date": "...", "end_date": "...", "current": false, "highlights": [...]} ],\n'
         '  "projects": [ {"name": "...", "description": "...", "technologies": [...], "link": "...", "highlights": [...]} ],\n'
         '  "education": [ {"institution": "...", "degree": "...", "field": "...", "start_date": "...", "end_date": "...", "gpa": "...", "current": false} ],\n'
-        '  "certificates": [ {"name": "...", "issuer": "...", "issue_date": "..."} ],\n'
+        '  "certificates": [ {"name": "...", "issuer": "...", "issue_date": "...", "url": "..."} ],\n'
         '  "logros_academicos": [ {"title": "...", "organization": "...", "date": "...", "description": "..."} ]\n'
         "}"
     )
@@ -138,7 +204,8 @@ class AgyAIClient:
         "2. Aplica el método STAR (Verbo de acción + Situación/Tarea + Resultado) en cada viñeta.\n"
         "3. Límite estricto de 1 PÁGINA (máximo 500 palabras en total).\n"
         "4. Selecciona las 2 a 4 experiencias más relevantes y los 2 a 3 proyectos más afines a la vacante.\n"
-        "5. Idioma objetivo: {language_label}.\n\n"
+        "5. Conserva exactamente los enlaces (url en certificates, link en projects y links en header) cuando existan en el Perfil Maestro.\n"
+        "6. Idioma objetivo: {language_label}.\n\n"
         "PERFIL MAESTRO DEL CANDIDATO:\n"
         "{master_profile_json}\n\n"
         "DETALLES DE LA VACANTE OBJETIVO:\n"
@@ -193,7 +260,7 @@ class AgyAIClient:
         '        "details": "..."\n'
         "      }\n"
         "    ],\n"
-        '    "certificates": [ {"name": "...", "issuer": "...", "date": "..."} ],\n'
+        '    "certificates": [ {"name": "...", "issuer": "...", "date": "...", "url": "..."} ],\n'
         '    "logros_academicos": [ {"title": "...", "organization": "...", "date": "...", "description": "..."} ]\n'
         "  }\n"
         "}"
@@ -207,7 +274,8 @@ class AgyAIClient:
         "2. Aplica el método STAR (Verbo de acción + Situación/Tarea + Resultado) en cada viñeta.\n"
         "3. Límite estricto de 1 PÁGINA (máximo 500 palabras en total).\n"
         "4. Selecciona y prioriza experiencias y proyectos orientados a destacar las tecnologías del rol objetivo y etiquetas de enfoque.\n"
-        "5. Idioma objetivo: {language_label}.\n\n"
+        "5. Conserva exactamente los enlaces (url en certificates, link en projects y links en header) cuando existan en el Perfil Maestro.\n"
+        "6. Idioma objetivo: {language_label}.\n\n"
         "PERFIL MAESTRO DEL CANDIDATO:\n"
         "{master_profile_json}\n\n"
         "ROL OBJETIVO:\n"
@@ -260,7 +328,7 @@ class AgyAIClient:
         '        "details": "..."\n'
         "      }\n"
         "    ],\n"
-        '    "certificates": [ {"name": "...", "issuer": "...", "date": "..."} ],\n'
+        '    "certificates": [ {"name": "...", "issuer": "...", "date": "...", "url": "..."} ],\n'
         '    "logros_academicos": [ {"title": "...", "organization": "...", "date": "...", "description": "..."} ]\n'
         "  }\n"
         "}"
@@ -461,6 +529,32 @@ class AgyAIClient:
         )
         return yaml_content, warnings
 
+    def _build_cv_generation_result(
+        self,
+        raw_output: str,
+        master_profile: Dict[str, Any],
+        default_score: int,
+    ) -> Dict[str, Any]:
+        """Extracts CV JSON, hydrates authoritative certificate URLs, and computes metrics."""
+        parsed = self.extract_json_from_output(raw_output)
+
+        content = parsed.get("content", {})
+        if not isinstance(content, dict):
+            content = {}
+        _hydrate_certificate_urls(content, master_profile)
+
+        score = int(parsed.get("ats_match_score", default_score))
+        score = max(0, min(100, score))
+        curation_notes = parsed.get("curation_notes")
+        word_count = count_cv_words(content)
+
+        return {
+            "content": content,
+            "ats_match_score": score,
+            "word_count": word_count,
+            "curation_notes": curation_notes,
+        }
+
     async def generate_tailored_cv(
         self,
         master_profile: Dict[str, Any],
@@ -485,21 +579,7 @@ class AgyAIClient:
         )
 
         stdout, _ = await self._run_cli_subprocess(prompt)
-        parsed = self.extract_json_from_output(stdout)
-
-        content = parsed.get("content", {})
-        score = int(parsed.get("ats_match_score", 85))
-        score = max(0, min(100, score))
-        curation_notes = parsed.get("curation_notes")
-
-        word_count = count_cv_words(content)
-
-        return {
-            "content": content,
-            "ats_match_score": score,
-            "word_count": word_count,
-            "curation_notes": curation_notes,
-        }
+        return self._build_cv_generation_result(stdout, master_profile, default_score=85)
 
     async def generate_role_cv(
         self,
@@ -521,18 +601,4 @@ class AgyAIClient:
         )
 
         stdout, _ = await self._run_cli_subprocess(prompt)
-        parsed = self.extract_json_from_output(stdout)
-
-        content = parsed.get("content", {})
-        score = int(parsed.get("ats_match_score", 90))
-        score = max(0, min(100, score))
-        curation_notes = parsed.get("curation_notes")
-
-        word_count = count_cv_words(content)
-
-        return {
-            "content": content,
-            "ats_match_score": score,
-            "word_count": word_count,
-            "curation_notes": curation_notes,
-        }
+        return self._build_cv_generation_result(stdout, master_profile, default_score=90)

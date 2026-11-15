@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { ExternalLink as ExtLinkIcon, MapPin, DollarSign, Bookmark, CheckCircle, Eye, EyeOff, Clock } from "lucide-react";
+import { ExternalLink as ExtLinkIcon, MapPin, DollarSign, Bookmark, CheckCircle, Eye, EyeOff, Clock, Briefcase } from "lucide-react";
 import type { JobVacancy } from "../types/job";
 import type { ApplicationStatus } from "../types/application";
-import { formatMexicanRelativeTime, isNewVacancy } from "../services/date_utils";
+import { formatMexicanRelativeTime, isNewVacancy, formatExperienceRequired } from "../services/date_utils";
 import { normalizeSkill } from "../services/heuristic_scorer";
 import { ScamBadge } from "./ScamBadge";
 
@@ -171,6 +171,10 @@ export function VacancyCard({
           <div className="flex items-center gap-1 text-emerald-400 font-medium">
             <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
             <span>{formatSalary()}</span>
+          </div>
+          <div className="flex items-center gap-1 text-zinc-300 font-mono text-xs">
+            <Briefcase className="w-3.5 h-3.5 text-zinc-500" />
+            <span>{formatExperienceRequired(vacancy.years_required_min)}</span>
           </div>
           <div className="flex items-center gap-1 text-zinc-400 font-mono text-xs">
             <Clock className="w-3.5 h-3.5 text-zinc-500" />

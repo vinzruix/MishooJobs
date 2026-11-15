@@ -394,7 +394,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-mono flex flex-col selection:bg-zinc-800 selection:text-emerald-400">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-mono flex flex-col selection:bg-zinc-800 selection:text-emerald-400 print:min-h-0 print:block print:bg-white">
       {/* Header */}
       <Header
         activeTab={activeTab}
@@ -407,7 +407,7 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 flex flex-col gap-4">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 flex flex-col gap-4 print:p-0 print:max-w-none print:m-0 print:block">
         {viewingResumeId ? (
           <LiveCVViewer
             resumeId={viewingResumeId}
@@ -620,7 +620,7 @@ export default function App() {
       />
 
       {/* Footer */}
-      <footer className="border-t border-zinc-900 py-3 px-4 text-center text-xs text-zinc-600">
+      <footer className="no-print print:hidden border-t border-zinc-900 py-3 px-4 text-center text-xs text-zinc-600">
         MishooJobs • Desarrollado para juniors y estudiantes en México • Moneda MXN ($)
       </footer>
     </div>

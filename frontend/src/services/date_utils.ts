@@ -238,3 +238,20 @@ export function serializeTimeframesToQuery(timeframes: TimeframeId[]): string | 
   const nonAll = timeframes.filter((t) => t !== "all");
   return nonAll.length > 0 ? nonAll.join(",") : null;
 }
+
+/**
+ * Formats a numerical years-of-experience requirement into localized Mexican Spanish.
+ * 
+ * Enforces proper singular/plural grammatical agreement:
+ * - years <= 0: "0 años de exp"
+ * - years === 1: "1 año de exp"
+ * - years >= 2: "${years} años de exp"
+ */
+export function formatExperienceRequired(years?: number | null): string {
+  const normalizedYears = typeof years === "number" && !isNaN(years) ? Math.max(0, Math.floor(years)) : 0;
+  if (normalizedYears === 1) {
+    return "1 año de exp";
+  }
+  return `${normalizedYears} años de exp`;
+}
+

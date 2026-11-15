@@ -85,3 +85,38 @@ def test_confidential_vacancies_not_falsely_merged():
     assert summary.total_extracted == 2
     assert summary.unique_vacancies == 2
     assert merged[0].fingerprint != merged[1].fingerprint
+
+def test_confidential_occ_jobid_vacancies_not_falsely_merged():
+    dedup = CrossPortalDeduplicator()
+    v1 = VacancyDTO(
+        fingerprint="a" * 64,
+        title="Desarrollador Jr",
+        company_name="Empresa Confidencial",
+        location_state="CDMX",
+        description_clean="Job 1 on OCC",
+        external_links=[
+            ExternalLinkDTO(
+                portal_name=PortalName.OCC,
+                direct_url="https://www.occ.com.mx/empleos/?jobid=21390143",
+                is_active=True,
+            )
+        ],
+    )
+    v2 = VacancyDTO(
+        fingerprint="b" * 64,
+        title="Desarrollador Jr",
+        company_name="Empresa Confidencial",
+        location_state="CDMX",
+        description_clean="Job 2 on OCC",
+        external_links=[
+            ExternalLinkDTO(
+                portal_name=PortalName.OCC,
+                direct_url="https://www.occ.com.mx/empleos/?jobid=21399716",
+                is_active=True,
+            )
+        ],
+    )
+    merged, summary = dedup.deduplicate_batch([v1, v2])
+    assert len(merged) == 2
+    assert summary.duplicates_merged == 0
+    assert merged[0].fingerprint != merged[1].fingerprint

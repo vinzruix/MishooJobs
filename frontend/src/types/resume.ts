@@ -37,6 +37,7 @@ export interface GeneratedCVCertificateItem {
   name: string;
   issuer: string;
   date: string;
+  url?: string;
 }
 
 export interface GeneratedCVLogroAcademicoItem {

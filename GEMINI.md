@@ -180,3 +180,5 @@ When implementing tasks or modifying this codebase:
 - [005] Scale Technical High-Density photo container to 96x96px (w-24 h-24) to align proportionally with full header text span.
 - [005] Immediately close Master Profile Editor modal on successful IndexedDB save.
 - [vacancy-fingerprint-not-found] Progressive SSE stream batch persistence to PostgreSQL, resilient on-demand vacancy audit fallback without 404, and Indeed scraper connection retry with backoff.
+- [occ-vacancy-404] Generate canonical OCC split-grid `?jobid=<id>` URLs, verify and enrich OCC offers via the `oferta.occ.com.mx` JSON endpoint without blindly passing WAF-masked `/empleo/oferta/` 404s, and preserve `jobid`/`jk` query parameters during confidential-company fingerprint disambiguation.
+- [006] Surface numerical years_required_min on VacancyCard metadata row with localized Mexican Spanish agreement (0 años, 1 año, N años) and Briefcase icon without modal inspection.

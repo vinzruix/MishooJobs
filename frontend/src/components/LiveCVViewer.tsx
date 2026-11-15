@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { flushSync } from "react-dom";
 import {
   Printer,
   Copy,
@@ -7,12 +8,16 @@ import {
   ChevronDown,
   AlertTriangle,
   GitPullRequest,
+  FileStack,
 } from "lucide-react";
 import type { GeneratedResumeRecord, TemplateId, GeneratedCVContent } from "../types/resume";
+import type { MasterProfileData } from "../types/master_profile";
+import type { CVPaginationInfo } from "../services/cv_pagination";
 import { TechnicalHighDensity } from "./templates/TechnicalHighDensity";
 import { ClassicATS } from "./templates/ClassicATS";
 import { ModernExecutive } from "./templates/ModernExecutive";
 import { exportToPlainATS, exportToMarkdown } from "../services/ats_exporter";
+import { hydrateCertificateUrls } from "../services/cv_links";
 import { SyncImprovementsModal } from "./SyncImprovementsModal";
 import { db } from "../db";
 
@@ -28,44 +33,60 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
   photoUrl,
 }) => {
   const [resume, setResume] = useState<GeneratedResumeRecord | null>(null);
+  const [masterProfile, setMasterProfile] = useState<MasterProfileData | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [showCopyDropdown, setShowCopyDropdown] = useState<boolean>(false);
-  const [isOverflowing, setIsOverflowing] = useState<boolean>(false);
+  const [allowTwoPages, setAllowTwoPages] = useState<boolean>(true);
+  const [paginationInfo, setPaginationInfo] = useState<CVPaginationInfo>({
+    pageCount: 1,
+    exceedsSinglePage: false,
+    exceedsTwoPages: false,
+  });
   const [showSyncModal, setShowSyncModal] = useState<boolean>(false);
+  const [isPrinting, setIsPrinting] = useState<boolean>(false);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Load resume from Dexie
   useEffect(() => {
+    const onBeforePrint = () => setIsPrinting(true);
+    const onAfterPrint = () => setIsPrinting(false);
+
+    window.addEventListener("beforeprint", onBeforePrint);
+    window.addEventListener("afterprint", onAfterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", onBeforePrint);
+      window.removeEventListener("afterprint", onAfterPrint);
+    };
+  }, []);
+
+  const handlePaginationChange = useCallback((info: CVPaginationInfo) => {
+    setPaginationInfo(info);
+  }, []);
+
+  // Load resume and read-only Master Profile snapshot from Dexie (hydrates missing cert URLs on older CVs)
+  useEffect(() => {
+    let isMounted = true;
     async function load() {
-      const record = await db.resumes.get(resumeId);
+      const [record, masterRec] = await Promise.all([
+        db.resumes.get(resumeId),
+        db.master_profile.get("current"),
+      ]);
+      if (!isMounted) return;
+      setMasterProfile(masterRec?.parsed ?? null);
       if (record) {
         setResume(record);
       }
     }
     load();
+    return () => {
+      isMounted = false;
+    };
   }, [resumeId]);
 
-  // Page overflow detection (Letter size: ~1056px at 96 DPI)
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const checkOverflow = () => {
-      if (containerRef.current) {
-        const height = containerRef.current.offsetHeight;
-        // ~1056px is standard Letter page height at 96 DPI, with 1080px threshold buffer
-        setIsOverflowing(height > 1080);
-      }
-    };
+  const hydratedContent = useMemo(() => {
+    if (!resume) return null;
+    return hydrateCertificateUrls(resume.content, masterProfile);
+  }, [resume, masterProfile]);
 
-    checkOverflow();
-    if (typeof ResizeObserver !== "undefined") {
-      const observer = new ResizeObserver(checkOverflow);
-      observer.observe(containerRef.current);
-      return () => observer.disconnect();
-    }
-  }, [resume?.content, resume?.template_id, resume?.photo_enabled]);
-
-  if (!resume) {
+  if (!resume || !hydratedContent) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] font-mono text-zinc-500 text-xs">
         Cargando currículum...
@@ -116,8 +137,8 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
     setShowCopyDropdown(false);
     const text =
       format === "plain"
-        ? exportToPlainATS(resume.content)
-        : exportToMarkdown(resume.content);
+        ? exportToPlainATS(hydratedContent)
+        : exportToMarkdown(hydratedContent);
 
     try {
       await navigator.clipboard.writeText(text);
@@ -129,19 +150,43 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
   };
 
   const handlePrint = () => {
-    window.print();
+    flushSync(() => {
+      setIsPrinting(true);
+    });
+    try {
+      window.print();
+    } catch (err) {
+      setIsPrinting(false);
+      throw err;
+    }
   };
 
   return (
-    <div className="flex flex-col font-mono min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Print CSS styling */}
+    <div className="flex flex-col font-mono min-h-screen bg-zinc-950 text-zinc-100 print:min-h-0 print:block print:bg-white">
+      {/* Screen WYSIWYG & Print-safe TrueType font / vector PDF CSS styling */}
       <style>{`
+        .cv-page.font-sans,
+        .cv-page .font-sans {
+          font-family: Helvetica, Arial, sans-serif;
+        }
+        .cv-page.font-serif,
+        .cv-page .font-serif {
+          font-family: Georgia, "Times New Roman", Times, serif;
+        }
+        .cv-page.font-mono,
+        .cv-page .font-mono {
+          font-family: "Courier New", Courier, monospace;
+        }
         @media print {
           body {
             background-color: white !important;
             color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-user-select: text !important;
+            user-select: text !important;
           }
-          header, nav, .no-print {
+          header, nav, footer, .no-print {
             display: none !important;
           }
           @page {
@@ -154,6 +199,35 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
             margin: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .cv-page.font-sans,
+          .cv-page .font-sans {
+            font-family: Helvetica, Arial, sans-serif !important;
+          }
+          .cv-page.font-serif,
+          .cv-page .font-serif {
+            font-family: Georgia, "Times New Roman", Times, serif !important;
+          }
+          .cv-page.font-mono,
+          .cv-page .font-mono {
+            font-family: "Courier New", Courier, monospace !important;
+          }
+          .cv-page,
+          .cv-page * {
+            box-shadow: none !important;
+            text-shadow: none !important;
+            filter: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            transform: none !important;
+            -webkit-user-select: text !important;
+            user-select: text !important;
+          }
+          .cv-page-break {
+            break-after: page;
+            page-break-after: always;
           }
         }
       `}</style>
@@ -308,49 +382,76 @@ export const LiveCVViewer: React.FC<LiveCVViewerProps> = ({
         </div>
       </div>
 
-      {/* Overflow Warning Bar */}
-      {isOverflowing && (
+      {/* Multi-Page Mode / Overflow Status Bar */}
+      {paginationInfo.exceedsSinglePage && allowTwoPages && !paginationInfo.exceedsTwoPages && (
+        <div
+          data-testid="two-page-info-badge"
+          className="no-print bg-emerald-950/60 border-b border-emerald-800/70 px-4 py-2 text-center text-xs text-emerald-300 font-semibold flex flex-wrap items-center justify-center gap-3"
+        >
+          <span className="flex items-center gap-1.5">
+            <FileStack className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <span>
+              [MODO 2 PÁGINAS: Encabezado incluido en ambas páginas para descargar sin cortes.]
+            </span>
+          </span>
+          <button
+            type="button"
+            data-testid="toggle-single-page-btn"
+            onClick={() => setAllowTwoPages(false)}
+            className="px-2 py-0.5 rounded bg-zinc-900 border border-emerald-800 text-[11px] text-emerald-300 hover:bg-zinc-800 transition-colors"
+          >
+            Vista 1 página
+          </button>
+        </div>
+      )}
+
+      {(paginationInfo.exceedsTwoPages || (paginationInfo.exceedsSinglePage && !allowTwoPages)) && (
         <div
           data-testid="overflow-warning-badge"
-          className="no-print bg-amber-950/80 border-b border-amber-800/80 px-4 py-2 text-center text-xs text-amber-300 font-semibold flex items-center justify-center gap-2"
+          className="no-print bg-amber-950/80 border-b border-amber-800/80 px-4 py-2 text-center text-xs text-amber-300 font-semibold flex flex-wrap items-center justify-center gap-3"
         >
-          <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-          <span>[PÁGINA EXCEDIDA: El contenido excede 1 página impresa. Edita viñetas o cambia plantilla para ajustar.]</span>
+          <span className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <span>
+              {paginationInfo.exceedsTwoPages
+                ? "[PÁGINAS EXCEDIDAS: El contenido supera las 2 páginas impresas. Edita o resume viñetas para ajustar.]"
+                : "[PÁGINA EXCEDIDA: El contenido excede 1 página impresa. Edita viñetas o activa el modo 2 páginas.]"}
+            </span>
+          </span>
+          {!allowTwoPages && (
+            <button
+              type="button"
+              data-testid="enable-two-pages-btn"
+              onClick={() => setAllowTwoPages(true)}
+              className="px-2 py-0.5 rounded bg-zinc-900 border border-amber-700 text-[11px] text-amber-200 hover:bg-zinc-800 transition-colors"
+            >
+              Activar 2 páginas (encabezado en ambas)
+            </button>
+          )}
         </div>
       )}
 
       {/* Live Canvas Area */}
-      <div className="flex-1 p-4 sm:p-8 overflow-y-auto flex justify-center bg-zinc-950 print:bg-white print:p-0">
-        <div ref={containerRef} className="print-canvas">
-          {resume.template_id === "technical_high_density" && (
-            <TechnicalHighDensity
-              content={resume.content}
-              photoUrl={photoUrl}
-              photoEnabled={resume.photo_enabled}
-              onFieldChange={handleFieldChange}
-              isEditable={true}
-            />
-          )}
-
-          {resume.template_id === "classic_ats" && (
-            <ClassicATS
-              content={resume.content}
-              photoUrl={photoUrl}
-              photoEnabled={resume.photo_enabled}
-              onFieldChange={handleFieldChange}
-              isEditable={true}
-            />
-          )}
-
-          {resume.template_id === "modern_executive" && (
-            <ModernExecutive
-              content={resume.content}
-              photoUrl={photoUrl}
-              photoEnabled={resume.photo_enabled}
-              onFieldChange={handleFieldChange}
-              isEditable={true}
-            />
-          )}
+      <div className="flex-1 p-4 sm:p-8 overflow-x-auto overflow-y-auto flex justify-center bg-zinc-950 print:bg-white print:p-0 print:block print:overflow-visible">
+        <div className="print-canvas">
+          {(() => {
+            const templateProps = {
+              content: hydratedContent,
+              photoUrl,
+              photoEnabled: resume.photo_enabled,
+              onFieldChange: handleFieldChange,
+              isEditable: !isPrinting,
+              allowTwoPages,
+              onPaginationChange: handlePaginationChange,
+            };
+            if (resume.template_id === "technical_high_density") {
+              return <TechnicalHighDensity {...templateProps} />;
+            }
+            if (resume.template_id === "classic_ats") {
+              return <ClassicATS {...templateProps} />;
+            }
+            return <ModernExecutive {...templateProps} />;
+          })()}
         </div>
       </div>
 

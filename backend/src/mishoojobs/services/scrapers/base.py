@@ -4,6 +4,7 @@ import re
 import unicodedata
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Tuple
+from urllib.parse import parse_qs, urlparse
 import bleach
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -79,6 +80,19 @@ def is_generic_company(name: str) -> bool:
     if norm in GENERIC_COMPANY_NAMES:
         return True
     return "confidencial" in norm or "importante empresa" in norm
+
+def clean_disambiguator_url(disambiguator: str) -> str:
+    """Strips URL fragments and tracking query params while preserving identity IDs (jobid, jk)."""
+    base = disambiguator.split("#")[0]
+    if "?" not in base:
+        return base
+    parsed = urlparse(base)
+    qs = parse_qs(parsed.query)
+    identity_parts = [f"{key}={qs[key][0]}" for key in ("jobid", "jk") if qs.get(key)]
+    path_only = base.split("?")[0]
+    if identity_parts:
+        return f"{path_only}?{'&'.join(identity_parts)}"
+    return path_only
 
 class AbstractBaseScraper(abc.ABC):
     """Abstract base class defining contract and shared utilities for Mexican job portal scrapers."""
@@ -174,7 +188,7 @@ class AbstractBaseScraper(abc.ABC):
         norm_state = self.normalize_state(location_state)
 
         if is_generic_company(norm_company) and disambiguator:
-            clean_disambiguator = self.normalize_string(disambiguator.split("#")[0].split("?")[0])
+            clean_disambiguator = self.normalize_string(clean_disambiguator_url(disambiguator))
             raw_key = f"{norm_company}:{norm_title}:{norm_state}:{clean_disambiguator}"
         else:
             raw_key = f"{norm_company}:{norm_title}:{norm_state}"

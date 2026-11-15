@@ -1,4 +1,5 @@
 import type { GeneratedCVContent } from "../types/resume";
+import { getSafeExternalUrl } from "./cv_links";
 
 /**
  * Formats CV content as unadorned, ATS-friendly plain text with uppercase headers,
@@ -89,7 +90,9 @@ export function exportToPlainATS(cv: GeneratedCVContent): string {
   if (cv.certificates && cv.certificates.length > 0) {
     parts.push("CERTIFICACIONES");
     for (const cert of cv.certificates) {
-      parts.push(`${cert.name} - ${cert.issuer} (${cert.date})`);
+      const urlStr = getSafeExternalUrl(cert.url);
+      const linkSuffix = urlStr ? ` (${urlStr})` : "";
+      parts.push(`${cert.name} - ${cert.issuer} (${cert.date})${linkSuffix}`);
     }
     parts.push("");
   }
@@ -199,7 +202,9 @@ export function exportToMarkdown(cv: GeneratedCVContent): string {
   if (cv.certificates && cv.certificates.length > 0) {
     parts.push("## Certificaciones");
     for (const cert of cv.certificates) {
-      parts.push(`- **${cert.name}** - ${cert.issuer} (${cert.date})`);
+      const urlStr = getSafeExternalUrl(cert.url);
+      const certTitle = urlStr ? `[${cert.name}](${urlStr})` : cert.name;
+      parts.push(`- **${certTitle}** - ${cert.issuer} (${cert.date})`);
     }
     parts.push("");
   }
