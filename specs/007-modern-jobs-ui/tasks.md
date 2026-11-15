@@ -48,9 +48,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Implement responsive 12-column master-detail split grid in `frontend/src/App.tsx` (`lg:col-span-5` master feed, `lg:col-span-7 sticky top-20` detail pane) with stream auto-selection of first vacancy
+- [ ] T008 [US1] Implement responsive 12-column master-detail split grid in `frontend/src/App.tsx` (`lg:col-span-5` 40% master feed, `lg:col-span-7 sticky top-20` 60% detail pane, min-w 420px) with stream auto-selection of first vacancy
 - [ ] T009 [US1] Integrate `vaul`'s `Drawer.Root` in `frontend/src/App.tsx` to render `VacancyDetailPane` as an interactive slide-up bottom sheet with top drag handle bar on viewports < 1024px
-- [ ] T010 [US1] Update keyboard navigation in `frontend/src/hooks/useKeyboardNavigation.ts` and `frontend/src/App.tsx` to update active vacancy selection with `scrollIntoView({ block: 'nearest' })` without modal opening on desktop
+- [ ] T010 [US1] Update keyboard navigation in `frontend/src/hooks/useKeyboardNavigation.ts` and `frontend/src/App.tsx` (`j`/`k` to select and scroll active card into view, `Space` to cycle detail tabs, `Enter` to open verified application link) and update `frontend/tests/hooks/useKeyboardNavigation.test.ts`
 
 **Checkpoint**: User Story 1 complete and independently testable (MVP delivery).
 
@@ -65,7 +65,7 @@
 ### Tests for User Story 2 ⚠️
 
 - [ ] T011 [P] [US2] Add unit tests in `frontend/tests/components/PastelMetricGrid.test.tsx` verifying all 4 pastel card themes (emerald, sky, amber, purple), values, icons, and fallback text formatting
-- [ ] T012 [P] [US2] Update unit tests in `frontend/tests/components/VacancyCard.test.tsx` to verify modern light card layout, company squircle logo, bold title hierarchy, and attribute pills
+- [ ] T012 [P] [US2] Update unit tests in `frontend/tests/components/VacancyCard.test.tsx` and `frontend/tests/components/VacancyList.test.tsx` to verify modern light card layout, company squircle logo, bold title hierarchy, result count header, and selection binding
 
 ### Implementation for User Story 2
 
@@ -91,7 +91,7 @@
 
 - [ ] T017 [US3] Implement 2-tab segmented switch in `frontend/src/components/VacancyDetailPane.tsx` with solid dark pill indicator (`bg-slate-900 text-white`) and strict fingerprint-keyed evaluation cache retention
 - [ ] T018 [US3] Implement Tab 1 ("Descripción") in `frontend/src/components/VacancyDetailPane.tsx` rendering scam shield warnings (`ScamBadge`), DOMPurified job description, responsibilities, requirements, and desired technical skills
-- [ ] T019 [US3] Implement Tab 2 ("Evaluación AI") in `frontend/src/components/VacancyDetailPane.tsx` rendering AI match score, matched skills pills, missing gaps, seniority audit reasoning, and "Adaptar mi CV" button triggering `onOpenTailorModal`
+- [ ] T019 [US3] Implement Tab 2 ("Evaluación AI") in `frontend/src/components/VacancyDetailPane.tsx` rendering AI match score, matched skills pills, missing gaps, seniority audit reasoning, graceful error/retry state if evaluation fails, and "Adaptar mi CV" button triggering `onOpenTailorModal`
 - [ ] T020 [US3] Implement full-width sticky CTA button ("Postularme ahora") and secondary action pills (save to pipeline, mark applied) at the bottom of `frontend/src/components/VacancyDetailPane.tsx`
 
 **Checkpoint**: User Stories 1, 2, and 3 fully functional and testable.
@@ -122,7 +122,7 @@
 
 **Purpose**: Dead code removal, craft polish, full test suite execution, and Spec Kit documentation update.
 
-- [ ] T025 [P] Deprecate and remove redundant `frontend/src/components/VacancyDetailModal.tsx` superseded by `VacancyDetailPane.tsx`
+- [ ] T025 [P] Deprecate and remove redundant `frontend/src/components/VacancyDetailModal.tsx` and its test suite `frontend/tests/components/VacancyDetailModal.test.tsx` superseded by `VacancyDetailPane`
 - [ ] T026 Verify 60fps animation budgets, zero layout shift during streaming, and mobile touch ergonomics using Emil Kowalski craft guidelines
 - [ ] T027 Run complete validation per `quickstart.md`: execute Vitest suite (`npm test -- --run`) and backend Pytest suite (`.venv/bin/pytest backend/tests/ -v`)
 - [ ] T028 [MANDATORY Spec Kit Step] Update `GEMINI.md` Section 7 (Architectural Decisions & Conventions Log) with key decisions from feature `007-modern-jobs-ui`

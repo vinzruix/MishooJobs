@@ -12,7 +12,7 @@
 
 ### Session 2026-11-15
 - Q: How should the content in the right-hand job detail pane be organized across the segmented pill tabs? → A: Two segmented tabs: `Descripción` (job overview, responsibilities, requirements, and scam alerts) and `Evaluación AI` (compatibility match score, matched skills, missing skill gaps, seniority audit reasoning, and CV tailoring action).
-- Q: What desktop split-view column proportion should be used for the master-detail layout? → A: 40% width for the left vacancy list and 60% width for the sticky right detail pane, maintaining a minimum width of 420px for the detail pane on viewports ≥ 1024px to ensure the 4-column pastel metric grid renders comfortably without wrapping.
+- Q: What desktop split-view column proportion should be used for the master-detail layout? → A: 40% width for the left vacancy list (`lg:col-span-5` in a standard 12-column grid) and 60% width for the sticky right detail pane (`lg:col-span-7`), maintaining a minimum width of 420px for the detail pane on viewports ≥ 1024px to ensure the 4-column pastel metric grid renders comfortably without wrapping.
 - Q: How should the detail view adapt on mobile and small viewports (< 1024px)? → A: Slide-up bottom sheet with gesture drag-to-dismiss and an explicit close button, keeping the fixed "Postularme ahora" action accessible at the bottom.
 - Q: What is the initial selection behavior when searching or streaming results? → A: Automatically select the first vacancy as soon as the first stream batch arrives; while streaming initial results before first arrival, render a clean skeleton state in both list and detail pane with pastel placeholders.
 
@@ -103,13 +103,14 @@ A job seeker interacts with a streamlined, professional UI entirely free of mark
 - **Extremely long company names or job titles**: Titles truncate gracefully with ellipsis after 2 lines on cards, and wrap naturally with balanced leading in the detail view.
 - **Confidential employer postings**: Anonymous company listings ("Empresa Confidencial") display a neutral company icon with generic initials and preserve unique fingerprint selection without collision.
 - **Rapid keyboard navigation**: When navigating quickly with `j`/`k` or arrow keys, list scrolling automatically keeps the active card centered in view, and the detail view updates with responsive, debounce-free smoothness.
+- **On-demand AI evaluation failure or timeout**: If local `agy` CLI evaluation encounters an error or timeout while inspecting Tab 2 ("Evaluación AI"), a clean card with a retry button ("Reintentar evaluación") and fallback heuristic match score is presented without crashing the detail pane.
 - **Window resizing**: Transitioning between desktop (split view) and mobile (single column) viewports smoothly preserves the currently selected vacancy without state loss.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST render a master-detail split layout on desktop viewports (≥ 1024px) utilizing a 40% width column for the job feed and a 60% width sticky column (minimum 420px width) for the full detail pane.
+- **FR-001**: The system MUST render a master-detail split layout on desktop viewports (≥ 1024px) utilizing a 40% width column for the job feed (`lg:col-span-5` in a 12-column grid) and a 60% width sticky column (`lg:col-span-7`, minimum 420px width) for the full detail pane.
 - **FR-002**: The system MUST automatically select the first job in the results list as soon as the initial stream batch arrives and display its contents in the right detail panel, displaying clean pastel skeleton loaders while initial results stream.
 - **FR-003**: The system MUST implement a modern light visual theme with an off-white/light-neutral canvas, crisp white container cards with generous rounded corners (`rounded-2xl` to `rounded-3xl`), and high-contrast charcoal/black accent pills.
 - **FR-004**: The system MUST display four distinct horizontal pastel metric cards in the detail view:
@@ -128,7 +129,7 @@ A job seeker interacts with a streamlined, professional UI entirely free of mark
   - Active URL verification via HTTP HEAD checks.
   - Client-side IndexedDB local persistence (Master Profile, targeted CVs, saved pipeline, hide-applied state).
   - On-demand AI evaluation and CV tailoring workflows.
-  - Full keyboard navigation (`/`, `j`/`k`, `Enter`/`Space`, `s`, `a`, `Esc`).
+  - Full keyboard navigation (`/` to focus search, `j`/`k` to navigate vacancies, `Space` to cycle detail tabs, `Enter` to open application link, `s` to save, `a` to mark applied, `Esc` to dismiss mobile sheet).
 - **FR-010**: On mobile and narrow viewports (< 1024px), the system MUST adapt the master-detail layout into a responsive single-column list with a dedicated slide-up bottom sheet with gesture drag-to-dismiss and explicit close button for the detail view upon selecting a card.
 
 ### Key Entities

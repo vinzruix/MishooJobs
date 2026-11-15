@@ -41,7 +41,8 @@ App.tsx
 | `/` | Anywhere | Focus main search bar |
 | `j` or `↓` | Job feed | Select next card; scroll active card into view; update right detail pane |
 | `k` or `↑` | Job feed | Select previous card; scroll active card into view; update right detail pane |
-| `Enter` / `Space` | Detail view | If on desktop, toggle between `Descripción` and `Evaluación AI` tabs; or open application link |
+| `Space` | Detail view | Toggle/cycle between `Descripción` and `Evaluación AI` tabs |
+| `Enter` | Active card / Detail view | Open primary verified application link in new tab ("Postularme ahora") |
 | `s` | Selected card | Save/bookmark vacancy to Dexie.js local pipeline |
 | `a` | Selected card | Mark vacancy as applied in Dexie.js local pipeline |
 | `Esc` | Mobile drawer | Close mobile slide-up sheet; return focus to master card |

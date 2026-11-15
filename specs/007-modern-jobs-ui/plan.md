@@ -123,7 +123,7 @@ frontend/
   - Renders `PastelMetricGrid`.
   - 2-tab segmented switch: `Descripción` and `Evaluación AI` with solid dark pill active state (`bg-slate-900 text-white`).
   - Tab 1 (`Descripción`): Scam badges, DOMPurified description, responsibilities, requirements, and desired technical skills.
-  - Tab 2 (`Evaluación AI`): Match score, matched skills pills, missing gaps, seniority audit reasoning, and "Adaptar mi CV" button.
+  - Tab 2 (`Evaluación AI`): Match score, matched skills pills, missing gaps, seniority audit reasoning, and "Adaptar mi CV" button with graceful error/retry state if on-demand AI evaluation encounters a timeout or network error.
   - Sticky bottom action bar: Full-width dark button ("Postularme ahora" $\rightarrow$ opens verified portal link in new tab) with secondary actions (save/mark applied).
 
 ### Phase 3: Master-Detail Split Layout & Vacancy Card Redesign
@@ -165,7 +165,7 @@ frontend/
 - **Task 6.1**: Update `frontend/src/hooks/useKeyboardNavigation.ts`:
   - Ensure `j`/`k` / arrow navigation updates `selectedVacancy` in master-detail split without opening modal.
   - Scroll active card into view smoothly (`scrollIntoView({ block: 'nearest' })`).
-  - `Enter`/`Space` switches between detail tabs or triggers primary apply link.
+  - `Space` cycles between detail tabs (`Descripción` vs `Evaluación AI`); `Enter` activates the primary verified portal link ("Postularme ahora").
   - `s` bookmarks vacancy; `a` marks as applied; `Esc` dismisses mobile drawer.
 - **Task 6.2**: Apply Emil Kowalski craft guidelines:
   - Spring-based smooth transitions on cards and tabs.
@@ -173,7 +173,7 @@ frontend/
   - Stress test with extreme strings (long company names, undisclosed salaries, missing requirements) via `break-ui` methodology.
 
 ### Phase 7: Verification & Spec Kit Maintenance
-- **Task 7.1**: Run full frontend Vitest test suite (`npm test -- --run`) and update/create tests covering `VacancyDetailPane`, `PastelMetricGrid`, clean `FilterDrawer`, and master-detail selection behavior.
+- **Task 7.1**: Run full frontend Vitest test suite (`npm test -- --run`) and update/create tests covering `VacancyDetailPane`, `PastelMetricGrid`, clean `FilterDrawer`, `VacancyList`, `useKeyboardNavigation`, and remove/migrate deprecated `VacancyDetailModal.test.tsx`.
 - **Task 7.2**: Run full backend Pytest suite (`.venv/bin/pytest backend/tests/ -v`) to guarantee zero backend regression.
 - **Task 7.3 [MANDATORY Spec Kit Step]**: Update [`GEMINI.md`](file:///Users/yairtejedahotmail.com/projects/mishooJobs/mishooJobs/GEMINI.md) Section 7 (Architectural Decisions & Conventions Log) with key decisions from feature `007-modern-jobs-ui`:
   - `[007] Desktop master-detail split layout (40% master list / 60% sticky detail pane, min-w 420px) with zero-modal inspection.`
