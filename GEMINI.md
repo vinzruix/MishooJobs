@@ -223,4 +223,5 @@ When implementing tasks or modifying this codebase:
 - [008] Client-side deterministic regex job description parsing into semantic white cards (Overview, Responsibilities, Requirements, Benefits, Conditions) with bullet tokenization and DOMPurify sanitization.
 - [008] Purge technical boilerplate, version badges, bracket tags, and prominent deduplication banners in favor of concise labels and subtle inline counters.
 - [filter-popover-duplicate-toggle] Render FilterToolbar dropdown popovers via React Portals with dynamic bounding-box anchoring to eliminate containing-block offsets and mobile clipping, streamline toolbar button sizing to eliminate desktop overflow, and eliminate duplicate 'Ocultar postuladas' button from VacancyList.
+- [filter-bar-bug] Eliminate lg:overflow-visible from FilterToolbar scroll container and enforce overflow-x-clip on root page wrapper to prevent uncontained document-level horizontal overflow on mid-size viewports (1024px).
 

@@ -167,7 +167,7 @@ export const FilterToolbar: React.FC<FilterToolbarProps> = ({
     >
       <div
         onScroll={handleDismiss}
-        className="flex items-center gap-2 overflow-x-auto lg:overflow-visible flex-nowrap no-scrollbar py-0.5 text-xs"
+        className="flex items-center gap-2 overflow-x-auto flex-nowrap no-scrollbar py-0.5 text-xs"
       >
         {/* Contiguous Seniority Segmented Control */}
         <div className="flex items-center bg-slate-100/90 p-0.5 rounded-lg border border-slate-200/70 shrink-0">

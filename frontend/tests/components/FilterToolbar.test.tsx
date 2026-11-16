@@ -242,11 +242,12 @@ describe("FilterToolbar Component Tests", () => {
     expect(handleResetFilters).toHaveBeenCalled();
   });
 
-  it("contains mobile single-row scroll classes (overflow-x-auto flex-nowrap)", () => {
+  it("contains single-row scroll classes (overflow-x-auto flex-nowrap) without lg:overflow-visible blowout", () => {
     const { container } = renderToolbar();
 
     const scrollContainer = container.querySelector(".overflow-x-auto");
     expect(scrollContainer).toBeInTheDocument();
     expect(scrollContainer?.className).toContain("flex-nowrap");
+    expect(scrollContainer?.className).not.toContain("lg:overflow-visible");
   });
 });
