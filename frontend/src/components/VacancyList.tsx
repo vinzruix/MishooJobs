@@ -1,4 +1,4 @@
-import { Briefcase, Clock, RotateCcw, Sparkles, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Briefcase, Clock, RotateCcw, Sparkles, Eye, CheckCircle2 } from "lucide-react";
 import type { JobVacancy, SeniorityFilter, SortOrder, TimeframeId } from "../types/job";
 import type { ApplicationStatus } from "../types/application";
 import { VacancyCard } from "./VacancyCard";
@@ -193,40 +193,6 @@ export function VacancyList({
               </span>
             )}
           </span>
-
-          {onToggleHideApplied && (
-            <button
-              type="button"
-              title={
-                hideApplied
-                  ? "Mostrar vacantes con postulación enviada (Atajo: H)"
-                  : "Ocultar vacantes con postulación enviada (Atajo: H)"
-              }
-              aria-pressed={hideApplied}
-              onClick={onToggleHideApplied}
-              className={`px-2.5 py-1 rounded-xl text-xs font-medium border transition-colors flex items-center gap-1.5 shadow-xs ${
-                hideApplied
-                  ? "bg-emerald-50 border-emerald-300 text-emerald-800 font-semibold"
-                  : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-300 hover:text-slate-800"
-              }`}
-            >
-              {hideApplied ? (
-                <Eye className="w-3.5 h-3.5 text-emerald-600" />
-              ) : (
-                <EyeOff className="w-3.5 h-3.5 text-slate-400" />
-              )}
-              <span>{hideApplied ? "Ocultando postuladas" : "Ocultar postuladas"}</span>
-              <span
-                className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                  hideApplied
-                    ? "bg-emerald-200 text-emerald-900 font-bold"
-                    : "bg-slate-100 text-slate-500"
-                }`}
-              >
-                {hiddenCount}
-              </span>
-            </button>
-          )}
         </div>
 
         {onSortChange && (

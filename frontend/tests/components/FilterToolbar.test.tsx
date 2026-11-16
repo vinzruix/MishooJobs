@@ -167,6 +167,44 @@ describe("FilterToolbar Component Tests", () => {
     );
   });
 
+  it("anchors dropdown popovers directly beneath trigger with viewport portal positioning", () => {
+    renderToolbar();
+
+    const dateTrigger = screen.getByRole("button", { name: /fecha/i });
+    fireEvent.click(dateTrigger);
+
+    const popover = document.querySelector("[data-popover-content='true']");
+    expect(popover).toBeInTheDocument();
+    expect(popover?.className).toContain("fixed");
+    expect(popover?.className).toContain("z-50");
+  });
+
+  it("renders neutral styling when hideApplied is true but hiddenAppliedCount is 0", () => {
+    renderToolbar({
+      hideApplied: true,
+      hiddenAppliedCount: 0,
+    });
+
+    const hideAppliedBtn = screen.getByRole("button", { name: /ocultar postuladas/i });
+    expect(hideAppliedBtn).toBeInTheDocument();
+    expect(hideAppliedBtn).toHaveTextContent("Ocultar postuladas");
+    expect(hideAppliedBtn.className).toContain("bg-white");
+    expect(hideAppliedBtn.className).not.toContain("bg-emerald-50");
+  });
+
+  it("renders active emerald styling when hideApplied is true and hiddenAppliedCount > 0", () => {
+    renderToolbar({
+      hideApplied: true,
+      hiddenAppliedCount: 4,
+    });
+
+    const hideAppliedBtn = screen.getByRole("button", { name: /ocultando postuladas/i });
+    expect(hideAppliedBtn).toBeInTheDocument();
+    expect(hideAppliedBtn).toHaveTextContent("Ocultando postuladas (4)");
+    expect(hideAppliedBtn.className).toContain("bg-emerald-50");
+    expect(hideAppliedBtn.className).toContain("text-emerald-800");
+  });
+
   it("calls onToggleHideApplied when toggle button is clicked", () => {
     const { handleToggleHideApplied } = renderToolbar({
       hideApplied: false,

@@ -118,7 +118,7 @@ describe("VacancyList Component Tests", () => {
     expect(screen.queryByText("Primer Empleo Real")).not.toBeInTheDocument();
   });
 
-  it("renders inactive toolbar toggle pill ('Ocultar postuladas') with hiddenCount badge and tooltip", () => {
+  it("does not render duplicate toggle button above sort select in VacancyList", () => {
     const handleToggle = vi.fn();
     render(
       <VacancyList
@@ -131,37 +131,9 @@ describe("VacancyList Component Tests", () => {
       />
     );
 
-    const toggleBtn = screen.getByRole("button", { name: /Ocultar postuladas/i });
-    expect(toggleBtn).toBeInTheDocument();
-    expect(toggleBtn).toHaveAttribute("title", "Ocultar vacantes con postulación enviada (Atajo: H)");
-    expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
-    expect(toggleBtn).toHaveTextContent("3");
-
-    fireEvent.click(toggleBtn);
-    expect(handleToggle).toHaveBeenCalledTimes(1);
-  });
-
-  it("renders active toolbar toggle pill ('Ocultando postuladas') with emerald styling and active aria-pressed", () => {
-    const handleToggle = vi.fn();
-    render(
-      <VacancyList
-        vacancies={[baseVacancy]}
-        isSearching={false}
-        hideApplied={true}
-        hiddenCount={3}
-        onToggleHideApplied={handleToggle}
-        onInspect={vi.fn()}
-      />
-    );
-
-    const toggleBtn = screen.getByRole("button", { name: /Ocultando postuladas/i });
-    expect(toggleBtn).toBeInTheDocument();
-    expect(toggleBtn).toHaveAttribute("title", "Mostrar vacantes con postulación enviada (Atajo: H)");
-    expect(toggleBtn).toHaveAttribute("aria-pressed", "true");
-    expect(toggleBtn).toHaveTextContent("3");
-
-    fireEvent.click(toggleBtn);
-    expect(handleToggle).toHaveBeenCalledTimes(1);
+    // Toggle button belongs exclusively to FilterToolbar
+    expect(screen.queryByRole("button", { name: /ocultar postuladas/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /ocultando postuladas/i })).not.toBeInTheDocument();
   });
 
   it("displays summary text with hidden count when hideApplied is true and hiddenCount > 0", () => {
