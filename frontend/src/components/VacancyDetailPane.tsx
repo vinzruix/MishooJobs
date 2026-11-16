@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import DOMPurify from "dompurify";
 import {
   Sparkles,
@@ -19,6 +19,8 @@ import type { MasterProfileData } from "../types/master_profile";
 import { auditVacancy, evaluateVacancy } from "../services/api";
 import { ScamBadge } from "./ScamBadge";
 import { PastelMetricGrid } from "./PastelMetricGrid";
+import { parseJobDescription } from "../services/job_description_parser";
+import { JobDescriptionViewer } from "./JobDescriptionViewer";
 
 export interface VacancyDetailPaneProps {
   vacancy: JobVacancy | null;
@@ -60,6 +62,17 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
   const [auditResult, setAuditResult] = useState<SeniorityAuditResult | null>(null);
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditError, setAuditError] = useState<string | null>(null);
+
+  const structuredDescription = useMemo(() => {
+    if (!vacancy) {
+      return {
+        hasStructuredSections: false,
+        sections: [],
+        rawText: "",
+      };
+    }
+    return parseJobDescription(evaluation?.full_description || vacancy.description || "");
+  }, [evaluation?.full_description, vacancy?.description]);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -335,17 +348,12 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
               </div>
             )}
 
-            {/* Full Job Description (DOMPurified) */}
+            {/* Structured Job Description */}
             <div>
               <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
                 Descripción del Puesto
               </h4>
-              <div
-                className="whitespace-pre-line bg-slate-50/60 p-4 rounded-xl border border-slate-200/60 text-slate-700 text-xs leading-relaxed font-normal"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(evaluation?.full_description || vacancy.description),
-                }}
-              />
+              <JobDescriptionViewer structured={structuredDescription} />
             </div>
           </div>
         )}

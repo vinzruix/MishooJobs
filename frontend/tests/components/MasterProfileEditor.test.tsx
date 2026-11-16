@@ -22,7 +22,7 @@ describe("MasterProfileEditor Component Tests", () => {
     expect(modalBox).toHaveClass("bg-white");
     expect(modalBox).toHaveClass("border-slate-200");
 
-    expect(screen.getByText("[ESTRUCTURA VÁLIDA]")).toBeInTheDocument();
+    expect(screen.getByText("Estructura válida")).toBeInTheDocument();
     const saveBtn = screen.getByTestId("save-master-profile-btn");
     expect(saveBtn).not.toBeDisabled();
   });

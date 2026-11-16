@@ -25,9 +25,6 @@ export function Header({
               MishooJobs
             </span>
           </div>
-          <span className="hidden sm:inline-flex text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200/60 text-slate-600 font-medium">
-            v0.1.0 • MX Jr Live
-          </span>
         </div>
 
         <div className="flex items-center space-x-1.5 sm:space-x-2">
@@ -40,7 +37,7 @@ export function Header({
             }`}
           >
             <Search className="w-3.5 h-3.5" />
-            <span>Búsqueda en Vivo</span>
+            <span>Vacantes</span>
           </button>
           <button
             onClick={() => setActiveTab("pipeline")}
@@ -51,7 +48,7 @@ export function Header({
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Mi Pipeline</span>
+            <span>Postulaciones</span>
           </button>
           <button
             onClick={() => setActiveTab("resumes")}
@@ -62,7 +59,7 @@ export function Header({
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
-            <span>Mis CVs</span>
+            <span>CVs</span>
             {resumesCount > 0 && (
               <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 text-slate-800 font-bold">
                 {resumesCount}
@@ -74,10 +71,10 @@ export function Header({
             data-testid="open-master-profile-btn"
             onClick={onOpenMasterProfile}
             className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 border border-slate-200/80 text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition-colors flex items-center gap-1.5 shadow-xs"
-            title="Abrir editor de Perfil Maestro (Master Career Knowledge Base)"
+            title="Abrir editor de Perfil Maestro"
           >
             <User className="w-3.5 h-3.5 text-slate-600" />
-            <span className="hidden md:inline">Perfil Maestro</span>
+            <span>Perfil</span>
           </button>
         </div>
       </div>

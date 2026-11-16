@@ -37,9 +37,6 @@ describe("VacancyList Component Tests", () => {
   });
 
   it("renders dedicated empty state when activeSeniority is filtered and vacancies is empty", () => {
-    const handleClearSeniority = vi.fn();
-    const handleSelectSeniority = vi.fn();
-
     render(
       <VacancyList
         vacancies={[]}
@@ -47,22 +44,15 @@ describe("VacancyList Component Tests", () => {
         isDateFiltered={false}
         activeSeniority="primer_empleo"
         onInspect={vi.fn()}
-        onClearSeniorityFilter={handleClearSeniority}
-        onSelectSeniority={handleSelectSeniority}
       />
     );
 
     expect(
       screen.getByText("No se encontraron vacantes para el nivel seleccionado en esta búsqueda")
     ).toBeInTheDocument();
-
-    const pasantiaBtn = screen.getByText("Pasantía / Prácticas");
-    fireEvent.click(pasantiaBtn);
-    expect(handleSelectSeniority).toHaveBeenCalledWith("pasantia");
-
-    const clearBtn = screen.getByText("Limpiar filtro de experiencia");
-    fireEvent.click(clearBtn);
-    expect(handleClearSeniority).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(/Prueba ajustando el nivel de experiencia/i)
+    ).toBeInTheDocument();
   });
 
   it("renders date-filter empty state when isDateFiltered is true and vacancies is empty", () => {
@@ -115,34 +105,20 @@ describe("VacancyList Component Tests", () => {
     expect(handleSortChange).toHaveBeenCalledWith("compatibility");
   });
 
-  it("renders quick seniority filter pills and calls onSelectSeniority", () => {
-    const handleSelectSeniority = vi.fn();
-
+  it("renders cleanly without duplicate seniority quick pills", () => {
     render(
       <VacancyList
         vacancies={[baseVacancy]}
         isSearching={false}
         activeSeniority="all"
-        seniorityCounts={{
-          all: 10,
-          primer_empleo: 3,
-          pasantia: 2,
-          junior: 4,
-          mid: 1,
-          senior: 0,
-        }}
-        onSelectSeniority={handleSelectSeniority}
         onInspect={vi.fn()}
       />
     );
 
-    const firstJobPill = screen.getByText("Primer Empleo Real");
-    expect(firstJobPill).toBeInTheDocument();
-    fireEvent.click(firstJobPill);
-    expect(handleSelectSeniority).toHaveBeenCalledWith("primer_empleo");
+    expect(screen.queryByText("Primer Empleo Real")).not.toBeInTheDocument();
   });
 
-  it("renders inactive toolbar toggle pill ('Ocultar postuladas') with hiddenCount badge and tooltip", () => {
+  it("does not render duplicate toggle button above sort select in VacancyList", () => {
     const handleToggle = vi.fn();
     render(
       <VacancyList
@@ -155,37 +131,9 @@ describe("VacancyList Component Tests", () => {
       />
     );
 
-    const toggleBtn = screen.getByRole("button", { name: /Ocultar postuladas/i });
-    expect(toggleBtn).toBeInTheDocument();
-    expect(toggleBtn).toHaveAttribute("title", "Ocultar vacantes con postulación enviada (Atajo: H)");
-    expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
-    expect(toggleBtn).toHaveTextContent("3");
-
-    fireEvent.click(toggleBtn);
-    expect(handleToggle).toHaveBeenCalledTimes(1);
-  });
-
-  it("renders active toolbar toggle pill ('Ocultando postuladas') with emerald styling and active aria-pressed", () => {
-    const handleToggle = vi.fn();
-    render(
-      <VacancyList
-        vacancies={[baseVacancy]}
-        isSearching={false}
-        hideApplied={true}
-        hiddenCount={3}
-        onToggleHideApplied={handleToggle}
-        onInspect={vi.fn()}
-      />
-    );
-
-    const toggleBtn = screen.getByRole("button", { name: /Ocultando postuladas/i });
-    expect(toggleBtn).toBeInTheDocument();
-    expect(toggleBtn).toHaveAttribute("title", "Mostrar vacantes con postulación enviada (Atajo: H)");
-    expect(toggleBtn).toHaveAttribute("aria-pressed", "true");
-    expect(toggleBtn).toHaveTextContent("3");
-
-    fireEvent.click(toggleBtn);
-    expect(handleToggle).toHaveBeenCalledTimes(1);
+    // Toggle button belongs exclusively to FilterToolbar
+    expect(screen.queryByRole("button", { name: /ocultar postuladas/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /ocultando postuladas/i })).not.toBeInTheDocument();
   });
 
   it("displays summary text with hidden count when hideApplied is true and hiddenCount > 0", () => {

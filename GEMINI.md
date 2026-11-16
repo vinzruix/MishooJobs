@@ -218,4 +218,11 @@ When implementing tasks or modifying this codebase:
 - [007] Zero marketing slop policy purging promotional boilerplate ('Filtros Mexicanos', 'Desarrollado para Jr', verbose banners) across all UI surfaces.
 - [light-theme-secondary-views] Full migration of secondary views (PipelineView, ResumeLibraryView), search bar, deduplication banner, and auxiliary modals to the Emil Kowalski #F8F9FA light design system with white cards and pastel badges.
 - [scroll-highlight] Enforce global light color-scheme with accessible text selection in index.html/CSS, gate Vaul drawer strictly to mobile viewports (<1024px) to prevent body scroll-lock on desktop, and constrain detail pane scroll container with flex-1 min-h-0.
+- [008] Consolidate multi-row filter drawer into a unified ~44px horizontal toolbar with contiguous seniority segmented control, popover dropdowns, and mobile single-row scroll.
+- [008] Single canonical filter control invariant: streamline SearchBar to keyword query-only and eliminate duplicate seniority pill rows from VacancyList.
+- [008] Client-side deterministic regex job description parsing into semantic white cards (Overview, Responsibilities, Requirements, Benefits, Conditions) with bullet tokenization and DOMPurify sanitization.
+- [008] Purge technical boilerplate, version badges, bracket tags, and prominent deduplication banners in favor of concise labels and subtle inline counters.
+- [filter-popover-duplicate-toggle] Render FilterToolbar dropdown popovers via React Portals with dynamic bounding-box anchoring to eliminate containing-block offsets and mobile clipping, streamline toolbar button sizing to eliminate desktop overflow, and eliminate duplicate 'Ocultar postuladas' button from VacancyList.
+- [filter-bar-bug] Eliminate lg:overflow-visible from FilterToolbar scroll container and enforce overflow-x-clip on root page wrapper to prevent uncontained document-level horizontal overflow on mid-size viewports (1024px).
+- [filter-bar] Define cross-browser .no-scrollbar utility in index.css suppressing visible WebKit/Firefox scrollbar tracks on FilterToolbar while preserving touch/wheel horizontal scrolling.
 

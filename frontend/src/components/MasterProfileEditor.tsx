@@ -145,9 +145,6 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
             <span className="text-sm font-bold text-slate-900 tracking-wider font-mono">
               PERFIL MAESTRO
             </span>
-            <span className="text-xs text-slate-500">
-              (Master Career Knowledge Base)
-            </span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -158,7 +155,7 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
                 className="flex items-center gap-1.5 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-mono font-medium"
               >
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                [ESTRUCTURA VÁLIDA]
+                Estructura válida
               </span>
             ) : (
               <span
@@ -167,7 +164,7 @@ export const MasterProfileEditor: React.FC<MasterProfileEditorProps> = ({
                 title={validation.error?.message}
               >
                 <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                [ERROR EN LÍNEA {validation.error?.line}: {validation.error?.message?.slice(0, 45)}...]
+                Error en línea {validation.error?.line}: {validation.error?.message?.slice(0, 45)}...
               </span>
             )}
 

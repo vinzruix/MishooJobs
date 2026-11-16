@@ -3,7 +3,7 @@ import { Terminal } from "lucide-react";
 import { Drawer } from "vaul";
 import { Header } from "./components/Header";
 import { SearchBar } from "./components/SearchBar";
-import { FilterDrawer, type FilterState } from "./components/FilterDrawer";
+import { FilterToolbar } from "./components/FilterToolbar";
 import { PortalStatusBar } from "./components/PortalStatusBar";
 import { VacancyList } from "./components/VacancyList";
 import { VacancyDetailPane } from "./components/VacancyDetailPane";
@@ -28,7 +28,7 @@ import {
   sortVacancies,
 } from "./services/date_utils";
 import { calculateHeuristicScore } from "./services/heuristic_scorer";
-import type { JobVacancy, SeniorityCounts, SeniorityFilter, SortOrder, TimeframeId, DetailTab } from "./types/job";
+import type { JobVacancy, SeniorityCounts, SeniorityFilter, SortOrder, TimeframeId, DetailTab, FilterState } from "./types/job";
 import type { AIEvaluation } from "./types/profile";
 
 const VALID_SENIORITIES: Set<SeniorityFilter> = new Set([
@@ -205,12 +205,11 @@ export default function App() {
     }
   }, [filters.timeframes, isSortUserOverridden]);
 
-  const handleSearch = (query: string, location: string) => {
+  const handleSearch = (query: string) => {
     setCurrentQuery(query);
-    setFilters((prev) => ({ ...prev, location }));
     search({
       query,
-      location,
+      location: filters.location,
       modality: filters.modality,
       seniority: "all",
     });
@@ -316,6 +315,22 @@ export default function App() {
     if (filters.seniority === "all") return baseActiveVacancies;
     return baseActiveVacancies.filter((v) => v.seniority_level === filters.seniority);
   }, [baseActiveVacancies, filters.seniority]);
+
+  const timeframeCounts = useMemo<Record<TimeframeId, number>>(() => {
+    const counts: Record<TimeframeId, number> = {
+      all: seniorityFilteredVacancies.length,
+      "1h": 0,
+      "24h": 0,
+      "3d": 0,
+      "7d": 0,
+      "30d": 0,
+      "30d_plus": 0,
+    };
+    for (const tf of (["1h", "24h", "3d", "7d", "30d", "30d_plus"] as TimeframeId[])) {
+      counts[tf] = filterVacanciesByTimeframes(seniorityFilteredVacancies, [tf], currentNow).length;
+    }
+    return counts;
+  }, [seniorityFilteredVacancies, currentNow]);
 
   // 3. Client-side date timeframe filtering
   const dateFilteredVacancies = useMemo(() => {
@@ -440,7 +455,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans flex flex-col selection:bg-slate-200 selection:text-slate-900 print:min-h-0 print:block print:bg-white">
+    <div className="min-h-screen max-w-full overflow-x-clip bg-[#F8F9FA] text-slate-800 font-sans flex flex-col selection:bg-slate-200 selection:text-slate-900 print:min-h-0 print:block print:bg-white">
       {/* Header */}
       <Header
         activeTab={activeTab}
@@ -470,33 +485,24 @@ export default function App() {
                   onSearch={handleSearch}
                   isSearching={isSearching}
                   initialQuery={currentQuery}
-                  initialLocation={filters.location}
                 />
 
-                {/* Mexican Filters Drawer */}
-                <FilterDrawer
+                {/* Unified Compact Filter Toolbar */}
+                <FilterToolbar
                   filters={filters}
-                  vacancies={baseActiveVacancies}
-                  now={currentNow}
+                  seniorityCounts={tierCounts}
+                  timeframeCounts={timeframeCounts}
                   hideApplied={hideApplied}
-                  hiddenCount={hiddenAppliedCount}
+                  hiddenAppliedCount={hiddenAppliedCount}
+                  totalResultsCount={displayedVacancies.length}
+                  duplicatesMergedCount={summary?.duplicates_merged}
+                  onFilterChange={handleFilterChange}
                   onToggleHideApplied={handleToggleHideApplied}
-                  onChange={handleFilterChange}
-                  onReset={handleFilterReset}
+                  onResetFilters={handleFilterReset}
                 />
 
                 {/* Portal Live Progress Badges */}
                 <PortalStatusBar statuses={portalStatuses} isSearching={isSearching} />
-
-                {/* Deduplication Metric Badge */}
-                {summary && summary.duplicates_merged > 0 && (
-                  <div className="text-[11px] text-indigo-900 bg-indigo-50 border border-indigo-100/90 px-3.5 py-2 rounded-xl flex items-center justify-between shadow-xs">
-                    <span className="font-medium">
-                      ⚡ Se combinaron <strong className="text-indigo-950 font-bold">{summary.duplicates_merged}</strong> vacantes duplicadas entre bolsas de trabajo.
-                    </span>
-                    <span className="text-indigo-600/80 text-[10px] font-medium">Total extraídas: {summary.total_extracted}</span>
-                  </div>
-                )}
 
                 {/* Vacancy Results Feed - Master-Detail Split Grid */}
                 {displayedVacancies.length === 0 && !isSearching && unignoredVacancies.length === 0 ? (
@@ -529,6 +535,7 @@ export default function App() {
                         hideApplied={hideApplied}
                         hiddenCount={hiddenAppliedCount}
                         totalUnignoredCount={matchingUnignoredVacancies.length}
+                        duplicatesMergedCount={summary?.duplicates_merged}
                         onToggleHideApplied={handleToggleHideApplied}
                         onInspect={(v) => {
                           setSelectedVacancy(v);
@@ -548,12 +555,6 @@ export default function App() {
                         }}
                         onSelectTimeframe={(tf) => {
                           setFilters((prev) => ({ ...prev, timeframes: [tf] }));
-                        }}
-                        onSelectSeniority={(s) => {
-                          setFilters((prev) => ({ ...prev, seniority: s }));
-                        }}
-                        onClearSeniorityFilter={() => {
-                          setFilters((prev) => ({ ...prev, seniority: "all" }));
                         }}
                       />
                     </div>
