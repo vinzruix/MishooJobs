@@ -22,7 +22,7 @@ class SeniorityAuditResponse(BaseModel):
 
     vacancy_fingerprint: str = Field(..., max_length=64)
     seniority_level: SeniorityLevelEnum
-    years_required_min: int = Field(default=0, ge=0)
+    years_required_min: Optional[int] = Field(default=None, ge=0)
     is_real_first_job: bool = Field(default=False)
     audit_status: AuditStatusEnum = Field(default=AuditStatusEnum.VERIFIED)
     reasoning: str = Field(default="")

@@ -11,7 +11,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import type {
-  FilterState,
   FilterToolbarProps,
   SeniorityFilter,
   TimeframeId,

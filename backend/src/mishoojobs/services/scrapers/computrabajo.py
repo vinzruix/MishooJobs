@@ -144,6 +144,43 @@ class ComputrabajoScraper(AbstractBaseScraper):
 
         return vacancies
 
+    def _extract_offer_description(self, soup: BeautifulSoup) -> Optional[str]:
+        """Extracts the full vacancy description including responsibilities, requirements, and skills."""
+        # 1. First check if the offer details container is present
+        container = soup.select_one("div[div-link='oferta']") or soup.select_one("div.box_detail")
+        if container:
+            cleaned = BeautifulSoup(str(container), "html.parser")
+            for noise in cleaned.select(
+                ".posSticky_m, .opt_dots, .box_show_offer, nav, div.opt_bubble, "
+                "div.dFlex.vm_fx.tc_fx, [data-complaint-offer-openpopup-button], "
+                "div.box_side, .box_ok, [undo-hidden-offer], [hidden-offer-banner]"
+            ):
+                noise.decompose()
+            text = cleaned.get_text(separator="\n", strip=True)
+            if len(text) > 80:
+                return self.sanitize_text(text)
+
+        # 2. Fallback: combine narrative paragraph with requirements and tags
+        parts = []
+        p_desc = (
+            soup.select_one("p.mbB")
+            or soup.select_one("div.box_border p.fs16")
+            or soup.select_one("div.box_border")
+        )
+        if p_desc:
+            parts.append(p_desc.get_text(separator="\n", strip=True))
+
+        reqs = soup.select_one("ul.disc, ul.disc.mbB, ul[class*='disc']")
+        if reqs:
+            items = [li.get_text(strip=True) for li in reqs.select("li") if li.get_text(strip=True)]
+            if items:
+                parts.append("Requerimientos:\n" + "\n".join(f"- {it}" for it in items))
+
+        if parts:
+            return self.sanitize_text("\n\n".join(parts))
+
+        return None
+
     async def fetch_full_description(self, direct_url: str) -> Optional[str]:
         """Fetches the full vacancy description body from the individual offer page."""
         clean_url = direct_url.split("#")[0]
@@ -156,14 +193,7 @@ class ComputrabajoScraper(AbstractBaseScraper):
                 resp = await client.get(clean_url)
                 if resp.status_code == 200:
                     soup = BeautifulSoup(resp.text, "html.parser")
-                    p_desc = (
-                        soup.select_one("p.mbB")
-                        or soup.select_one("div.box_border p.fs16")
-                        or soup.select_one("div.box_detail")
-                        or soup.select_one("div.box_border")
-                    )
-                    if p_desc:
-                        return self.sanitize_text(p_desc.get_text(separator="\n", strip=True))
+                    return self._extract_offer_description(soup)
         except Exception:
             pass
         return None
@@ -186,25 +216,18 @@ class ComputrabajoScraper(AbstractBaseScraper):
                     resp = await client.get(clean_url)
                     if resp.status_code == 200:
                         soup = BeautifulSoup(resp.text, "html.parser")
-                        p_desc = (
-                            soup.select_one("p.mbB")
-                            or soup.select_one("div.box_border p.fs16")
-                            or soup.select_one("div.box_detail")
-                            or soup.select_one("div.box_border")
-                        )
-                        if p_desc:
-                            full_text = self.sanitize_text(p_desc.get_text(separator="\n", strip=True))
-                            if len(full_text) > 100:
-                                v.description = full_text
-                                # Re-extract complete tech skills with full body context
-                                v.skills = self.extract_skills(f"{v.title} {full_text}")
-                                up_sen = self.classify_seniority_fast(v.title, full_text)
-                                v.seniority_level = up_sen["seniority_level"]
-                                v.years_required_min = up_sen["years_required_min"]
-                                v.is_real_first_job = up_sen["is_real_first_job"]
-                                v.audit_status = up_sen["audit_status"]
-                                v.reasoning = up_sen["reasoning"]
-                                v.has_discrepancy = up_sen["has_discrepancy"]
+                        full_text = self._extract_offer_description(soup)
+                        if full_text and len(full_text) > 80:
+                            v.description = full_text
+                            # Re-extract complete tech skills with full body context
+                            v.skills = self.extract_skills(f"{v.title} {full_text}")
+                            up_sen = self.classify_seniority_fast(v.title, full_text)
+                            v.seniority_level = up_sen["seniority_level"]
+                            v.years_required_min = up_sen["years_required_min"]
+                            v.is_real_first_job = up_sen["is_real_first_job"]
+                            v.audit_status = up_sen["audit_status"]
+                            v.reasoning = up_sen["reasoning"]
+                            v.has_discrepancy = up_sen["has_discrepancy"]
                 except Exception:
                     pass
 

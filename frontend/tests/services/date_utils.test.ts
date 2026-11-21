@@ -258,10 +258,10 @@ describe("date_utils", () => {
       expect(formatExperienceRequired(10)).toBe("10 años de exp");
     });
 
-    it("gracefully normalizes negative, null, or undefined values to '0 años de exp'", () => {
-      expect(formatExperienceRequired(-1)).toBe("0 años de exp");
-      expect(formatExperienceRequired(null)).toBe("0 años de exp");
-      expect(formatExperienceRequired(undefined)).toBe("0 años de exp");
+    it("formats unstated, null, undefined, or negative values as 'Exp. no especificada'", () => {
+      expect(formatExperienceRequired(null)).toBe("Exp. no especificada");
+      expect(formatExperienceRequired(undefined)).toBe("Exp. no especificada");
+      expect(formatExperienceRequired(-1)).toBe("Exp. no especificada");
     });
   });
 });

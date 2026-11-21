@@ -35,7 +35,7 @@ export interface SeniorityCounts {
 export interface SeniorityAuditResult {
   vacancy_fingerprint: string;
   seniority_level: SeniorityLevel;
-  years_required_min: number;
+  years_required_min?: number | null;
   is_real_first_job: boolean;
   audit_status: AuditStatus;
   reasoning: string;
@@ -68,7 +68,7 @@ export interface JobVacancy {
   location_state: string;
   modality: Modality | string;
   seniority_level: SeniorityLevel;
-  years_required_min: number;
+  years_required_min?: number | null;
   is_real_first_job: boolean;
   audit_status: AuditStatus;
   reasoning: string;

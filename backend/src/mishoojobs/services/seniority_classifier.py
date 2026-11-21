@@ -92,7 +92,10 @@ class SeniorityClassifier:
             return int(min_match.group(1))
 
         # Pattern: "experiencia mínima / de X años"
-        exp_min_match = re.search(r"experiencia\s*(?:requerida|m[ií]nima|de|deseable)?\s*(?:al\s*menos\s*)?(\d+)\s*a[ñn]os?", norm)
+        exp_min_match = re.search(
+            r"experiencia\s*(?:requerida|m[ií]nima|comprobable|previa|laboral|profesional|deseable)?\s*(?:de\s*)?(?:al\s*menos\s*)?(\d+)\s*a[ñn]os?",
+            norm,
+        )
         if exp_min_match:
             return int(exp_min_match.group(1))
 
@@ -234,7 +237,7 @@ class SeniorityClassifier:
         # 11. Ambiguous / Neutral Default (FR-014)
         return {
             "seniority_level": SeniorityLevelEnum.JUNIOR,
-            "years_required_min": 0,
+            "years_required_min": None,
             "is_real_first_job": False,
             "audit_status": AuditStatusEnum.PRELIMINARY,
             "reasoning": "Posición con requisitos abiertos sin años especificados; asignada preliminarmente a Junior.",

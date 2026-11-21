@@ -130,7 +130,7 @@ class VacancyDTO(BaseModel):
     location_state: str = Field(..., max_length=50)
     modality: str = Field(default="presencial")
     seniority_level: SeniorityLevelEnum = Field(default=SeniorityLevelEnum.JUNIOR)
-    years_required_min: int = Field(default=0, ge=0)
+    years_required_min: Optional[int] = Field(default=None, ge=0)
     is_real_first_job: bool = Field(default=False)
     audit_status: AuditStatusEnum = Field(default=AuditStatusEnum.PRELIMINARY)
     reasoning: str = Field(default="")

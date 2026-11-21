@@ -151,7 +151,7 @@ async def test_indeed_search_mocked_curl_cffi():
         assert v.title == "Desarrollador Python Jr"
         assert "Full enriched job description" in v.description
         assert "Django" in v.skills or "Python" in v.skills
-        mock_session_cls.assert_called_with(impersonate="chrome")
+        mock_session_cls.assert_called_with(impersonate="chrome136")
 
 @pytest.mark.asyncio
 async def test_indeed_fetch_full_description_mocked():
@@ -169,7 +169,7 @@ async def test_indeed_fetch_full_description_mocked():
     with patch("curl_cffi.requests.AsyncSession", mock_session_cls):
         desc = await scraper.fetch_full_description("https://mx.indeed.com/viewjob?jk=jk_desc_456")
         assert desc == "Descripción completa de vacante con requerimientos y prestaciones"
-        mock_session_cls.assert_called_with(impersonate="chrome")
+        mock_session_cls.assert_called_with(impersonate="chrome136")
 
 @pytest.mark.asyncio
 async def test_indeed_search_retry_on_initial_failure(indeed_html):
@@ -191,6 +191,35 @@ async def test_indeed_search_retry_on_initial_failure(indeed_html):
         results = await scraper.search("python", limit=5)
         assert len(results) > 0
         assert mock_session_cls.call_count == 2
+        calls = mock_session_cls.call_args_list
+        assert calls[0].kwargs["impersonate"] == "chrome136"
+        assert calls[1].kwargs["impersonate"] == "chrome146"
+
+@pytest.mark.asyncio
+async def test_indeed_search_fallback_on_403_target(indeed_html):
+    scraper = IndeedScraper()
+    mock_session_1 = AsyncMock()
+    mock_resp_403 = MagicMock()
+    mock_resp_403.status_code = 403
+    mock_session_1.get.return_value = mock_resp_403
+
+    mock_session_2 = AsyncMock()
+    mock_resp_200 = MagicMock()
+    mock_resp_200.status_code = 200
+    mock_resp_200.text = indeed_html
+    mock_session_2.get.return_value = mock_resp_200
+
+    sessions = [mock_session_1, mock_session_2]
+    mock_session_cls = MagicMock()
+    mock_session_cls.return_value.__aenter__.side_effect = sessions
+
+    with patch("curl_cffi.requests.AsyncSession", mock_session_cls), patch("asyncio.sleep", AsyncMock()):
+        results = await scraper.search("python", limit=5)
+        assert len(results) > 0
+        assert mock_session_cls.call_count == 2
+        calls = mock_session_cls.call_args_list
+        assert calls[0].kwargs["impersonate"] == "chrome136"
+        assert calls[1].kwargs["impersonate"] == "chrome146"
 
 def test_occ_parser_split_grid_without_anchor_uses_jobid():
     scraper = OCCScraper()
@@ -227,6 +256,99 @@ def test_occ_parser_split_grid_without_anchor_uses_jobid():
     assert v.published_at is not None
 
 @pytest.mark.asyncio
+async def test_occ_search_mocked_curl_cffi():
+    scraper = OCCScraper()
+    split_grid_html = """
+    <html><body>
+      <ul>
+        <li class="vacancy-card" id="jobcard-21399716" data-id="21399716" data-vacancy-card="">
+          <div class="vacancy-card__body" role="button" tabindex="0">
+            <p class="vacancy-card__company-text">SER-ES</p>
+            <h2 class="vacancy-card__title">DESARROLLADOR JR</h2>
+            <p class="vacancy-card__salary">$ 15,000 Mensual</p>
+            <p class="vacancy-card__location"><span>Monterrey, Nuevo León</span><span>Hace 4 días</span></p>
+          </div>
+        </li>
+      </ul>
+    </body></html>
+    """
+
+    mock_session = AsyncMock()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.text = split_grid_html
+    mock_session.get.return_value = mock_resp
+    mock_session_cls = MagicMock()
+    mock_session_cls.return_value.__aenter__.return_value = mock_session
+
+    with patch("curl_cffi.requests.AsyncSession", mock_session_cls):
+        results = await scraper.search("desarrollador", limit=5)
+        assert len(results) == 1
+        assert results[0].title == "DESARROLLADOR JR"
+        assert results[0].company_name == "SER-ES"
+        mock_session_cls.assert_called_with(impersonate="chrome136")
+
+@pytest.mark.asyncio
+async def test_occ_search_fallback_on_403_target():
+    scraper = OCCScraper()
+    split_grid_html = """
+    <html><body>
+      <ul>
+        <li class="vacancy-card" id="jobcard-21399716" data-id="21399716" data-vacancy-card="">
+          <div class="vacancy-card__body" role="button" tabindex="0">
+            <p class="vacancy-card__company-text">SER-ES</p>
+            <h2 class="vacancy-card__title">DESARROLLADOR JR</h2>
+            <p class="vacancy-card__salary">$ 15,000 Mensual</p>
+            <p class="vacancy-card__location"><span>Monterrey, Nuevo León</span><span>Hace 4 días</span></p>
+          </div>
+        </li>
+      </ul>
+    </body></html>
+    """
+
+    mock_session_1 = AsyncMock()
+    mock_resp_403 = MagicMock()
+    mock_resp_403.status_code = 403
+    mock_session_1.get.return_value = mock_resp_403
+
+    mock_session_2 = AsyncMock()
+    mock_resp_200 = MagicMock()
+    mock_resp_200.status_code = 200
+    mock_resp_200.text = split_grid_html
+    mock_session_2.get.return_value = mock_resp_200
+
+    sessions = [mock_session_1, mock_session_2]
+    mock_session_cls = MagicMock()
+    mock_session_cls.return_value.__aenter__.side_effect = sessions
+
+    with patch("curl_cffi.requests.AsyncSession", mock_session_cls):
+        results = await scraper.search("desarrollador", limit=5)
+        assert len(results) == 1
+        assert mock_session_cls.call_count == 2
+        calls = mock_session_cls.call_args_list
+        assert calls[0].kwargs["impersonate"] == "chrome136"
+        assert calls[1].kwargs["impersonate"] == "chrome146"
+
+@pytest.mark.asyncio
+async def test_occ_search_graceful_error_returns_empty():
+    from tenacity import RetryError
+    scraper = OCCScraper()
+
+    mock_session = AsyncMock()
+    mock_resp_403 = MagicMock()
+    mock_resp_403.status_code = 403
+    mock_session.get.return_value = mock_resp_403
+    mock_session_cls = MagicMock()
+    mock_session_cls.return_value.__aenter__.return_value = mock_session
+
+    async def mock_fetch_html_fails(self, url, params=None):
+        raise RetryError("Tenacity failed after retries")
+
+    with patch("curl_cffi.requests.AsyncSession", mock_session_cls), patch.object(OCCScraper, "fetch_html", mock_fetch_html_fails):
+        results = await scraper.search("desarrollador", limit=5)
+        assert results == []
+
+@pytest.mark.asyncio
 async def test_occ_search_enriches_from_offer_json_endpoint(monkeypatch):
     import httpx
     scraper = OCCScraper()
@@ -245,8 +367,13 @@ async def test_occ_search_enriches_from_offer_json_endpoint(monkeypatch):
     </body></html>
     """
 
-    async def mock_fetch_html(self, url, params=None):
-        return split_grid_html
+    mock_session = AsyncMock()
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.text = split_grid_html
+    mock_session.get.return_value = mock_resp
+    mock_session_cls = MagicMock()
+    mock_session_cls.return_value.__aenter__.return_value = mock_session
 
     requested_urls = []
 
@@ -259,16 +386,16 @@ async def test_occ_search_enriches_from_offer_json_endpoint(monkeypatch):
             request=req,
         )
 
-    monkeypatch.setattr(OCCScraper, "fetch_html", mock_fetch_html)
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_get)
 
-    results = await scraper.search("desarrollador", limit=5)
-    assert len(results) == 1
-    v = results[0]
-    assert v.external_links[0].direct_url == "https://www.occ.com.mx/empleos/?jobid=21399716"
-    assert requested_urls == ["https://oferta.occ.com.mx/offer/21399716/d/j?ipo=41&iapo=1"]
-    assert "FastAPI" in v.description
-    assert "Python" in v.skills and "Docker" in v.skills
+    with patch("curl_cffi.requests.AsyncSession", mock_session_cls):
+        results = await scraper.search("desarrollador", limit=5)
+        assert len(results) == 1
+        v = results[0]
+        assert v.external_links[0].direct_url == "https://www.occ.com.mx/empleos/?jobid=21399716"
+        assert requested_urls == ["https://oferta.occ.com.mx/offer/21399716/d/j?ipo=41&iapo=1"]
+        assert "FastAPI" in v.description
+        assert "Python" in v.skills and "Docker" in v.skills
 
 @pytest.mark.asyncio
 async def test_occ_fetch_full_description_from_jobid_and_legacy_url(monkeypatch):
@@ -291,3 +418,89 @@ async def test_occ_fetch_full_description_from_jobid_and_legacy_url(monkeypatch)
     desc_legacy = await scraper.fetch_full_description("https://www.occ.com.mx/empleo/oferta/21399716-desarrollador-jr")
     assert desc_jobid == "Vacante activa con PostgreSQL y Git ."
     assert desc_legacy == desc_jobid
+
+@pytest.mark.asyncio
+async def test_computrabajo_extract_offer_description_retains_requirements():
+    from bs4 import BeautifulSoup
+    from mishoojobs.schemas.job import SeniorityLevelEnum
+    from mishoojobs.services.seniority_classifier import SeniorityClassifier
+
+    html = """
+    <div div-link="oferta" class="mb40 pb40 bb1">
+        <h2>Descripción de la oferta</h2>
+        <p class="mbB">Principales responsabilidades: Desarrollo de CRM interno, integraciones y soporte técnico.</p>
+        <p class="fwB fs18">Requerimientos</p>
+        <ul class="disc mbB">
+            <li>Educación mínima: Educación superior - Licenciatura</li>
+            <li>2 años de experiencia</li>
+            <li>Conocimientos: JavaScript, PostgreSQL, Git, Shopify</li>
+        </ul>
+        <div class="posSticky_m"><button>Postularme</button></div>
+    </div>
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    scraper = ComputrabajoScraper()
+    desc = scraper._extract_offer_description(soup)
+
+    assert desc is not None
+    assert "2 años de experiencia" in desc
+    assert "Postularme" not in desc
+    sen = SeniorityClassifier.classify_fast("Programador y Desarrollo Web/Sistemas", desc)
+    assert sen["years_required_min"] == 2
+    assert sen["seniority_level"] == SeniorityLevelEnum.MID
+
+@pytest.mark.asyncio
+async def test_computrabajo_enrich_with_full_descriptions_updates_experience_and_seniority(monkeypatch):
+    import httpx
+    from mishoojobs.schemas.job import ExternalLinkDTO, PortalName, SeniorityLevelEnum, VacancyDTO
+
+    scraper = ComputrabajoScraper()
+    offer_html = """
+    <div div-link="oferta">
+        <p class="mbB">Desarrollo de módulos e interfaces con JavaScript y PostgreSQL.</p>
+        <p>Requerimientos</p>
+        <ul class="disc mbB">
+            <li>2 años de experiencia</li>
+            <li>Conocimientos: JavaScript, PostgreSQL, Git</li>
+        </ul>
+        <div class="opt_dots"><button>Ocultar</button></div>
+    </div>
+    """
+
+    async def mock_get(client, url, **kwargs):
+        req = httpx.Request("GET", url)
+        return httpx.Response(200, text=offer_html, request=req)
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", mock_get)
+
+    v = VacancyDTO(
+        fingerprint="0123456789abcdef0123456789abcdef",
+        title="Programador y Desarrollo Web/Sistemas",
+        company_name="FUN SHOES",
+        location_state="GTO",
+        modality="Presencial",
+        seniority_level=SeniorityLevelEnum.JUNIOR,
+        years_required_min=0,
+        is_real_first_job=False,
+        audit_status="preliminary",
+        reasoning="Preliminar",
+        has_discrepancy=False,
+        description="Snippet inicial",
+        skills=[],
+        external_links=[
+            ExternalLinkDTO(
+                portal_name=PortalName.COMPUTRABAJO,
+                direct_url="https://mx.computrabajo.com/ofertas-de-trabajo/oferta-funshoes-123",
+                is_active=True,
+                http_status_code=200,
+            )
+        ],
+    )
+
+    await scraper.enrich_with_full_descriptions([v])
+
+    assert v.years_required_min == 2
+    assert v.seniority_level == SeniorityLevelEnum.MID
+    assert "2 años de experiencia" in v.description
+    assert "PostgreSQL" in v.skills and "JavaScript" in v.skills
+    assert "Ocultar" not in v.description

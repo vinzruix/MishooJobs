@@ -15,6 +15,7 @@ class IndeedScraper(AbstractBaseScraper):
 
     portal_name: str = "indeed"
     base_url: str = "https://mx.indeed.com"
+    impersonate_targets: List[str] = ["chrome136", "chrome146", "safari184"]
 
     def parse_html(self, html_content: str) -> List[VacancyDTO]:
         soup = BeautifulSoup(html_content, "html.parser")
@@ -234,34 +235,36 @@ class IndeedScraper(AbstractBaseScraper):
             jk = direct_url.split("jk=")[-1].split("&")[0]
 
         if jk:
-            try:
-                from curl_cffi.requests import AsyncSession
-                async with AsyncSession(impersonate="chrome") as s:
-                    r = await s.get(f"{self.base_url}/rpc/jobdescs?jks={jk}", timeout=6)
-                    if r.status_code == 200:
-                        data = r.json()
-                        if jk in data and data[jk]:
-                            return self.sanitize_text(
-                                BeautifulSoup(data[jk], "html.parser").get_text("\n", strip=True)
-                            )
-            except Exception:
-                pass
+            for target in self.impersonate_targets:
+                try:
+                    from curl_cffi.requests import AsyncSession
+                    async with AsyncSession(impersonate=target) as s:
+                        r = await s.get(f"{self.base_url}/rpc/jobdescs?jks={jk}", timeout=6)
+                        if r.status_code == 200:
+                            data = r.json()
+                            if jk in data and data[jk]:
+                                return self.sanitize_text(
+                                    BeautifulSoup(data[jk], "html.parser").get_text("\n", strip=True)
+                                )
+                except Exception:
+                    pass
 
-            try:
-                from curl_cffi.requests import AsyncSession
-                async with AsyncSession(impersonate="chrome") as s:
-                    r = await s.get(f"{self.base_url}/rc/clk?jk={jk}", timeout=8)
-                    if r.status_code == 200:
-                        soup = BeautifulSoup(r.text, "html.parser")
-                        desc = soup.select_one("#jobDescriptionText, div.jobsearch-jobDescriptionText, div[id*='jobDescription']")
-                        if desc:
-                            return self.sanitize_text(desc.get_text("\n", strip=True))
-                        for d in soup.find_all(["div", "article", "section"]):
-                            t = d.get_text(strip=True)
-                            if len(t) > 500 and "security check" not in t.lower():
-                                return self.sanitize_text(d.get_text("\n", strip=True))
-            except Exception:
-                pass
+            for target in self.impersonate_targets:
+                try:
+                    from curl_cffi.requests import AsyncSession
+                    async with AsyncSession(impersonate=target) as s:
+                        r = await s.get(f"{self.base_url}/rc/clk?jk={jk}", timeout=8)
+                        if r.status_code == 200:
+                            soup = BeautifulSoup(r.text, "html.parser")
+                            desc = soup.select_one("#jobDescriptionText, div.jobsearch-jobDescriptionText, div[id*='jobDescription']")
+                            if desc:
+                                return self.sanitize_text(desc.get_text("\n", strip=True))
+                            for d in soup.find_all(["div", "article", "section"]):
+                                t = d.get_text(strip=True)
+                                if len(t) > 500 and "security check" not in t.lower():
+                                    return self.sanitize_text(d.get_text("\n", strip=True))
+                except Exception:
+                    pass
         return None
 
     async def search(
@@ -276,18 +279,18 @@ class IndeedScraper(AbstractBaseScraper):
         url = f"{self.base_url}/jobs"
         params = {"q": query, "l": loc}
 
-        # Attempt with curl_cffi impersonating modern Chrome to bypass Cloudflare bot challenge.
-        # Includes a retry with short backoff to absorb cold-start connection/handshake drops.
-        for attempt in range(2):
+        # Attempt with curl_cffi impersonating modern browser TLS/JA4 signatures to bypass Cloudflare bot challenge.
+        # Iterates through resilient browser targets (e.g. chrome136, chrome146, safari184) with short backoff.
+        for idx, target in enumerate(self.impersonate_targets):
             try:
                 from curl_cffi.requests import AsyncSession
-                async with AsyncSession(impersonate="chrome") as s:
+                async with AsyncSession(impersonate=target) as s:
                     r = await s.get(url, params=params, timeout=10)
                     if r.status_code == 200:
                         vacancies = self.parse_html(r.text)
                         if vacancies:
                             vacancies = vacancies[:limit]
-                            # Enrich with full descriptions via rpc/jobdescs
+                            # Enrich with full descriptions via rpc/jobdescs using the same active session
                             jks = []
                             for v in vacancies:
                                 for link in v.external_links:
@@ -323,11 +326,11 @@ class IndeedScraper(AbstractBaseScraper):
                                 except Exception:
                                     pass
                             return vacancies
-                    if attempt == 0:
-                        await asyncio.sleep(0.5)
+                    if idx < len(self.impersonate_targets) - 1:
+                        await asyncio.sleep(0.3)
             except Exception:
-                if attempt == 0:
-                    await asyncio.sleep(0.5)
+                if idx < len(self.impersonate_targets) - 1:
+                    await asyncio.sleep(0.3)
 
         # Fallback to standard fetch_html
         try:

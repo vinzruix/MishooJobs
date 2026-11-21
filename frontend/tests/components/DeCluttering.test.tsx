@@ -5,7 +5,7 @@ import { PipelineView } from "../../src/components/PipelineView";
 import { ResumeLibraryView } from "../../src/components/ResumeLibraryView";
 import { MasterProfileEditor } from "../../src/components/MasterProfileEditor";
 import type { ApplicationRecord } from "../../src/types/application";
-import type { ResumeRecord } from "../../src/types/master_profile";
+import type { GeneratedResumeRecord } from "../../src/types/resume";
 
 vi.mock("../../src/hooks/useResumes", () => ({
   useResumes: () => ({
@@ -20,18 +20,18 @@ vi.mock("../../src/hooks/useResumes", () => ({
         updated_at: new Date().toISOString(),
         ats_score: 95,
         word_count: 350,
-      } as ResumeRecord,
+      } as unknown as GeneratedResumeRecord,
       {
         id: "res-2",
         title: "CV Fullstack",
-        type: "role",
+        type: "role_archetype",
         target_role: "Frontend Junior",
         revision: 2,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         ats_score: 90,
         word_count: 380,
-      } as ResumeRecord,
+      } as unknown as GeneratedResumeRecord,
     ],
     isLoading: false,
     deleteResume: vi.fn(),
@@ -81,10 +81,10 @@ describe("UI De-Cluttering & Technical Boilerplate Purge Tests", () => {
   it("PipelineView header omits IndexedDB badge and renders concise title", () => {
     const apps: ApplicationRecord[] = [
       {
-        id: "app-1",
         vacancy_fingerprint: "v1",
         title: "Desarrollador Trainee",
         company_name: "Empresa",
+        direct_url: "https://example.com/job/1",
         status: "applied",
         applied_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

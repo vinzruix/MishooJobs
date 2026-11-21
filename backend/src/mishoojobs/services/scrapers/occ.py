@@ -34,6 +34,7 @@ class OCCScraper(AbstractBaseScraper):
 
     portal_name: str = "occ"
     base_url: str = "https://www.occ.com.mx"
+    impersonate_targets: List[str] = ["chrome136", "chrome146", "safari184"]
 
     def parse_html(self, html_content: str) -> List[VacancyDTO]:
         soup = BeautifulSoup(html_content, "html.parser")
@@ -220,16 +221,19 @@ class OCCScraper(AbstractBaseScraper):
 
     async def _fetch_offer_html_description(self, direct_url: str) -> Optional[str]:
         """Fallback HTML description fetch for standalone /empleo/oferta/ pages."""
-        try:
-            from curl_cffi.requests import AsyncSession
-            async with AsyncSession(impersonate="chrome") as s:
-                r = await s.get(direct_url, timeout=6)
-                if r.status_code == 200:
-                    parsed = self._parse_description_from_html(r.text)
-                    if parsed:
-                        return parsed
-        except (ImportError, OSError, asyncio.TimeoutError) as exc:
-            logger.debug("OCC curl_cffi HTML fetch failed for %s: %s", direct_url, exc)
+        for target in self.impersonate_targets:
+            try:
+                from curl_cffi.requests import AsyncSession
+                async with AsyncSession(impersonate=target) as s:
+                    r = await s.get(direct_url, timeout=6)
+                    if r.status_code == 200:
+                        parsed = self._parse_description_from_html(r.text)
+                        if parsed:
+                            return parsed
+            except (ImportError, OSError, asyncio.TimeoutError) as exc:
+                logger.debug("OCC curl_cffi HTML fetch failed for %s with %s: %s", direct_url, target, exc)
+            except Exception as exc:
+                logger.debug("OCC curl_cffi fetch error for %s with %s: %s", direct_url, target, exc)
 
         try:
             async with httpx.AsyncClient(headers=self.headers, timeout=6.0, follow_redirects=True) as client:
@@ -267,11 +271,36 @@ class OCCScraper(AbstractBaseScraper):
             loc_slug = "-".join(self.normalize_text(location).split())
             url += f"/en-{loc_slug}"
 
+        html = None
+
+        # 1. Attempt with curl_cffi browser TLS/JA4 impersonation to bypass Cloudflare bot challenge
+        for target in self.impersonate_targets:
+            try:
+                from curl_cffi.requests import AsyncSession
+                async with AsyncSession(impersonate=target) as s:
+                    r = await s.get(url, timeout=10)
+                    if r.status_code == 200:
+                        html = r.text
+                        break
+                    elif r.status_code in (401, 403, 429):
+                        logger.debug("OCC search Cloudflare challenge with target %s: HTTP %s", target, r.status_code)
+                        continue
+            except Exception as exc:
+                logger.debug("OCC curl_cffi search attempt failed with %s: %s", target, exc)
+                continue
+
+        # 2. Fallback to standard fetch_html if curl_cffi did not succeed
+        if not html:
+            try:
+                html = await self.fetch_html(url)
+            except Exception as exc:
+                logger.warning("OCC search fetch failed for %s: %s", url, exc)
+                return []
+
         try:
-            html = await self.fetch_html(url)
             vacancies = self.parse_html(html)[:limit]
-        except (httpx.HTTPError, asyncio.TimeoutError) as exc:
-            logger.warning("OCC search fetch failed for %s: %s", url, exc)
+        except Exception as exc:
+            logger.warning("OCC HTML parsing failed for %s: %s", url, exc)
             return []
 
         if not vacancies:

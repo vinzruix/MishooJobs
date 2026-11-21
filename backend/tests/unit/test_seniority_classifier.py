@@ -84,7 +84,23 @@ def test_ambiguous_defaults_to_junior_preliminary():
         text="Desarrollo de software interno. Manejo de Git y bases de datos relacionales.",
     )
     assert res["seniority_level"] == SeniorityLevelEnum.JUNIOR
-    assert res["years_required_min"] == 0
+    assert res["years_required_min"] is None
     assert res["is_real_first_job"] is False
     assert res["audit_status"] == AuditStatusEnum.PRELIMINARY
     assert res["has_discrepancy"] is False
+
+def test_unstated_experience_vacancy_fullstack():
+    res = SeniorityClassifier.classify_fast(
+        title="Desarrollador Fullstack (Java con Angular / Sueldo libre: 45,000)",
+        text="Conocimiento: Desarrollador Full Stack con enfoque en Java y Angular (Indispensable). Oracle DB, Apache Kafka. Contar con título o cédula.",
+    )
+    assert res["seniority_level"] == SeniorityLevelEnum.JUNIOR
+    assert res["years_required_min"] is None
+    assert res["is_real_first_job"] is False
+
+def test_extract_years_required_variations():
+    assert SeniorityClassifier.extract_years_required("Requerimientos: 2 años de experiencia") == 2
+    assert SeniorityClassifier.extract_years_required("Experiencia mínima de 2 años en frontend") == 2
+    assert SeniorityClassifier.extract_years_required("Experiencia laboral de 3 años comprobable") == 3
+    assert SeniorityClassifier.extract_years_required("Se requiere experiencia previa de 1 año") == 1
+    assert SeniorityClassifier.extract_years_required("Sin experiencia, recién egresados") == 0

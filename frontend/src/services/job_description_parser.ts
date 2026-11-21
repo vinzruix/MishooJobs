@@ -1,6 +1,5 @@
 import type {
   StructuredJobDescription,
-  ParsedJobSection,
   StructuredJobSectionId,
 } from "../types/job";
 

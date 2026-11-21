@@ -38,18 +38,28 @@ export function buildPastelMetrics(vacancy: JobVacancy, fitScore?: number | null
 
   // 3. Experience / Match
   let expValue = "Sin especificar";
-  let expSubtext = "Experiencia mín.";
+  let expSubtext = "No detallada en vacante";
+
+  const isExpUnknown =
+    vacancy.years_required_min == null ||
+    (vacancy.years_required_min === 0 &&
+      !vacancy.is_real_first_job &&
+      vacancy.seniority_level === "junior" &&
+      (vacancy.reasoning?.includes("sin años especificados") || vacancy.reasoning?.includes("requisitos abiertos")));
 
   if (fitScore != null) {
     expValue = `${fitScore}% Match`;
     expSubtext = "Compatibilidad";
+  } else if (isExpUnknown) {
+    expValue = "Sin especificar";
+    expSubtext = "No detallada en vacante";
   } else if (vacancy.years_required_min === 0) {
     expValue = "0 años";
     expSubtext = "Sin experiencia previa";
   } else if (vacancy.years_required_min === 1) {
     expValue = "1 año";
     expSubtext = "Experiencia mín.";
-  } else if (vacancy.years_required_min > 1) {
+  } else if (vacancy.years_required_min && vacancy.years_required_min > 1) {
     expValue = `${vacancy.years_required_min} años`;
     expSubtext = "Experiencia mín.";
   }
@@ -69,7 +79,7 @@ export function buildPastelMetrics(vacancy: JobVacancy, fitScore?: number | null
       break;
     case "junior":
       seniorityValue = "Junior";
-      senioritySubtext = "Nivel inicial";
+      senioritySubtext = isExpUnknown ? "Requisitos abiertos" : "Nivel inicial";
       break;
     case "mid":
       seniorityValue = "Mid-Level";

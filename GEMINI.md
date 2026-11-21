@@ -225,4 +225,10 @@ When implementing tasks or modifying this codebase:
 - [filter-popover-duplicate-toggle] Render FilterToolbar dropdown popovers via React Portals with dynamic bounding-box anchoring to eliminate containing-block offsets and mobile clipping, streamline toolbar button sizing to eliminate desktop overflow, and eliminate duplicate 'Ocultar postuladas' button from VacancyList.
 - [filter-bar-bug] Eliminate lg:overflow-visible from FilterToolbar scroll container and enforce overflow-x-clip on root page wrapper to prevent uncontained document-level horizontal overflow on mid-size viewports (1024px).
 - [filter-bar] Define cross-browser .no-scrollbar utility in index.css suppressing visible WebKit/Firefox scrollbar tracks on FilterToolbar while preserving touch/wheel horizontal scrolling.
+- [indeed-vacancies-bug] Replace curl_cffi generic 'chrome' (which resolves to blocked Chrome 152 in v0.17.0) with resilient multi-target fallback list ('chrome136', 'chrome146', 'safari184') in IndeedScraper to bypass Cloudflare WAF.
+- [years-dismatch] Preserve Computrabajo structured requirements ('ul.disc') and strip action buttons during full description enrichment to prevent experience truncation and inaccurate 0-experience defaults.
+- [experiencie-error] Distinguish unstated experience requirements from 0 years: Rule 11 returns nullable years_required_min (None) with [ EXP. NO ESPECIFICADA ] badge and 'Exp. no especificada' metadata/pastel cards.
+- [occ-inactive] Equip OCCScraper with curl_cffi browser TLS impersonation (chrome136/chrome146/safari184) and robust exception handling to bypass Cloudflare WAF on search endpoints, with PostgreSQL enum casting in SSE upserts.
+- [cv-customized-button] Surface persistent 'Adaptar CV' button in sticky action bar and in-flow description callout card across all vacancy detail views.
+
 

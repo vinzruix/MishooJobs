@@ -231,6 +231,25 @@ describe("Frontend Component Tests", () => {
     expect(screen.getByText("0 años de exp")).toBeInTheDocument();
   });
 
+  it("renders '[ EXP. NO ESPECIFICADA ]' badge and 'Exp. no especificada' when experience requirement is omitted or unknown", () => {
+    const unknownExpVacancy: JobVacancy = {
+      ...sampleVacancy,
+      years_required_min: null,
+      is_real_first_job: false,
+      reasoning: "Posición con requisitos abiertos sin años especificados; asignada preliminarmente a Junior.",
+    };
+
+    render(
+      <VacancyCard
+        vacancy={unknownExpVacancy}
+        onInspect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId("badge-exp-unknown")).toHaveTextContent("[ EXP. NO ESPECIFICADA ]");
+    expect(screen.getByText("Exp. no especificada")).toBeInTheDocument();
+  });
+
   it("renders '3 años de exp' and '5 años de exp' for multiple years of experience required", () => {
     const midVacancy: JobVacancy = {
       ...sampleVacancy,

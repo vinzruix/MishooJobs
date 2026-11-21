@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from "react";
-import DOMPurify from "dompurify";
 import {
   Sparkles,
   Loader2,
@@ -205,6 +204,13 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
 
   const companyInitial = vacancy.company_name ? vacancy.company_name.charAt(0).toUpperCase() : "M";
 
+  const isExpUnknown =
+    vacancy.years_required_min == null ||
+    (vacancy.years_required_min === 0 &&
+      !vacancy.is_real_first_job &&
+      vacancy.seniority_level === "junior" &&
+      (vacancy.reasoning?.includes("sin años especificados") || vacancy.reasoning?.includes("requisitos abiertos")));
+
   return (
     <div
       data-testid="vacancy-detail-pane"
@@ -225,6 +231,15 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   {vacancy.company_name}
                 </span>
+                {isExpUnknown && (
+                  <span
+                    data-testid="detail-badge-exp-unknown"
+                    className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200/80"
+                    title="La vacante no especifica los años de experiencia requeridos"
+                  >
+                    [ EXP. NO ESPECIFICADA ]
+                  </span>
+                )}
                 {vacancy.scam_report && <ScamBadge report={vacancy.scam_report} />}
               </div>
               <h2 className="text-xl font-bold text-slate-900 leading-tight">
@@ -355,6 +370,30 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
               </h4>
               <JobDescriptionViewer structured={structuredDescription} />
             </div>
+
+            {/* Tailor CV Callout in Description */}
+            {onOpenTailorModal && (
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                <div className="space-y-0.5">
+                  <h4 className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>¿Te interesa esta vacante?</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Genera un currículum personalizado con IA adaptado a los requisitos de este puesto.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  data-testid="desc-tailor-cv-btn"
+                  onClick={() => onOpenTailorModal(vacancy)}
+                  className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-xs shrink-0 active:scale-[0.99]"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Adaptar mi CV</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -530,9 +569,9 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
                   {onOpenTailorModal && (
                     <button
                       type="button"
-                      data-testid="tailor-cv-btn"
+                      data-testid="ai-eval-tailor-btn"
                       onClick={() => onOpenTailorModal(vacancy)}
-                      className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-xs"
+                      className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-xs active:scale-[0.99]"
                     >
                       <Sparkles className="w-4 h-4 text-amber-400" />
                       <span>Adaptar mi CV a esta vacante</span>
@@ -552,20 +591,36 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
       </div>
 
       {/* Sticky Bottom Action Bar */}
-      <div className="p-4 border-t border-slate-200/80 bg-slate-50/90 backdrop-blur-xs flex flex-col sm:flex-row items-center gap-3 mt-auto flex-shrink-0">
-        {/* Full-width primary CTA */}
-        {primaryLink && (
-          <a
-            href={primaryLink.direct_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-testid="primary-apply-btn"
-            className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.99]"
-          >
-            <span>Postularme ahora</span>
-            <ExternalLink className="w-4 h-4 text-slate-300" />
-          </a>
-        )}
+      <div className="p-4 border-t border-slate-200/80 bg-slate-50/90 backdrop-blur-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 mt-auto flex-shrink-0">
+        <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
+          {/* Full-width primary CTA */}
+          {primaryLink && (
+            <a
+              href={primaryLink.direct_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="primary-apply-btn"
+              className="flex-1 sm:flex-initial py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-[0.99] whitespace-nowrap"
+            >
+              <span>Postularme ahora</span>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
+            </a>
+          )}
+
+          {/* Persistent Tailor CV Action */}
+          {onOpenTailorModal && (
+            <button
+              type="button"
+              data-testid="tailor-cv-btn"
+              onClick={() => onOpenTailorModal(vacancy)}
+              className="flex-1 sm:flex-initial py-2.5 px-3.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-200/80 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-[0.99] whitespace-nowrap"
+              title="Adaptar mi CV a esta vacante"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Adaptar CV</span>
+            </button>
+          )}
+        </div>
 
         {/* Secondary actions: Save & Mark Applied */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">

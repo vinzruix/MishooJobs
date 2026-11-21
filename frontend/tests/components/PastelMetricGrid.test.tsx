@@ -78,6 +78,23 @@ describe("PastelMetricGrid Component & Helper Tests", () => {
     expect(exp?.subtext).toBe("Compatibilidad");
   });
 
+  it("displays 'Sin especificar' and 'No detallada en vacante' when experience requirement is omitted or null", () => {
+    const unstatedExpVacancy: JobVacancy = {
+      ...baseVacancy,
+      seniority_level: "junior",
+      years_required_min: null,
+      is_real_first_job: false,
+      reasoning: "Posición con requisitos abiertos sin años especificados; asignada preliminarmente a Junior.",
+    };
+    const metrics = buildPastelMetrics(unstatedExpVacancy);
+    const exp = metrics.find((m) => m.id === "experience");
+    expect(exp?.value).toBe("Sin especificar");
+    expect(exp?.subtext).toBe("No detallada en vacante");
+
+    const seniority = metrics.find((m) => m.id === "seniority");
+    expect(seniority?.subtext).toBe("Requisitos abiertos");
+  });
+
   it("renders 4 pastel cards with icons in the DOM", () => {
     render(<PastelMetricGrid vacancy={baseVacancy} fitScore={75} />);
 

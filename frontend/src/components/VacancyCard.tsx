@@ -71,6 +71,13 @@ export function VacancyCard({
 
   const companyInitial = vacancy.company_name ? vacancy.company_name.charAt(0).toUpperCase() : "M";
 
+  const isExpUnknown =
+    vacancy.years_required_min == null ||
+    (vacancy.years_required_min === 0 &&
+      !vacancy.is_real_first_job &&
+      vacancy.seniority_level === "junior" &&
+      (vacancy.reasoning?.includes("sin años especificados") || vacancy.reasoning?.includes("requisitos abiertos")));
+
   const handleClick = () => {
     if (onSelect) {
       onSelect(vacancy);
@@ -167,8 +174,17 @@ export function VacancyCard({
         </h3>
 
         {/* Discrepancy & Scam Warnings */}
-        {(vacancy.has_discrepancy || vacancy.scam_report) && (
+        {(vacancy.has_discrepancy || vacancy.scam_report || isExpUnknown) && (
           <div className="flex flex-wrap gap-1 mb-2">
+            {isExpUnknown && (
+              <span
+                data-testid="badge-exp-unknown"
+                className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200/80"
+                title="La vacante no especifica los años de experiencia requeridos"
+              >
+                [ EXP. NO ESPECIFICADA ]
+              </span>
+            )}
             {vacancy.has_discrepancy && (
               <span
                 className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200"
@@ -199,7 +215,7 @@ export function VacancyCard({
           </div>
           <div className="flex items-center gap-1 text-slate-600 font-medium text-xs">
             <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-            <span>{formatExperienceRequired(vacancy.years_required_min)}</span>
+            <span>{isExpUnknown ? "Exp. no especificada" : formatExperienceRequired(vacancy.years_required_min)}</span>
           </div>
         </div>
 

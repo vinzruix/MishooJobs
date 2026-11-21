@@ -3,7 +3,7 @@ import json
 import logging
 import time
 from typing import AsyncGenerator, List
-from sqlalchemy import case, select
+from sqlalchemy import case, cast, select
 from sqlalchemy.dialects.postgresql import insert
 
 logger = logging.getLogger(__name__)
@@ -70,11 +70,17 @@ async def persist_vacancies_safe(vacancies: List[VacancyDTO]) -> None:
                             "published_at": v.published_at,
                             "audit_status": case(
                                 (JobVacancy.audit_status == "verified", JobVacancy.audit_status),
-                                else_=v.audit_status.value if hasattr(v.audit_status, "value") else v.audit_status,
+                                else_=cast(
+                                    v.audit_status.value if hasattr(v.audit_status, "value") else v.audit_status,
+                                    JobVacancy.audit_status.type,
+                                ),
                             ),
                             "seniority_level": case(
                                 (JobVacancy.audit_status == "verified", JobVacancy.seniority_level),
-                                else_=v.seniority_level.value if hasattr(v.seniority_level, "value") else v.seniority_level,
+                                else_=cast(
+                                    v.seniority_level.value if hasattr(v.seniority_level, "value") else v.seniority_level,
+                                    JobVacancy.seniority_level.type,
+                                ),
                             ),
                             "years_required_min": case(
                                 (JobVacancy.audit_status == "verified", JobVacancy.years_required_min),
@@ -201,7 +207,8 @@ async def job_search_stream_generator(params: SearchParams) -> AsyncGenerator[st
         except asyncio.TimeoutError:
             p_duration = int((time.monotonic() - p_start) * 1000)
             return (p_name, [], p_duration, "timeout")
-        except Exception:
+        except Exception as exc:
+            logger.warning("Portal %s search failed: %s", p_name.value if hasattr(p_name, "value") else p_name, exc, exc_info=True)
             p_duration = int((time.monotonic() - p_start) * 1000)
             return (p_name, [], p_duration, "error")
 

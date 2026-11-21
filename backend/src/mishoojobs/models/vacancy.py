@@ -49,10 +49,9 @@ class JobVacancy(Base):
         nullable=False,
         index=True,
     )
-    years_required_min: Mapped[int] = mapped_column(
+    years_required_min: Mapped[Optional[int]] = mapped_column(
         Integer,
-        default=0,
-        nullable=False,
+        nullable=True,
     )
     is_real_first_job: Mapped[bool] = mapped_column(
         Boolean,
@@ -102,7 +101,7 @@ class JobVacancy(Base):
             name="check_salary_range",
         ),
         CheckConstraint(
-            "years_required_min >= 0",
+            "years_required_min IS NULL OR years_required_min >= 0",
             name="ck_vacancies_years_required_min",
         ),
     )

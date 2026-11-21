@@ -112,7 +112,7 @@
       "title": "Programador Web PHP",
       "text": "Desarrollo y mantenimiento de plataformas internas. Conocimiento en PHP, MySQL y HTML5.",
       "expected_seniority_level": "junior",
-      "expected_years_min": 0,
+      "expected_years_min": null,
       "expected_is_real_first_job": false,
       "expected_has_discrepancy": false
     }

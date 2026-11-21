@@ -171,6 +171,34 @@ describe("VacancyDetailPane Component Tests", () => {
     const tailorBtn = screen.getByTestId("tailor-cv-btn");
     fireEvent.click(tailorBtn);
     expect(handleTailor).toHaveBeenCalledWith(mockVacancy);
+
+    const aiEvalTailorBtn = screen.getByTestId("ai-eval-tailor-btn");
+    fireEvent.click(aiEvalTailorBtn);
+    expect(handleTailor).toHaveBeenCalledTimes(2);
+  });
+
+  it("renders tailor CV button in default description view and triggers onOpenTailorModal", () => {
+    const handleTailor = vi.fn();
+    render(
+      <VacancyDetailPane
+        vacancy={mockVacancy}
+        onOpenTailorModal={handleTailor}
+      />
+    );
+
+    // Primary persistent tailor button in sticky bottom bar
+    const tailorBtn = screen.getByTestId("tailor-cv-btn");
+    expect(tailorBtn).toBeInTheDocument();
+    expect(tailorBtn).toHaveTextContent("Adaptar CV");
+    fireEvent.click(tailorBtn);
+    expect(handleTailor).toHaveBeenCalledWith(mockVacancy);
+
+    // In-flow callout button in description tab
+    const descTailorBtn = screen.getByTestId("desc-tailor-cv-btn");
+    expect(descTailorBtn).toBeInTheDocument();
+    expect(descTailorBtn).toHaveTextContent("Adaptar mi CV");
+    fireEvent.click(descTailorBtn);
+    expect(handleTailor).toHaveBeenCalledTimes(2);
   });
 
   it("isolates evaluation cache strictly by vacancy fingerprint", () => {

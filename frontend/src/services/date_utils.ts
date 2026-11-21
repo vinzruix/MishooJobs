@@ -243,12 +243,19 @@ export function serializeTimeframesToQuery(timeframes: TimeframeId[]): string | 
  * Formats a numerical years-of-experience requirement into localized Mexican Spanish.
  * 
  * Enforces proper singular/plural grammatical agreement:
- * - years <= 0: "0 años de exp"
+ * - years == null or < 0: "Exp. no especificada"
+ * - years === 0: "0 años de exp"
  * - years === 1: "1 año de exp"
  * - years >= 2: "${years} años de exp"
  */
 export function formatExperienceRequired(years?: number | null): string {
-  const normalizedYears = typeof years === "number" && !isNaN(years) ? Math.max(0, Math.floor(years)) : 0;
+  if (years == null || isNaN(years) || years < 0) {
+    return "Exp. no especificada";
+  }
+  const normalizedYears = Math.floor(years);
+  if (normalizedYears === 0) {
+    return "0 años de exp";
+  }
   if (normalizedYears === 1) {
     return "1 año de exp";
   }

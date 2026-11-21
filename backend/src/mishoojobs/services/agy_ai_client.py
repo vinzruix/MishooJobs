@@ -129,7 +129,7 @@ class AgyAIClient:
         "DESCRIPCIÓN DE LA VACANTE:\n"
         "{job_description}\n\n"
         "INSTRUCCIONES DE AUDITORÍA:\n"
-        "1. Analiza el título y la descripción completa para extraer los años mínimos de experiencia laboral comercial previa requeridos (years_required_min: entero >= 0).\n"
+        "1. Analiza el título y la descripción completa para extraer los años mínimos de experiencia laboral comercial previa requeridos (years_required_min: entero >= 0 o null si la vacante no especifica los años requeridos).\n"
         "2. Clasifica el nivel de experiencia (seniority_level) estrictamente entre: 'pasantia', 'primer_empleo', 'junior', 'mid', 'senior'.\n"
         "   - 'pasantia': Prácticas profesionales, residencias o servicio social para estudiantes en curso.\n"
         "   - 'primer_empleo': Empleo formal pagado por nómina que NO exige ninguna experiencia laboral previa (estrictamente 0 años requeridos).\n"
@@ -142,7 +142,7 @@ class AgyAIClient:
         "RESPONDE ESTRICTAMENTE EN FORMATO JSON CON ESTA ESTRUCTURA:\n"
         "{\n"
         '  "seniority_level": "<pasantia | primer_empleo | junior | mid | senior>",\n'
-        '  "years_required_min": <numero entero >= 0>,\n'
+        '  "years_required_min": <numero entero >= 0 o null>,\n'
         '  "is_real_first_job": <true | false>,\n'
         '  "has_discrepancy": <true | false>,\n'
         '  "reasoning": "<explicacion breve en espanol>"\n'
@@ -453,12 +453,19 @@ class AgyAIClient:
         if level not in ["pasantia", "primer_empleo", "junior", "mid", "senior"]:
             level = "junior"
 
-        years = int(parsed.get("years_required_min", 0))
-        if years < 0:
-            years = 0
+        raw_years = parsed.get("years_required_min")
+        if raw_years is None or raw_years == "null":
+            years = None
+        else:
+            try:
+                years = int(raw_years)
+                if years < 0:
+                    years = 0
+            except (ValueError, TypeError):
+                years = None
 
         is_real = bool(parsed.get("is_real_first_job", False))
-        if years > 0:
+        if years is not None and years > 0:
             is_real = False
 
         has_disc = bool(parsed.get("has_discrepancy", False))

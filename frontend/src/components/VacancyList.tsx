@@ -1,4 +1,4 @@
-import { Briefcase, Clock, RotateCcw, Sparkles, Eye, CheckCircle2 } from "lucide-react";
+import { Briefcase, Clock, RotateCcw, Eye, CheckCircle2 } from "lucide-react";
 import type { JobVacancy, SeniorityFilter, SortOrder, TimeframeId } from "../types/job";
 import type { ApplicationStatus } from "../types/application";
 import { VacancyCard } from "./VacancyCard";
