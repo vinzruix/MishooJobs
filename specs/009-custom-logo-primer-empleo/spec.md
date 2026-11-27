@@ -8,6 +8,15 @@
 
 **Input**: User description: "1.- want to add a personalized logo which will be the floowing one: [suited black cat mascot image] 2.- Change all the labels 'Primer empleo real' to 'Primer empleo'"
 
+## Clarifications
+
+### Session 2026-11-27
+
+- Q: How should the suited black cat mascot be framed inside the top navigation header next to the "MishooJobs" name? → A: Inside a subtle light rounded-square or circular badge (soft off-white/slate background with a thin border).
+- Q: How should the browser tab icon (favicon) keep the dark cat mascot clearly visible on dark-mode browser tabs? → A: Inside a clean light/white rounded-square or circular backing badge.
+- Q: How should previously cached AI vacancy evaluations that already contain the text "Primer Empleo Real" be handled? → A: Normalize any "Primer Empleo Real" phrase (case-insensitive) to "Primer Empleo" on output/display for cached evaluations.
+- Q: What should happen when a user clicks the custom cat logo or "MishooJobs" brand name in the navigation header? → A: Navigate back to the primary "Vacantes" view from any active tab.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Personalized MishooJobs Mascot Logo (Priority: P1)
@@ -59,13 +68,13 @@ So that the interface uses concise, natural, and uniform terminology without red
 
 ### Functional Requirements
 
-- **FR-001**: The platform MUST display the personalized suited black cat mascot logo (sourced from the user-provided mascot reference) in the primary navigation header adjacent to the "MishooJobs" brand wordmark across all views.
+- **FR-001**: The platform MUST display the personalized suited black cat mascot logo (sourced from the user-provided mascot reference) inside a subtle light rounded-square or circular badge with a thin border in the primary navigation header adjacent to the "MishooJobs" brand wordmark across all views, and clicking the logo or brand wordmark MUST navigate back to the primary "Vacantes" view from any active tab.
 - **FR-002**: The published logo asset MUST isolate the cat mascot cleanly without any checkerboard background pattern or floating copy/download/share UI overlay artifacts from the reference screenshot.
-- **FR-003**: The platform MUST replace the generic header briefcase icon and generic browser tab icon (favicon) with the personalized MishooJobs cat mascot for unified brand recognition.
+- **FR-003**: The platform MUST replace the generic header briefcase icon and generic browser tab icon (favicon) with the personalized MishooJobs cat mascot, using a clean light/white rounded-square or circular backing badge on the favicon to preserve contrast across light and dark browser tabs.
 - **FR-004**: The header logo MUST scale proportionally on both desktop and mobile screens without distorting its aspect ratio, clipping, or displacing adjacent navigation controls.
 - **FR-005**: All user-facing filter options for the zero-experience entry-level tier MUST display the label "Primer Empleo" instead of "Primer Empleo Real".
 - **FR-006**: All user-facing vacancy detail metric cards and badges that previously displayed "Primer Empleo Real" MUST display "Primer Empleo" while preserving existing subtext (such as verified zero-experience status).
-- **FR-007**: User-facing AI audit prompts and explanatory labels referencing this tier MUST use "Primer Empleo" consistently so newly generated explanations match the UI terminology.
+- **FR-007**: User-facing AI audit prompts and explanatory labels referencing this tier MUST use "Primer Empleo" consistently, and any previously cached evaluation or audit text containing "Primer Empleo Real" (case-insensitive) MUST be normalized to "Primer Empleo" on display so no stale phrasing appears.
 - **FR-008**: Changing the display label from "Primer Empleo Real" to "Primer Empleo" MUST NOT alter the underlying classification rules, filtering accuracy, shareable filter links, or saved user preferences.
 
 ## Success Criteria *(mandatory)*
