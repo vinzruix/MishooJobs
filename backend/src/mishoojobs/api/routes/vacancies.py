@@ -20,7 +20,7 @@ from mishoojobs.schemas.evaluation import (
 )
 from mishoojobs.schemas.job import AuditStatusEnum, SeniorityLevelEnum
 from mishoojobs.schemas.scam import RiskLevelEnum, ScamReportResponse
-from mishoojobs.services.agy_ai_client import AgyAIClient
+from mishoojobs.services.agy_ai_client import AgyAIClient, normalize_primer_empleo_text
 from mishoojobs.services.scam_detector import MexicanScamDetector
 from mishoojobs.services.scrapers.computrabajo import ComputrabajoScraper
 from mishoojobs.services.scrapers.indeed import IndeedScraper
@@ -129,7 +129,7 @@ async def evaluate_vacancy(
             years_required_min=db_vac.years_required_min,
             is_real_first_job=db_vac.is_real_first_job,
             audit_status=AuditStatusEnum(db_vac.audit_status.value if hasattr(db_vac.audit_status, "value") else db_vac.audit_status),
-            reasoning=db_vac.reasoning,
+            reasoning=normalize_primer_empleo_text(db_vac.reasoning or "") if db_vac.reasoning is not None else None,
             has_discrepancy=db_vac.has_discrepancy,
             is_cached=True if (db_vac.audit_status.value if hasattr(db_vac.audit_status, "value") else db_vac.audit_status) == "verified" else False,
             audited_at=db_vac.last_verified_at,
@@ -141,8 +141,8 @@ async def evaluate_vacancy(
             fit_tier=FitTierEnum(cached_entry.fit_tier),
             matched_skills=cached_entry.matched_skills,
             missing_skills=cached_entry.missing_skills,
-            role_readiness_summary=cached_entry.role_readiness_summary,
-            actionable_advice=cached_entry.actionable_advice,
+            role_readiness_summary=normalize_primer_empleo_text(cached_entry.role_readiness_summary),
+            actionable_advice=normalize_primer_empleo_text(cached_entry.actionable_advice),
             is_cached=True,
             evaluated_at=cached_entry.evaluated_at,
             full_description=effective_desc if len(effective_desc) > 300 else None,
@@ -195,8 +195,8 @@ async def evaluate_vacancy(
         fit_tier=FitTierEnum(eval_result["fit_tier"]),
         matched_skills=eval_result["matched_skills"],
         missing_skills=eval_result["missing_skills"],
-        role_readiness_summary=eval_result["role_readiness_summary"],
-        actionable_advice=eval_result["actionable_advice"],
+        role_readiness_summary=normalize_primer_empleo_text(eval_result["role_readiness_summary"]),
+        actionable_advice=normalize_primer_empleo_text(eval_result["actionable_advice"]),
         is_cached=False,
         evaluated_at=now,
         full_description=effective_desc,
@@ -239,7 +239,7 @@ async def audit_vacancy_seniority(
                 years_required_min=db_vac.years_required_min,
                 is_real_first_job=db_vac.is_real_first_job,
                 audit_status=AuditStatusEnum.VERIFIED,
-                reasoning=db_vac.reasoning,
+                reasoning=normalize_primer_empleo_text(db_vac.reasoning or "") if db_vac.reasoning is not None else None,
                 has_discrepancy=db_vac.has_discrepancy,
                 is_cached=True,
                 audited_at=db_vac.last_verified_at,
@@ -356,7 +356,7 @@ async def audit_vacancy_seniority(
         years_required_min=audit_res["years_required_min"],
         is_real_first_job=audit_res["is_real_first_job"],
         audit_status=AuditStatusEnum.VERIFIED,
-        reasoning=audit_res["reasoning"],
+        reasoning=normalize_primer_empleo_text(audit_res["reasoning"]),
         has_discrepancy=audit_res["has_discrepancy"],
         is_cached=False,
         audited_at=now,

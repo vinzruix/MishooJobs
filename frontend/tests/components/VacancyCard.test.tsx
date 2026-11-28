@@ -179,7 +179,7 @@ describe("Frontend Component Tests", () => {
     expect(screen.getByText("[ MID ]")).toBeInTheDocument();
   });
 
-  it("renders emerald primer empleo real badge with verified indicator", () => {
+  it("renders emerald primer empleo badge with verified indicator", () => {
     const verifiedFirstJob: JobVacancy = {
       ...sampleVacancy,
       seniority_level: "primer_empleo",

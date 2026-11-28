@@ -115,6 +115,7 @@ describe("VacancyList Component Tests", () => {
       />
     );
 
+    expect(screen.queryByText("Primer Empleo")).not.toBeInTheDocument();
     expect(screen.queryByText("Primer Empleo Real")).not.toBeInTheDocument();
   });
 

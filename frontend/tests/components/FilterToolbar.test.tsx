@@ -63,7 +63,8 @@ describe("FilterToolbar Component Tests", () => {
     renderToolbar();
 
     expect(screen.getByText("Todos")).toBeInTheDocument();
-    expect(screen.getByText("Primer Empleo Real")).toBeInTheDocument();
+    expect(screen.getByText("Primer Empleo")).toBeInTheDocument();
+    expect(screen.queryByText("Primer Empleo Real")).not.toBeInTheDocument();
     expect(screen.getByText("Pasantías")).toBeInTheDocument();
     expect(screen.getByText("Junior")).toBeInTheDocument();
     expect(screen.getByText("Mid")).toBeInTheDocument();
@@ -80,7 +81,7 @@ describe("FilterToolbar Component Tests", () => {
       filters: { ...defaultFilters, seniority: "all" },
     });
 
-    fireEvent.click(screen.getByText("Primer Empleo Real"));
+    fireEvent.click(screen.getByText("Primer Empleo"));
     expect(handleFilterChange).toHaveBeenCalledWith(
       expect.objectContaining({ seniority: "primer_empleo" })
     );

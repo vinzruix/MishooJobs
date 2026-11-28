@@ -230,5 +230,7 @@ When implementing tasks or modifying this codebase:
 - [experiencie-error] Distinguish unstated experience requirements from 0 years: Rule 11 returns nullable years_required_min (None) with [ EXP. NO ESPECIFICADA ] badge and 'Exp. no especificada' metadata/pastel cards.
 - [occ-inactive] Equip OCCScraper with curl_cffi browser TLS impersonation (chrome136/chrome146/safari184) and robust exception handling to bypass Cloudflare WAF on search endpoints, with PostgreSQL enum casting in SSE upserts.
 - [cv-customized-button] Surface persistent 'Adaptar CV' button in sticky action bar and in-flow description callout card across all vacancy detail views.
+- [009] Frame cleaned transparent MishooJobs cat mascot (`mishoojobs-logo.png`) inside a light rounded-square header badge (`brand-home-btn` returning to `"search"`) and light-backed `/favicon.svg` + `/favicon.png` favicons for contrast across light and dark browser tabs.
+- [009] Standardize user-facing `"Primer Empleo Real"` labels and AI prompts to `"Primer Empleo"` with non-mutating case-insensitive output/display normalization (`normalize_primer_empleo_text`, `normalizeSeniorityDisplayText`) while preserving internal `"primer_empleo"` keys.
 
 

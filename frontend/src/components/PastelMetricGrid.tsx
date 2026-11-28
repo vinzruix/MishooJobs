@@ -70,7 +70,7 @@ export function buildPastelMetrics(vacancy: JobVacancy, fitScore?: number | null
 
   switch (vacancy.seniority_level) {
     case "primer_empleo":
-      seniorityValue = "Primer Empleo Real";
+      seniorityValue = "Primer Empleo";
       senioritySubtext = "0 años verificados";
       break;
     case "pasantia":

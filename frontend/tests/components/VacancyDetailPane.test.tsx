@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { VacancyDetailPane } from "../../src/components/VacancyDetailPane";
+import { normalizeSeniorityDisplayText } from "../../src/services/text_normalizer";
 import type { JobVacancy } from "../../src/types/job";
 
 vi.mock("../../src/services/api", () => ({
@@ -249,5 +250,51 @@ describe("VacancyDetailPane Component Tests", () => {
     expect(scrollContainer).toHaveClass("flex-1");
     expect(scrollContainer).toHaveClass("min-h-0");
     expect(scrollContainer).toHaveClass("overflow-y-auto");
+  });
+
+  it("normalizes legacy 'Primer Empleo Real' text case-insensitively in audit reasoning and AI evaluation outputs", () => {
+    expect(normalizeSeniorityDisplayText(null)).toBe("");
+    expect(normalizeSeniorityDisplayText(undefined)).toBe("");
+    expect(normalizeSeniorityDisplayText("Califica como PRIMER EMPLEO REAL.")).toBe(
+      "Califica como Primer Empleo."
+    );
+    expect(normalizeSeniorityDisplayText("Primer empleo real y primer  empleo  real")).toBe(
+      "Primer Empleo y Primer Empleo"
+    );
+
+    const legacyVacancy: JobVacancy = {
+      ...mockVacancy,
+      seniority_level: "primer_empleo",
+      years_required_min: 0,
+      is_real_first_job: true,
+      reasoning: "Esta oferta corresponde a un Primer Empleo Real sin experiencia previa.",
+    };
+    const legacyEval = {
+      fit_score: 88,
+      fit_tier: "high" as const,
+      matched_skills: ["React"],
+      missing_skills: [],
+      role_readiness_summary: "Excelente opción de Primer empleo real para egresados.",
+      actionable_advice: "Aplica a este PRIMER EMPLEO REAL con tu portafolio.",
+    };
+
+    render(
+      <VacancyDetailPane
+        vacancy={legacyVacancy}
+        cachedEvaluation={legacyEval}
+        initialTab="ai_eval"
+      />
+    );
+
+    expect(
+      screen.getByText("Esta oferta corresponde a un Primer Empleo sin experiencia previa.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Excelente opción de Primer Empleo para egresados.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Aplica a este Primer Empleo con tu portafolio.")
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Primer Empleo Real/i)).not.toBeInTheDocument();
   });
 });

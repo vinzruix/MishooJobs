@@ -93,8 +93,8 @@ describe("App Seniority Filtering Integration Tests", () => {
     expect(screen.getAllByText("Desarrollador Java Junior").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Becario de Software")).toBeInTheDocument();
 
-    // Click on "Primer Empleo Real" in the filter drawer or quick filter pill
-    const firstJobButtons = screen.getAllByRole("button", { name: /Primer Empleo Real/i });
+    // Click on "Primer Empleo" in the filter toolbar
+    const firstJobButtons = screen.getAllByRole("button", { name: /Primer Empleo/i });
     expect(firstJobButtons.length).toBeGreaterThan(0);
     fireEvent.click(firstJobButtons[0]);
 
@@ -312,5 +312,25 @@ describe("App Master-Detail Split Layout & Navigation Tests", () => {
     expect(screen.queryByTestId("mobile-detail-drawer")).not.toBeInTheDocument();
     // Body scroll must not be locked
     expect(document.body.style.overflow).not.toBe("hidden");
+  });
+
+  it("returns to Vacantes view when clicking the header brand logo button from Postulaciones or CVs", () => {
+    render(<App />);
+
+    // Navigate to Postulaciones
+    fireEvent.click(screen.getByRole("button", { name: /Postulaciones/i }));
+    expect(screen.queryByTestId("desktop-detail-pane")).not.toBeInTheDocument();
+
+    // Click brand home button -> returns to Vacantes
+    fireEvent.click(screen.getByTestId("brand-home-btn"));
+    expect(screen.getByTestId("desktop-detail-pane")).toBeInTheDocument();
+
+    // Navigate to CVs
+    fireEvent.click(screen.getByRole("button", { name: /CVs/i }));
+    expect(screen.queryByTestId("desktop-detail-pane")).not.toBeInTheDocument();
+
+    // Click brand home button -> returns to Vacantes
+    fireEvent.click(screen.getByTestId("brand-home-btn"));
+    expect(screen.getByTestId("desktop-detail-pane")).toBeInTheDocument();
   });
 });
