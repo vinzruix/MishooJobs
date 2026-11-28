@@ -88,6 +88,13 @@ def count_cv_words(content: Dict[str, Any]) -> int:
     return total
 
 
+def normalize_primer_empleo_text(text: str) -> str:
+    """Normalizes legacy 'Primer Empleo Real' wording to 'Primer Empleo'."""
+    if not text:
+        return text
+    return re.sub(r"\bprimer\s+empleo\s+real\b", "Primer Empleo", text, flags=re.IGNORECASE)
+
+
 class AgyAIClient:
     """Orchestrates Tier 2 deep AI evaluations, resume parsing, and CV generation via local agy CLI with zero external paid API keys."""
 
@@ -121,7 +128,7 @@ class AgyAIClient:
 
     AUDIT_PROMPT_TEMPLATE = (
         "Eres MishooJobs AI, un auditor y analista de empleo en tecnología en México.\n"
-        "Tu objetivo es realizar una auditoría de experiencia requerida sobre la siguiente vacante para determinar si califica como un auténtico 'Primer Empleo Real (0 Exp)', identificar discrepancias ('Fake Junior') o su nivel de experiencia real.\n\n"
+        "Tu objetivo es realizar una auditoría de experiencia requerida sobre la siguiente vacante para determinar si califica como un auténtico 'Primer Empleo (0 Exp)', identificar discrepancias ('Fake Junior') o su nivel de experiencia real.\n\n"
         "TÍTULO DE LA VACANTE:\n"
         "{title}\n\n"
         "EMPRESA:\n"
@@ -420,8 +427,12 @@ class AgyAIClient:
         parsed["fit_score"] = score
         parsed["matched_skills"] = list(parsed.get("matched_skills", []))
         parsed["missing_skills"] = list(parsed.get("missing_skills", []))
-        parsed["role_readiness_summary"] = str(parsed.get("role_readiness_summary", "Evaluación completada."))
-        parsed["actionable_advice"] = str(parsed.get("actionable_advice", "Continúa fortaleciendo tus proyectos prácticos."))
+        parsed["role_readiness_summary"] = normalize_primer_empleo_text(
+            str(parsed.get("role_readiness_summary", "Evaluación completada."))
+        )
+        parsed["actionable_advice"] = normalize_primer_empleo_text(
+            str(parsed.get("actionable_advice", "Continúa fortaleciendo tus proyectos prácticos."))
+        )
         return parsed
 
     async def run_evaluation(
@@ -469,7 +480,9 @@ class AgyAIClient:
             is_real = False
 
         has_disc = bool(parsed.get("has_discrepancy", False))
-        reasoning = str(parsed.get("reasoning", "Auditoría de experiencia completada."))
+        reasoning = normalize_primer_empleo_text(
+            str(parsed.get("reasoning", "Auditoría de experiencia completada."))
+        )
 
         return {
             "seniority_level": level,

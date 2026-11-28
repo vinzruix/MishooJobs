@@ -54,7 +54,8 @@ describe("PastelMetricGrid Component & Helper Tests", () => {
     const seniority = metrics.find((m) => m.id === "seniority");
     expect(seniority).toBeDefined();
     expect(seniority?.theme).toBe("purple");
-    expect(seniority?.value).toBe("Primer Empleo Real");
+    expect(seniority?.value).toBe("Primer Empleo");
+    expect(seniority?.subtext).toBe("0 años verificados");
     expect(seniority?.badgeStyle.bgClass).toBe("bg-purple-50");
   });
 
@@ -104,6 +105,8 @@ describe("PastelMetricGrid Component & Helper Tests", () => {
     expect(screen.getByText("Nivel")).toBeInTheDocument();
 
     expect(screen.getByText("75% Match")).toBeInTheDocument();
-    expect(screen.getByText("Primer Empleo Real")).toBeInTheDocument();
+    expect(screen.getByText("Primer Empleo")).toBeInTheDocument();
+    expect(screen.getByText("0 años verificados")).toBeInTheDocument();
+    expect(screen.queryByText("Primer Empleo Real")).not.toBeInTheDocument();
   });
 });

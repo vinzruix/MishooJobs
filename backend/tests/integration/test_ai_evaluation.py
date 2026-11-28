@@ -66,3 +66,52 @@ def test_agy_ai_client_prompt_includes_desired_skills():
     assert "HABILIDADES DESEADAS / REQUERIDAS POR LA VACANTE:" in prompt
     assert '["Python", "FastAPI", "Docker"]' in prompt
     assert "Backend Developer Jr" in prompt
+
+
+@pytest.mark.asyncio
+async def test_cached_ai_evaluation_normalizes_primer_empleo_real(monkeypatch):
+    test_fingerprint = "test-ai-eval-norm-fp"
+    from mishoojobs.api.routes.vacancies import compute_eval_cache_key
+
+    skills = ["Python", "Git"]
+    target_role = "Backend Developer Jr"
+    cache_key, skills_hash = compute_eval_cache_key(test_fingerprint, target_role, skills)
+
+    async with async_session_factory() as session:
+        await session.execute(
+            delete(AIEvaluationCache).where(AIEvaluationCache.cache_key == cache_key)
+        )
+        session.add(
+            AIEvaluationCache(
+                cache_key=cache_key,
+                vacancy_fingerprint=test_fingerprint,
+                target_role=target_role,
+                skills_hash=skills_hash,
+                fit_score=92,
+                fit_tier="high",
+                matched_skills=skills,
+                missing_skills=[],
+                role_readiness_summary="Adecuado para un Primer empleo real en backend.",
+                actionable_advice="Postúlate a este PRIMER EMPLEO REAL hoy mismo.",
+            )
+        )
+        await session.commit()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        res = await client.post(
+            "/api/v1/vacancies/evaluate",
+            json={
+                "vacancy_fingerprint": test_fingerprint,
+                "target_role": target_role,
+                "candidate_skills": skills,
+                "job_description": "Vacante backend sin experiencia.",
+            },
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["is_cached"] is True
+        assert data["role_readiness_summary"] == "Adecuado para un Primer Empleo en backend."
+        assert data["actionable_advice"] == "Postúlate a este Primer Empleo hoy mismo."
+        assert "primer empleo real" not in data["role_readiness_summary"].lower()
+        assert "primer empleo real" not in data["actionable_advice"].lower()

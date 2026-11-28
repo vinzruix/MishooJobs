@@ -20,6 +20,7 @@ import { ScamBadge } from "./ScamBadge";
 import { PastelMetricGrid } from "./PastelMetricGrid";
 import { parseJobDescription } from "../services/job_description_parser";
 import { JobDescriptionViewer } from "./JobDescriptionViewer";
+import { normalizeSeniorityDisplayText } from "../services/text_normalizer";
 
 export interface VacancyDetailPaneProps {
   vacancy: JobVacancy | null;
@@ -442,7 +443,7 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
                     )}
                   </div>
                   <p className="text-slate-600 leading-relaxed text-xs">
-                    {auditResult?.reasoning || vacancy.reasoning}
+                    {normalizeSeniorityDisplayText(auditResult?.reasoning || vacancy.reasoning)}
                   </p>
                 </div>
               </div>
@@ -555,13 +556,17 @@ export const VacancyDetailPane: React.FC<VacancyDetailPaneProps> = ({
                       <h4 className="font-bold text-slate-800 uppercase text-[10px] tracking-wider mb-1">
                         Diagnóstico de Preparación
                       </h4>
-                      <p className="leading-relaxed text-slate-600">{evaluation.role_readiness_summary}</p>
+                      <p className="leading-relaxed text-slate-600">
+                        {normalizeSeniorityDisplayText(evaluation.role_readiness_summary)}
+                      </p>
                     </div>
                     <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-200">
                       <h4 className="font-bold text-emerald-800 uppercase text-[10px] tracking-wider mb-1">
                         Consejo Accionable
                       </h4>
-                      <p className="leading-relaxed text-emerald-950">{evaluation.actionable_advice}</p>
+                      <p className="leading-relaxed text-emerald-950">
+                        {normalizeSeniorityDisplayText(evaluation.actionable_advice)}
+                      </p>
                     </div>
                   </div>
 

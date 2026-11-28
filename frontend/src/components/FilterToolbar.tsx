@@ -20,7 +20,7 @@ import { MEXICAN_STATES, getMexicanStateOption } from "../services/mexican_state
 
 const SENIORITY_OPTIONS: SeniorityOption[] = [
   { id: "all", label: "Todos" },
-  { id: "primer_empleo", label: "Primer Empleo Real", shortLabel: "Primer Empleo", isHighlight: true },
+  { id: "primer_empleo", label: "Primer Empleo", isHighlight: true },
   { id: "pasantia", label: "Pasantías" },
   { id: "junior", label: "Junior" },
   { id: "mid", label: "Mid" },

@@ -100,3 +100,46 @@ async def test_seniority_audit_api_workflow_and_caching(monkeypatch):
         res_cached = await client.post(f"/api/v1/vacancies/{unpersisted_fp}/audit", json={})
         assert res_cached.status_code == 200
         assert res_cached.json()["is_cached"] is True
+
+
+def test_audit_prompt_template_uses_standardized_primer_empleo():
+    client = AgyAIClient()
+    assert "'Primer Empleo (0 Exp)'" in client.AUDIT_PROMPT_TEMPLATE
+    assert "primer empleo real" not in client.AUDIT_PROMPT_TEMPLATE.lower()
+
+
+@pytest.mark.asyncio
+async def test_cached_seniority_audit_normalizes_primer_empleo_real():
+    cached_fp = "test-seniority-audit-norm-fp"
+
+    async with async_session_factory() as session:
+        await session.execute(delete(JobVacancy).where(JobVacancy.fingerprint == cached_fp))
+        await session.execute(
+            insert(JobVacancy).values(
+                fingerprint=cached_fp,
+                title="Desarrollador Trainee",
+                company_name="TechMX",
+                location_state="CDMX",
+                modality="remoto",
+                seniority_level="primer_empleo",
+                years_required_min=0,
+                is_real_first_job=True,
+                audit_status="verified",
+                reasoning="Califica como Primer Empleo Real (mixed) y PRIMER EMPLEO REAL (upper).",
+                has_discrepancy=False,
+                currency="MXN",
+                description_clean="Trabajo formal sin experiencia.",
+                skills_extracted=["Python"],
+                is_verified_active=True,
+            )
+        )
+        await session.commit()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        res = await client.post(f"/api/v1/vacancies/{cached_fp}/audit", json={})
+        assert res.status_code == 200
+        data = res.json()
+        assert data["is_cached"] is True
+        assert data["reasoning"] == "Califica como Primer Empleo (mixed) y Primer Empleo (upper)."
+        assert "primer empleo real" not in data["reasoning"].lower()
